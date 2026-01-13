@@ -1,0 +1,2 @@
+export { AirwallexCheckout } from './AirwallexCheckout';
+

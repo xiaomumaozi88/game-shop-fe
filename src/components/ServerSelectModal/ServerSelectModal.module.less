@@ -1,0 +1,319 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: @z-index-modal;
+  .flex-center();
+  padding: @spacing-md;
+
+  .mobile({
+    padding: @spacing-md;
+  });
+}
+
+.modal {
+  position: relative;
+  background: @white;
+  border-radius: @border-radius-lg;
+  max-width: 25rem; // 400px
+  width: 100%;
+  padding: @spacing-xxl @spacing-lg @spacing-xl;
+  box-shadow: @box-shadow-lg;
+  animation: slideUp 0.3s ease;
+
+  .mobile({
+    max-width: 90%;
+    padding: @spacing-xl @spacing-md;
+  });
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem); // 20px
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  font-size: @font-size-xxl;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  margin: 0 0 @spacing-md 0;
+  line-height: 1.4;
+
+  .mobile({
+    font-size: @font-size-xxl;
+  });
+}
+
+.inputGroup {
+  margin-bottom: @spacing-lg;
+  position: relative;
+
+  .mobile({
+    margin-bottom: @spacing-md;
+  });
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 1.25rem; // 20px 圆角（默认状态）
+  background: @white;
+  overflow: visible; // 改为 visible，让下拉列表可以显示
+  z-index: 1;
+  transition: border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 3rem; // 48px 统一最小高度
+
+  // 当下拉列表打开时，保持顶部圆角，底部圆角变为0
+  &.inputWrapperOpen {
+    border-radius: 1.25rem 1.25rem 0 0; // 20px 顶部保持圆角，底部变为0
+    border-bottom: 1px solid transparent; // 使用透明边框而不是none，避免闪烁
+  }
+
+  .mobile({
+    min-height: 2.5rem; // 40px
+  });
+}
+
+.input {
+  flex: 1;
+  padding: @spacing-md;
+  border: none;
+  outline: none;
+  font-size: @font-size-md;
+  color: @text-color;
+  background: transparent;
+  line-height: 1.5; // 统一行高
+  min-height: auto; // 移除最小高度限制
+
+  &::placeholder {
+    color: #cccccc; // 更浅的灰色
+  }
+
+  .mobile({
+    padding: @spacing-sm;
+    font-size: @font-size-sm;
+  });
+}
+
+.characterInput {
+  flex: 1;
+  padding: @spacing-md;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  outline: none; // 移除焦点轮廓
+  min-height: 3rem; // 48px 与输入框保持一致的高度
+
+  .mobile({
+    padding: @spacing-sm;
+    min-height: 2.5rem; // 40px
+  });
+}
+
+.characterName {
+  font-size: @font-size-md; // 与输入框字体大小一致
+  color: @text-color;
+  font-weight: normal; // 移除加粗，与输入框一致
+  width: 100%;
+
+  .mobile({
+    font-size: @font-size-sm; // 移动端与输入框字体大小一致
+  });
+}
+
+.characterPlaceholder {
+  font-size: @font-size-md; // 与输入框字体大小一致
+  color: #cccccc; // 与输入框 placeholder 颜色一致
+
+  .mobile({
+    font-size: @font-size-sm; // 移动端与输入框字体大小一致
+  });
+}
+
+.dropdownButton {
+  .button-reset();
+  padding: @spacing-md;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: @text-color-secondary;
+  flex-shrink: 0;
+
+  .mobile({
+    padding: @spacing-sm;
+  });
+}
+
+.chevron {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.chevronUp {
+  transform: rotate(0deg);
+}
+
+.chevronDown {
+  transform: rotate(180deg);
+}
+
+.dropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: @white;
+  border: 1px solid #e0e0e0;
+  border-top: 1px solid transparent; // 顶部边框透明，避免与输入框边框重叠
+  border-radius: 0 0 20px 20px; // 顶部圆角为0，底部圆角与输入框一致（20px），保持整体圆角形状
+  max-height: 12.5rem; // 200px
+  overflow-y: auto;
+  z-index: 10;
+  margin-top: -1px; // 负边距，让下拉列表覆盖输入框的底部边框
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); // 添加阴影增强一体感
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top;
+  overflow-x: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+.dropdownItem {
+  padding: @spacing-md;
+  cursor: pointer;
+  font-size: @font-size-md;
+  color: @text-color;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s ease;
+  transform: translateZ(0); // 启用硬件加速
+
+  &:hover {
+    background: @background-color;
+    transform: translateX(2px); // 轻微右移，增加交互感
+  }
+
+  &:active {
+    background: darken(@background-color, 5%);
+    transform: translateX(0) scale(0.98);
+  }
+
+  &.dropdownItemSelected {
+    background: fade(@primary-color, 10%);
+    color: @primary-color;
+    font-weight: 500;
+  }
+
+  .mobile({
+    padding: @spacing-sm;
+    font-size: @font-size-sm;
+  });
+}
+
+.dropdownItemEmpty {
+  padding: @spacing-md;
+  font-size: @font-size-sm;
+  color: @text-color-secondary;
+  text-align: center;
+
+  .mobile({
+    padding: @spacing-sm;
+    font-size: @font-size-xs;
+  });
+}
+
+.confirmButton {
+  flex: 1;
+  padding: @spacing-md;
+  background: #626cda;
+  border: none;
+  border-radius: 1.25rem; // 20px 圆角
+  color: @white;
+  font-size: @font-size-md;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+  width: 100%;
+  margin-top: @spacing-md;
+
+  &:hover {
+    background: darken(#626cda, 10%);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .mobile({
+    font-size: @font-size-sm;
+    padding: @spacing-sm;
+  });
+}
+
+.closeButton {
+  .button-reset();
+  position: absolute;
+  bottom: -60px; // 增加与弹窗的距离
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.5rem; // 40px
+  height: 2.5rem; // 40px
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: @background-color;
+    border-color: @text-color-secondary;
+  }
+
+  &:active {
+    transform: translateX(-50%) scale(0.95);
+  }
+
+  .mobile({
+    
+  });
+}
+
+.closeIcon {
+  width: 2.5rem; // 40px
+  height: 2.5rem; // 40px
+  object-fit: contain;
+
+  .mobile({
+    width: 2.5rem; // 40px
+    height: 2.5rem; // 40px
+  });
+}
+

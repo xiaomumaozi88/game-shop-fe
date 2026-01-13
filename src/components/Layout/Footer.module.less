@@ -1,0 +1,324 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.footer {
+  background: #2c2c2c; // 深灰色背景
+  color: @white;
+  padding: @spacing-md 0;
+  margin-top: auto;
+  // Footer在页面内容最底部，底部导航栏是浮动固定的，所以Footer正常显示即可
+
+  .mobile({
+    padding: @spacing-md 0;
+  });
+
+  .desktop({
+    height: 14rem;
+  });
+}
+
+.footerWithDownload {
+  .desktop({
+    height: 20rem;
+  });
+}
+
+.container {
+  margin: 0 auto;
+  padding: 0 @spacing-xl;
+
+  .mobile({
+    padding: 0 @spacing-sm;
+  });
+}
+
+.topSection {
+  margin-bottom: @spacing-md;
+  gap: @spacing-sm;
+  display: flex;
+
+  .mobile({
+    gap: @spacing-sm;
+  });
+  .desktop({
+    margin: 1.5rem 0;
+  });
+}
+
+// 下载按钮区域
+.downloadSection {
+  margin-bottom: @spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-sm;
+
+  .mobile({
+    gap: @spacing-xs;
+    margin-bottom: @spacing-sm;
+  });
+}
+
+.downloadTitle {
+  display: flex;
+  align-items: center;
+  gap: @spacing-sm;
+  color: @white;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: @spacing-sm;
+  padding-left: @spacing-xs;
+  margin-bottom: @spacing-xs;
+
+  .mobile({
+    gap: @spacing-xs;
+  });
+}
+
+.downloadGameIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: @border-radius-sm;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: 0.8rem;
+
+  .mobile({
+    width: 2.5rem;
+    height: 2.5rem;
+  });
+}
+
+.downloadTitleText {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-xs;
+}
+
+.downloadGameName {
+  font-weight: 500;
+  font-size: @font-size-sm;
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+
+  .desktop({
+    font-size: @font-size-md;
+  });
+}
+
+.downloadPrompt {
+  font-weight: normal;
+  font-size: @font-size-xs;
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+
+  .desktop({
+    font-size: @font-size-sm;
+  });
+}
+
+.downloadButtons {
+  display: flex;
+  gap: @spacing-sm;
+  align-items: center;
+
+  .mobile({
+    gap: @spacing-xs;
+  });
+}
+
+.downloadButton {
+  .button-reset();
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+  padding: 0 @spacing-md;
+  background: #000;
+  border: 1px solid @white;
+  border-radius: 999px;
+  color: @white;
+  font-size: @font-size-sm;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  height: 2rem;
+  min-width: 8rem;
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .mobile({
+    padding: 0 @spacing-sm;
+    font-size: @font-size-xs;
+    height: 2rem;
+  });
+
+  .desktop({
+    padding: 0 @spacing-lg 0 @spacing-md;
+    font-size: @font-size-md;
+    height: 2.5rem;
+    min-width: 9rem;
+  });
+}
+
+.downloadIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  object-fit: contain;
+
+}
+
+.languageButton {
+  .button-reset();
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+  color: @white;
+  font-size: @font-size-xs;
+  padding: 0 @spacing-sm;
+  background: #000; // 黑色背景
+  border: 1px solid @white; // 白色边框
+  border-radius: 999px; // 药丸形状
+  transition: all 0.2s ease;
+  height: 2rem;
+  padding: 0 0.7rem 0 0.5rem;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .mobile({
+    font-size: @font-size-xs;
+    min-width: 7.5rem;
+  });
+
+  .desktop({
+    height: 2.5rem;
+    font-size: @font-size-md;
+  })
+}
+
+.buttonIcon {
+  width: 1.7rem; // 14px
+  height: 1.7rem; // 14px
+  flex-shrink: 0;
+  object-fit: contain;
+  .desktop({
+    width: 1.5rem;
+    height: 1.5rem;
+  });
+}
+
+.chevronIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+
+  .mobile({
+    width: 0.875rem;
+    height: 0.875rem;
+  });
+
+  .desktop({
+    width: 1rem;
+    height: 1rem;
+  });
+}
+
+.languageDropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: @spacing-xs;
+  background: @white;
+  border-radius: @border-radius-sm;
+  box-shadow: @box-shadow-md;
+  min-width: 150px;
+  overflow: hidden;
+  z-index: @z-index-dropdown;
+}
+
+.languageOption {
+  .button-reset();
+  width: 200px;
+  padding: @spacing-sm @spacing-md;
+  text-align: left;
+  color: @text-color;
+  font-size: @font-size-sm;
+  .touch-friendly();
+
+  &:hover {
+    background: @background-color;
+  }
+}
+
+.supportButton {
+  .button-reset();
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: @spacing-xs;
+  color: @white;
+  font-size: @font-size-xs;
+  padding: 0 @spacing-sm;
+  background: #000; // 黑色背景
+  border: 1px solid @white; // 白色边框
+  border-radius: 999px; // 药丸形状
+  height: 2rem;
+  padding: 0 0.7rem 0 0.5rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .mobile({
+    font-size: @font-size-xs;
+    min-width: 7.5rem;
+  });
+  .desktop({
+    height: 2.5rem;
+    font-size: @font-size-md;
+  })
+}
+
+.bottomSection {
+  .flex-start();
+  gap: @spacing-md;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+
+  .mobile({
+    flex-direction: column;
+    gap: @spacing-sm;
+    align-items: flex-start;
+  });
+  .tablet({
+    flex-direction: column;
+    align-items: flex-start;
+  });
+}
+
+.link {
+  color: rgba(255, 255, 255);
+  text-decoration: none;
+  font-size: @font-size-sm;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: @white;
+  }
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+  .desktop({
+    font-size: @font-size-md;
+  })
+}
+

@@ -1,0 +1,65 @@
+@import './variables.less';
+@import './mixins.less';
+@import './reset.less';
+
+// 全局样式
+#root {
+  min-height: 100vh;
+}
+
+// 容器
+.container {
+  max-width: 75rem; // 1200px
+  margin: 0 auto;
+  padding: 0 @spacing-md;
+
+  .mobile({
+    padding: 0 @spacing-sm;
+  });
+}
+
+// 通用工具类
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-xs {
+  margin-top: @spacing-xs;
+}
+
+.mt-sm {
+  margin-top: @spacing-sm;
+}
+
+.mt-md {
+  margin-top: @spacing-md;
+}
+
+.mt-lg {
+  margin-top: @spacing-lg;
+}
+
+.mb-xs {
+  margin-bottom: @spacing-xs;
+}
+
+.mb-sm {
+  margin-bottom: @spacing-sm;
+}
+
+.mb-md {
+  margin-bottom: @spacing-md;
+}
+
+.mb-lg {
+  margin-bottom: @spacing-lg;
+}
+

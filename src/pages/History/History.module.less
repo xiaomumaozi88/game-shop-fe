@@ -1,0 +1,594 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.history {
+  min-height: 100vh;
+  background: @background-color; // 浅灰色背景
+  padding-bottom: @spacing-xl;
+}
+
+// 游戏选择器
+.gameSelector {
+  background: #e8e8e8; // 灰色背景
+  padding: @spacing-md @spacing-lg;
+  position: relative;
+
+  .mobile({
+    padding: @spacing-sm @spacing-md;
+  });
+}
+
+.gameSelectorContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  align-items: end;
+  gap: 0.25rem; // 4px
+}
+
+.gameName {
+  font-size: @font-size-md;
+  color: @text-color;
+  font-weight: 500;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.dropdownIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+
+  &.dropdownIconOpen {
+    transform: rotate(0deg);
+  }
+
+  &.dropdownIconClosed {
+    transform: rotate(180deg);
+  }
+}
+
+.dropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: @white;
+  border: 1px solid @border-color;
+  border-top: none;
+  border-radius: 0 0 @border-radius-md @border-radius-md;
+  box-shadow: @box-shadow-md;
+  z-index: 100;
+  margin-top: -1px;
+  max-height: 12.5rem; // 200px
+  overflow-y: auto;
+}
+
+.dropdownItem {
+  padding: @spacing-md;
+  font-size: @font-size-md;
+  color: @text-color;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid @border-color;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: @background-color;
+  }
+
+  &.dropdownItemActive {
+    background: rgba(@primary-color, 0.1);
+    color: @primary-color;
+    font-weight: 500;
+  }
+
+  .mobile({
+    padding: @spacing-sm;
+    font-size: @font-size-sm;
+  });
+}
+
+// 订单筛选标签
+.filterTabs {
+  display: flex;
+  gap: @spacing-md;
+  padding: @spacing-md @spacing-lg;
+  overflow-x: auto;
+  justify-content: space-between;
+  align-items: center;
+
+
+  .mobile({
+    background: @white;
+    gap: @spacing-sm;
+    padding: @spacing-sm @spacing-md;
+    flex-direction: column;
+    align-items: flex-start;
+  });
+  .desktop({
+    background: transparent;
+    margin-top: 1rem;
+    overflow: visible;
+  });
+  .tablet({
+    padding-bottom: 0;
+  });
+}
+
+.filterTabsLeft {
+  display: flex;
+  gap: @spacing-md;
+  flex: 1;
+
+  .mobile({
+    gap: @spacing-sm;
+    width: 100%;
+    overflow-x: auto;
+  });
+}
+
+.filterTabsRight {
+  display: flex;
+  gap: @spacing-md;
+  align-items: center;
+  flex-shrink: 0;
+
+  .mobile({
+    display: none;
+  });
+  .tablet({
+    display: none;
+  });
+}
+
+.filterTab {
+  .button-reset();
+  font-size: @font-size-md;
+  color: rgba(@text-color, 0.5);
+  padding: 0.25rem 0.25rem 0.6rem 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.2s ease;
+  word-spacing: 0.2rem;
+  font-weight: bold;
+
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+
+  &.filterTabActive {
+    color: #000;
+    font-weight: bold;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 80%;
+      margin: 0 auto;;
+      border-radius: 1rem;
+      height: 0.2rem; // 2px
+      background: @primary-color;
+    }
+  }
+
+}
+
+// filterTabs 的游戏选择器
+.filterGameSelector {
+  position: relative;
+  display: none;
+
+  .desktop({
+    display: block;
+  });
+}
+
+.filterGameSelectorContent {
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+  padding: @spacing-xs @spacing-sm;
+  background: @white;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-md;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: @primary-color;
+  }
+}
+
+.filterGameName {
+  font-size: @font-size-sm;
+  color: @text-color;
+  white-space: nowrap;
+}
+
+.filterDropdownIcon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+
+  &.filterDropdownIconOpen {
+    transform: rotate(180deg);
+  }
+}
+
+.filterDropdownList {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  background: @white;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-md;
+  box-shadow: @box-shadow-md;
+  z-index: @z-index-dropdown;
+  min-width: 100%;
+  overflow: hidden;
+}
+
+.filterDropdownItem {
+  padding: @spacing-sm @spacing-md;
+  font-size: @font-size-sm;
+  color: @text-color;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: @background-color;
+  }
+
+  &.filterDropdownItemActive {
+    background: rgba(@primary-color, 0.1);
+    color: @primary-color;
+    font-weight: 500;
+  }
+}
+
+// 返回专区按钮
+.backToProductsButton {
+  .button-reset();
+  .flex-start();
+  display: none;
+  padding: @spacing-xs @spacing-md;
+  gap: @spacing-xs;
+  background: #6e69c9;
+  color: @white;
+  border-radius: 999px; // pill-like rounded corners
+  font-size: @font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+
+  .desktop({
+    display: flex;
+  });
+}
+
+.backToProductsIcon {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+// 订单列表
+.ordersList {
+  padding: @spacing-md @spacing-lg;
+
+  .mobile({
+    padding: @spacing-sm @spacing-md;
+  });
+}
+
+.empty {
+  text-align: center;
+  padding: 50% 0;
+  color: @text-color-secondary;
+
+  p {
+    font-size: @font-size-lg;
+    margin: 0;
+  }
+  .desktop({
+    padding: 20% 0;
+  });
+}
+
+.orderCard {
+  background: @white;
+  border-radius: @border-radius-lg;
+  padding: @spacing-md;
+  margin-bottom: @spacing-md;
+  box-shadow: @box-shadow-sm;
+  display: flex;
+  flex-direction: column;
+
+  .mobile({
+    aspect-ratio: 239 / 105; // 订单卡片宽高比
+    padding: @spacing-sm;
+    margin-bottom: @spacing-sm;
+  });
+
+  .tablet({
+    aspect-ratio: auto; // 平板端移除固定宽高比
+    min-height: auto;
+    padding: @spacing-sm @spacing-md; // 平板端减少内边距
+  });
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: @spacing-md;
+  padding-bottom: @spacing-sm;
+  border-bottom: 1px solid @border-color;
+
+  .tablet({
+    margin-bottom: @spacing-sm;
+    padding-bottom: @spacing-xs;
+  });
+}
+
+.orderId {
+  font-size: @font-size-sm;
+  color: @text-color-secondary;
+  font-weight: 500;
+
+  .mobile({
+    font-size: 0.7rem;
+  });
+}
+
+.orderStatus {
+  font-size: @font-size-sm;
+  color: #000;
+  font-weight: 500;
+
+  .mobile({
+    font-size: 0.7rem;
+  });
+}
+
+.orderContent {
+  display: flex;
+  gap: @spacing-md;
+  align-items: flex-start;
+  flex: 1;
+
+  .mobile({
+    gap: @spacing-sm;
+  });
+
+  .tablet({
+    gap: @spacing-sm;
+    align-items: center;
+  });
+
+  .desktop({
+    align-items: stretch;
+  });
+}
+
+.orderItemIcon {
+  flex-shrink: 0;
+  display: flex;
+  
+  .desktop({
+    align-items: stretch;
+  });
+}
+
+.iconWrapper {
+  position: relative;
+  aspect-ratio: 59 / 50; // 商品图片宽高比
+  min-width: 4.125rem; // 66px
+  border-radius: @border-radius-md;
+  background: @white;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .mobile({
+    min-width: 7.5rem; // 120px
+  });
+  .tablet({
+    height: 100%;
+    width: 8rem; // 66px，固定宽度
+  });
+  .desktop({
+    height: 100%;
+    width: 8rem; // 66px，固定宽度
+  });
+
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+// 代金券图片容器（背景图 + 主图 + 阴影）
+.orderImageContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.voucherImageBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../../assets/imgs/touka_commodity_List_ItemB3.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.voucherImageBgDiamond {
+  background-image: url('../../assets/imgs/diamond-list-item.png');
+}
+
+.voucherImageMain {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+  z-index: 2;
+}
+
+.voucherImageShadow {
+  position: absolute;
+  top: 80%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  max-height: 100%;
+  object-fit: contain;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.productPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: @background-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: @text-color-secondary;
+  font-size: @font-size-xs;
+}
+
+.orderItemDetails {
+  padding: 0.1rem 0;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  color: #949494;
+  gap: 0.4rem;
+
+  .tablet({
+    gap: 0.125rem; // 2px 平板端减少间距
+  });
+}
+
+.itemName {
+  font-size: @font-size-md;
+  color: @text-color;
+  font-weight: bold;
+
+  .mobile({
+    font-size: @font-size-md;
+  });
+}
+
+.orderTime {
+  font-size: @font-size-xs;
+  .mobile({
+    font-size: @font-size-xxs;
+  });
+  .tablet({
+    font-size: @font-size-sm;
+  });
+}
+
+.itemInfo {
+  display: flex;
+  align-items: center;
+  gap: @spacing-sm;
+  flex-wrap: wrap;
+}
+
+.voucherButton {
+  .button-reset();
+  background: #C9D4DD; 
+  color: #5784A9;
+  font-size: @font-size-xs;
+  padding: @spacing-xs @spacing-sm;
+  border-radius: @border-radius-sm;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  font-weight: bold;
+  border-radius: 0.9375rem; // 15px
+  padding: 0.25rem 1.75rem; // 2px 12px
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .mobile({
+    // width: 7.5rem; // 120px
+    font-size: @font-size-xxs;
+
+  });
+  .tablet({
+    font-size: @font-size-xs;
+  });
+  .desktop({
+    font-size: @font-size-sm;
+  });
+}
+
+.itemQuantity {
+  font-size: @font-size-xs;
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+  .tablet({
+    font-size: @font-size-sm;
+  });
+}
+
+.platformInfo {
+  font-size: @font-size-xs;
+  .mobile({
+    font-size: @font-size-xs;
+  });
+  .tablet({
+    font-size: @font-size-sm;
+  });
+}

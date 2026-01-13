@@ -1,0 +1,28 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.searchBar {
+  width: 100%;
+  max-width: 31.25rem; // 500px
+}
+
+.input {
+  width: 100%;
+  padding: @spacing-sm @spacing-md;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-md;
+  font-size: @font-size-md;
+  transition: @transition-base;
+  .touch-friendly();
+
+  &:focus {
+    outline: none;
+    border-color: @primary-color;
+    box-shadow: 0 0 0 2px rgba(@primary-color, 0.2);
+  }
+
+  &::placeholder {
+    color: #cccccc; // 更浅的灰色
+  }
+}
+

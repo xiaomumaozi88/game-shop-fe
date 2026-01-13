@@ -1,0 +1,105 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.button {
+  .button-reset();
+  .touch-friendly();
+  .flex-center();
+  gap: @spacing-xs;
+  border-radius: @border-radius-md;
+  font-weight: 500;
+  transition: @transition-base;
+  cursor: pointer;
+  position: relative;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.fullWidth {
+    width: 100%;
+  }
+
+  &.loading {
+    pointer-events: none;
+  }
+}
+
+// 尺寸
+.small {
+  padding: @spacing-xs @spacing-sm;
+  font-size: @font-size-sm;
+  min-height: 2rem; // 32px
+}
+
+.medium {
+  padding: @spacing-sm @spacing-md;
+  font-size: @font-size-md;
+  min-height: 2.5rem; // 40px
+}
+
+.large {
+  padding: @spacing-md @spacing-lg;
+  font-size: @font-size-lg;
+  min-height: 3rem; // 48px
+}
+
+// 变体
+.primary {
+  background: @primary-color;
+  color: @white;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:active:not(:disabled) {
+    opacity: 0.8;
+  }
+}
+
+.secondary {
+  background: @text-color-secondary;
+  color: @white;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+}
+
+.outline {
+  background: transparent;
+  color: @primary-color;
+  border: 1px solid @primary-color;
+
+  &:hover:not(:disabled) {
+    background: @primary-color;
+    color: @white;
+  }
+}
+
+.text {
+  background: transparent;
+  color: @primary-color;
+
+  &:hover:not(:disabled) {
+    background: rgba(@primary-color, 0.1);
+  }
+}
+
+.spinner {
+  width: 1rem; // 16px
+  height: 1rem; // 16px
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: @white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

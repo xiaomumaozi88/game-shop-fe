@@ -1,0 +1,87 @@
+@import './variables.less';
+
+// 响应式 Mixins
+.mobile(@rules) {
+  @media (max-width: 767px) {
+    @rules();
+  }
+}
+
+.tablet(@rules) {
+  @media (min-width: 768px) and (max-width: 1023px) {
+    @rules();
+  }
+}
+
+.desktop(@rules) {
+  @media (min-width: 1024px) {
+    @rules();
+  }
+}
+
+.tablet-up(@rules) {
+  @media (min-width: 768px) {
+    @rules();
+  }
+}
+
+// Flexbox Mixins
+.flex-center() {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between() {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-start() {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// 文本省略
+.text-ellipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-multi(@lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: @lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 清除浮动
+.clearfix() {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 按钮重置
+.button-reset() {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+}
+
+// 触摸友好
+.touch-friendly() {
+  min-height: 2.75rem; // 44px
+  min-width: 2.75rem; // 44px
+}
+

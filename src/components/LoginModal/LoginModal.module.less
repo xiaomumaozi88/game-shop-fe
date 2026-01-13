@@ -1,0 +1,710 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: @z-index-modal;
+  .flex-center();
+  // padding: @spacing-md;
+
+  .mobile({
+    // padding: @spacing-md;
+  });
+}
+
+.modal {
+  position: relative;
+  background: @white;
+  border-radius: @border-radius-lg;
+  max-width: 25rem; // 400px
+  width: 100%;
+  padding: 0;
+  box-shadow: @box-shadow-lg;
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+
+  .mobile({
+    max-width: 90%;
+  });
+  .desktop({
+    max-width: 30rem;
+  });
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem); // 20px
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.closeButton {
+  .button-reset();
+  position: absolute;
+  top: @spacing-md;
+  right: @spacing-md;
+  width: 2rem; // 32px
+  height: 2rem; // 32px
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: @text-color;
+  z-index: 10;
+
+  &:hover {
+    background: @white;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .mobile({
+    width: 1.75rem; // 28px
+    height: 1.75rem; // 28px
+  });
+}
+
+// TOUKA ID 头部
+.header {
+  background: #fb7901;; // 橙色背景
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .mobile({
+    padding: @spacing-md @spacing-md @spacing-sm;
+  });
+  .desktop({
+    padding: @spacing-md @spacing-lg;
+  });
+  .tablet({
+    padding: @spacing-sm;
+  });
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+}
+
+.logoText {
+  font-weight: bold;
+  color: @white;
+
+  .mobile({
+    font-size: @font-size-xxl;
+  });
+  .desktop({
+    font-size: 2rem;
+  });
+}
+
+.idBadge {
+  width: 2.25rem; // 36px
+  height: 2.25rem; // 36px
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+
+  .mobile({
+    width: 2rem; // 32px
+    height: 2rem; // 32px
+  });
+  .desktop({
+    width: 3rem; // 40px
+    height: 3rem; // 40px
+  });
+}
+
+// 登录提示
+.loginPrompt {
+  padding: @spacing-md @spacing-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: @spacing-xs;
+  justify-content: center;
+
+  .mobile({
+    padding: @spacing-md @spacing-md;
+  });
+}
+
+.arrowIcon {
+  width: auto;
+  height: 2.5rem; // 40px
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+
+  .mobile({
+    height: 5rem; // 80px
+  });
+  .desktop({
+    height: 5rem; // 40px
+  });
+}
+
+.promptText {
+  font-size: @font-size-lg;
+  color: #585858 ; // 黑色/深灰色文字
+  font-weight: 600;
+
+  .mobile({
+    font-size: @font-size-md;
+  });
+}
+
+.form {
+  padding: 0 @spacing-lg @spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-md;
+
+  .mobile({
+    padding: 0 @spacing-md @spacing-md;
+    gap: @spacing-sm;
+  });
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-xs;
+}
+
+.fieldError {
+  font-size: @font-size-xs;
+  color: #f5222d;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+}
+
+.input {
+  width: 100%;
+  height: 3rem; // 48px，与验证码输入框高度一致
+  padding: 0 @spacing-md;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-md; // 小圆角
+  font-size: @font-size-md;
+  color: @text-color;
+  outline: none;
+  transition: border-color 0.2s ease;
+  background: #f0f0f0;
+
+  &:focus {
+    border-color: @primary-color;
+  }
+
+  &::placeholder {
+    color: #cccccc; // 更浅的灰色
+  }
+
+  .mobile({
+    padding: 0 @spacing-sm;
+    font-size: @font-size-sm;
+  });
+}
+
+.captchaWrapper {
+  display: flex;
+  gap: @spacing-sm;
+  align-items: center;
+  width: 100%;
+  min-width: 0; // 防止 iOS 上 flex 子元素溢出
+}
+
+.captchaInput {
+  background: #f0f0f0;
+  flex: 1; // 宽度自适应
+  min-width: 0; // 防止 iOS 上 flex 子元素溢出
+  height: 3rem; // 48px
+  padding: 0 @spacing-md;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-md; // 小圆角
+  font-size: @font-size-md;
+  color: @text-color;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: @primary-color;
+  }
+
+  &::placeholder {
+    color: #cccccc; // 更浅的灰色
+  }
+
+  .mobile({
+    padding: 0 @spacing-sm;
+    font-size: @font-size-sm;
+  });
+}
+
+.captchaImage {
+  width: 8.5rem; // 136px
+  height: 3rem; // 48px
+  border: 1px solid @border-color;
+  border-radius: @border-radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  color: #626cda; // 紫色文字
+  font-size: @font-size-lg;
+  font-weight: bold;
+  font-family: monospace;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+
+  .mobile({
+    font-size: @font-size-md;
+    width: 7rem; // 112px，在移动端稍微缩小
+    max-width: 40%; // 限制最大宽度，防止溢出
+  });
+}
+
+.captchaSpinner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &::after {
+    content: '';
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 2px solid #d0d0d0;
+    border-top-color: @primary-color;
+    border-radius: 50%;
+    animation: captchaSpin 0.8s linear infinite;
+  }
+}
+
+@keyframes captchaSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-sm;
+  margin: @spacing-sm 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+  cursor: pointer;
+  user-select: none;
+  
+}
+
+.checkbox {
+  width: 1.125rem; // 18px
+  height: 1.125rem; // 18px
+  cursor: pointer;
+  margin-top: 0.125rem; // 2px
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #d0d0d0; // 浅灰色边框
+  border-radius: @border-radius-sm; // 方形，小圆角
+  background: @white; // 白色内部
+  position: relative;
+  transition: all 0.2s ease;
+
+  &:checked {
+    border-color: #5B5B5B; // 深灰色边框
+    background: #5B5B5B; // 深灰色背景
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0.125rem; // 2px
+      left: 0.3125rem; // 5px
+      width: 0.25rem; // 4px
+      height: 0.5rem; // 8px
+      border: solid @white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+
+  &:hover {
+    border-color: #a0a0a0;
+  }
+}
+
+.checkboxText {
+  font-size: @font-size-sm;
+  color: #c4c4c4; // 浅灰色文字
+  line-height: 1.5;
+  font-weight: bold;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.link {
+  color: @primary-color; // 蓝色链接
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: @spacing-xs;
+  padding: @spacing-sm;
+  border-radius: @border-radius-sm;
+  margin-top: @spacing-xs;
+  width: 100%;
+  text-align: center;
+  
+  .mobile({
+    padding: @spacing-xs @spacing-sm;
+  });
+}
+
+.errorIcon {
+  color: @error-color;
+  font-size: @font-size-md;
+  flex-shrink: 0;
+}
+
+.errorText {
+  font-size: @font-size-sm;
+  color: #f5222d;
+  line-height: 1.5;
+  font-weight: bold;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: @spacing-sm;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 10%;
+}
+
+.loginButton {
+  .button-reset();
+  aspect-ratio: 270 / 50;
+  padding: 0 @spacing-md;
+  background: #d3d3d3; // 灰色背景（禁用状态）
+  border: none;
+  border-radius: 2.5rem; // 40px 药丸形状
+  color: @white;
+  font-size: @font-size-md;
+  font-weight: 500;
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+
+  &.loginButtonEnabled {
+    background: @primary-color; // 蓝色（启用状态）
+    cursor: pointer;
+
+    &:hover {
+      background: darken(@primary-color, 10%);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  &:disabled {
+    background: #d3d3d3;
+
+    cursor: not-allowed;
+  }
+
+  .mobile({
+    font-size: @font-size-md;
+    width: 100%;
+    max-width: 100%;
+  });
+  .tablet({
+    width: 95%;
+    font-size: @font-size-lg;
+  });
+  .desktop({
+    width: 95%;
+    font-size: @font-size-lg;
+  });
+}
+
+.cancelButton {
+  .button-reset();
+  padding: 0 @spacing-md;
+  background: @white;
+  border: 1px solid @border-color;
+  border-radius: 2.5rem; // 40px 药丸形状
+  color: @text-color;
+  font-size: @font-size-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+  aspect-ratio: 270 / 50;
+
+  &:hover {
+    background: @background-color;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .mobile({
+    font-size: @font-size-md;
+    width: 100%;
+    max-width: 100%;
+  });
+  .tablet({
+    width: 95%;
+    font-size: @font-size-lg;
+  });
+  .desktop({
+    width: 95%;
+    font-size: @font-size-lg;
+  });
+}
+
+.noAccountLink {
+  text-align: center;
+  margin-top: @spacing-sm;
+}
+
+.linkButton {
+  .button-reset();
+  color: @primary-color;
+  font-size: @font-size-sm;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  transition: opacity 0.2s ease;
+  border-bottom: 1px solid @primary-color;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+}
+
+// 验证码输入界面样式
+.emailIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: @spacing-lg 0 @spacing-md;
+}
+
+.mailIconImg {
+  width: 5rem; // 80px
+  height: 5rem; // 80px
+  object-fit: contain;
+
+  .mobile({
+    width: 4rem; 
+    height: 4rem; 
+  });
+}
+
+.instructions {
+  padding: 0 @spacing-lg @spacing-md;
+  text-align: center;
+}
+
+.instructionText {
+  font-size: @font-size-md;
+  color: @text-color;
+  line-height: 1.6;
+  margin: 0 0 @spacing-xs 0;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.emailText {
+  color: @primary-color; // 蓝色邮箱地址
+}
+
+.codeInputs {
+  display: flex;
+  justify-content: center;
+  gap: @spacing-sm;
+  padding: 0 @spacing-lg @spacing-md;
+
+  .mobile({
+    gap: @spacing-xs;
+    padding: 0 @spacing-md @spacing-lg;
+  });
+}
+
+.codeInput {
+  width: 3rem; // 48px
+  height: 3rem; // 48px
+  border: 2px solid #d0d0d0; // border-width 保持 px
+  border-radius: @border-radius-md;
+  text-align: center;
+  font-size: @font-size-xl;
+  font-weight: bold;
+  color: @text-color;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: @primary-color;
+  }
+
+  &.codeInputFilled {
+    border-color: @primary-color;
+  }
+
+  &.codeInputError {
+    border-color: @error-color;
+  }
+
+  .mobile({
+    width: 2.5rem; // 40px
+    height: 2.5rem; // 40px
+    font-size: @font-size-lg;
+  });
+}
+
+.submitButton {
+  .button-reset();
+  padding: 0 @spacing-md;
+  background: #d3d3d3; // 灰色背景（禁用状态）
+  border: none;
+  border-radius: 2.5rem; // 40px
+  color: @white;
+  font-size: @font-size-md;
+  font-weight: 500;
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+  aspect-ratio: 270 / 50;
+
+  &.submitButtonEnabled {
+    background: @primary-color; // 蓝色（启用状态）
+    cursor: pointer;
+
+    &:hover {
+      background: darken(@primary-color, 10%);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  &:disabled {
+    background: #d3d3d3;
+    cursor: not-allowed;
+  }
+
+  .mobile({
+    font-size: @font-size-md;
+    width: 100%;
+    max-width: 100%;
+  });
+  .tablet({
+    width: 90%;
+    font-size: @font-size-lg;
+  });
+  .desktop({
+    width: 90%;
+    font-size: @font-size-lg;
+  });
+}
+
+.backButton {
+  .button-reset();
+  padding: 0 @spacing-md;
+  background: @white;
+  border: 1px solid @border-color;
+  border-radius: 2.5rem; // 40px
+  color: @text-color;
+  font-size: @font-size-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+  aspect-ratio: 270 / 50;
+
+  &:hover {
+    background: @background-color;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .mobile({
+    font-size: @font-size-md;
+    width: 100%;
+    max-width: 100%;
+  });
+  .tablet({
+    width: 90%;
+    font-size: @font-size-lg;
+  });
+  .desktop({
+    width: 90%;
+    font-size: @font-size-lg;
+  });
+}
+
+.troubleshootLink {
+  text-align: center;
+  padding: 0 @spacing-lg @spacing-lg;
+
+  .mobile({
+    padding: 0 @spacing-md @spacing-md;
+  });
+}

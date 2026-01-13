@@ -1,0 +1,132 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: @z-index-modal + 1; // 比登录弹窗层级更高
+  .flex-center();
+  padding: @spacing-md;
+
+  .mobile({
+    padding: @spacing-md;
+  });
+}
+
+.modal {
+  position: relative;
+  background: @white;
+  border-radius: @border-radius-lg;
+  max-width: 25rem; // 400px
+  width: 100%;
+  padding: @spacing-xxl @spacing-lg @spacing-xl;
+  box-shadow: @box-shadow-lg;
+  animation: slideUp 0.3s ease;
+
+  .mobile({
+    max-width: 90%;
+    padding: @spacing-xl @spacing-md @spacing-lg;
+    height: 18.75rem; // 300px
+  });
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem); // 20px
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.closeButton {
+  .button-reset();
+  position: absolute;
+  top: @spacing-md;
+  right: @spacing-md;
+  width: 2rem; // 32px
+  height: 2rem; // 32px
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: @text-color;
+
+  &:hover {
+    background: darken(@background-color, 5%);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .mobile({
+    width: 1.75rem; // 28px
+    height: 1.75rem; // 28px
+  });
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+  margin-bottom: @spacing-lg;
+  justify-content: flex-start;
+}
+
+.logoText {
+  font-size: @font-size-xl;
+  font-weight: bold;
+  color: #ff6b35; // 橙色
+}
+
+.idBadge {
+  width: 2.5rem; // 40px
+  height: 2.5rem; // 40px
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+
+  .mobile({
+    width: 2.25rem; // 36px
+    height: 2.25rem; // 36px
+  });
+}
+
+.title {
+  font-size: @font-size-lg;
+  font-weight: bold;
+  color: @text-color;
+  text-align: left;
+  margin: 0 0 @spacing-md 0;
+  line-height: 1.4;
+
+
+  .mobile({
+    font-size: @font-size-md;
+  });
+}
+
+.content {
+  font-size: @font-size-md;
+  color: @text-color;
+  text-align: left;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: bold;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+

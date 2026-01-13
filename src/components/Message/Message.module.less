@@ -1,0 +1,31 @@
+.messageContainer {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 10000;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.messageContainer.visible {
+  transform: translateX(-50%) translateY(20px);
+}
+
+.message {
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+

@@ -1,0 +1,249 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.home {
+  background: @background-color; // 浅灰色背景
+  .mobile({
+    min-height: 100vh;
+  });
+  .desktop({
+    // height: 50vh;
+  });
+}
+
+// 促销横幅部分
+.bannerSection {
+  width: 100%;
+  margin-bottom: @spacing-lg;
+
+
+  .mobile({
+    margin-bottom: @spacing-md;
+  });
+  .desktop({
+    // border: 1px solid #e76f51;
+    padding-top: 5rem;
+  });
+}
+
+.banner {
+  width: 100%;
+  height: 12.5rem; // 200px
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y; // 允许垂直滚动，但优化水平滑动
+
+  .desktop({
+    height: auto;
+    aspect-ratio: 2400 / 300; // 8:1 宽高比
+    background: transparent;
+  });
+
+  .mobile({
+    height: 11.25rem; // 180px
+    touch-action: pan-x pan-y; // 移动端允许水平和垂直滑动
+  });
+}
+
+.bannerContent {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease;
+  will-change: transform;
+
+  .desktop({
+    height: auto;
+  });
+}
+
+.bannerImage {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+
+  .desktop({
+    object-fit: contain; // PC端显示完整图片
+    height: auto;
+  });
+}
+
+.bannerDots {
+  .flex-center();
+  gap: @spacing-sm;
+  padding: @spacing-sm 0;
+  background: @background-color; // 浅灰色背景，与主内容区域一致
+}
+
+.dot {
+  width: 0.75rem; // 12px
+  height: 0.75rem; // 12px
+  border-radius: 50%;
+  border: none;
+  background: #d0d0d0; // 灰色
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #a0a0a0;
+  }
+
+  &.dotActive {
+    background: @primary-color; // 蓝色（激活状态）
+    // 保持圆形，不改变大小和形状
+  }
+}
+
+// 游戏选择部分
+.gameSection {
+  padding: 0 @spacing-md @spacing-xl;
+
+  .mobile({
+    padding: 0 @spacing-sm @spacing-lg;
+  });
+  .tablet({
+    min-height: 70vh;
+  });
+  .desktop({
+    padding: 0 5%;
+  });
+}
+
+.sectionTitle {
+  font-size: @font-size-lg;
+  font-weight: bold;
+  color: @text-color;
+  margin: 0 0 @spacing-md 0;
+  text-align: center;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+
+  .rechargeKeyword {
+    .desktop({
+      color: #6e69c9;
+    });
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -@spacing-xs;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3.75rem; // 60px
+    height: 0.1875rem; // 3px
+    background: #90abc5;
+    border-radius: 0.125rem; // 2px
+  }
+
+  .mobile({
+    font-size: @font-size-md;
+    margin-bottom: @spacing-sm;
+
+    &::after {
+      width: 3.125rem; // 50px
+      height: 0.125rem; // 2px
+      bottom: -0.25rem; // -4px
+    }
+  });
+  .desktop({
+    text-align: left;
+    font-size: @font-size-xxl;
+    &::after {
+      display: none;
+    }
+  });
+}
+
+.gameList {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-md;
+
+  .mobile({
+    gap: @spacing-md;
+  });
+  .desktop({
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: @spacing-xxl;
+  });
+}
+
+.gameCard {
+  width: 100%;
+  border-radius: @border-radius-lg;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease both;
+
+  &:active {
+    transform: translateY(0);
+  }
+  
+  .desktop({
+    width: 33.33%;
+    
+    &:hover {
+      // hover时，变大， 效果平滑
+      transform: translateY(-2px);
+      scale: 1.05;
+      transition: transform 0.3s ease, scale 0.3s ease;
+    }
+  });
+}
+
+.gameCardImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: @border-radius-lg;
+  object-fit: cover;
+}
+
+.gameCardPlaceholder {
+  width: 100%;
+  min-height: 7.5rem; // 120px
+  background: linear-gradient(135deg, #f4a261 0%, #e76f51 100%);
+  border-radius: @border-radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: @spacing-md;
+  color: @white;
+  font-size: @font-size-lg;
+  font-weight: bold;
+
+  .mobile({
+    min-height: 6.25rem; // 100px
+    padding: @spacing-sm;
+    font-size: @font-size-md;
+  });
+}
+
+// 游戏列表动画阶梯延迟
+.gameList > .gameCard:nth-child(1) { animation-delay: 0s; }
+.gameList > .gameCard:nth-child(2) { animation-delay: 0.05s; }
+.gameList > .gameCard:nth-child(3) { animation-delay: 0.1s; }
+.gameList > .gameCard:nth-child(4) { animation-delay: 0.15s; }
+.gameList > .gameCard:nth-child(5) { animation-delay: 0.2s; }
+.gameList > .gameCard:nth-child(6) { animation-delay: 0.25s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

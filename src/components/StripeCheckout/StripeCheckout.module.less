@@ -1,0 +1,176 @@
+@import '@/styles/variables.less';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  z-index: @z-index-modal + 10; // 确保在所有弹窗之上
+  pointer-events: none; // overlay 本身不拦截点击事件
+}
+
+.modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease-out;
+  z-index: @z-index-modal + 10; // 确保在所有弹窗之上
+  pointer-events: auto; // modal 内容可以接收点击事件
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+// 拖拽指示器（类似 iOS）
+.dragIndicator {
+  width: 40px;
+  height: 4px;
+  background: #d0d0d0;
+  border-radius: 2px;
+  margin: 12px auto 8px;
+  cursor: grab;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.checkoutContainer {
+  width: 100%;
+  min-height: 400px;
+  max-height: calc(90vh - 60px);
+  padding: 0 20px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.error {
+  padding: 40px 20px;
+  text-align: center;
+  color: #d32f2f;
+
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  p {
+    margin: 8px 0;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+
+.retryButton {
+  margin-top: 24px;
+  padding: 12px 24px;
+  background: #626CDA;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: darken(#626CDA, 10%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(98, 108, 218, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+
+  p {
+    margin-top: 16px;
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .modal {
+    max-height: 95vh;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .checkoutContainer {
+    padding: 0 16px 16px;
+    min-height: 350px;
+  }
+}
+
+// 桌面端样式调整
+@media (min-width: 769px) {
+  .modal {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px 20px 0 0;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translate(-50%, 100%);
+    }
+    to {
+      transform: translate(-50%, 0);
+    }
+  }
+}
+

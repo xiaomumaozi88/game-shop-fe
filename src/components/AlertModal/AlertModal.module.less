@@ -1,0 +1,111 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px); // 背景模糊效果
+  z-index: @z-index-modal;
+  .flex-center();
+  padding: @spacing-md;
+
+  .mobile({
+    padding: @spacing-md;
+  });
+}
+
+.modal {
+  position: relative;
+  background: @white;
+  border-radius: @border-radius-lg;
+  max-width: 25rem; // 400px
+  width: 100%;
+  padding: @spacing-xxl @spacing-lg @spacing-xl;
+  box-shadow: @box-shadow-lg;
+  animation: slideUp 0.3s ease;
+
+  .mobile({
+    max-width: 90%;
+    padding: @spacing-xl @spacing-md @spacing-lg;
+  });
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem); // 20px
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  font-size: @font-size-xxl;
+  font-weight: bold;
+  color: @text-color;
+  text-align: center;
+  margin: 0 0 @spacing-md 0;
+  line-height: 1.4;
+
+  .mobile({
+    font-size: @font-size-xl;
+  });
+}
+
+.message {
+  font-size: @font-size-md;
+  color: @text-color; // 黑色，不是灰色
+  text-align: center;
+  margin: 0 0 @spacing-xl 0;
+  line-height: 1.5;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+
+  .mobile({
+    width: 80%;
+    margin: 0 auto;
+  });
+}
+
+.confirmButton {
+  flex: 1;
+  max-width: 12rem; // 限制最大宽度
+  padding: @spacing-md;
+  background: #626cda;
+  border: none;
+  border-radius: 999px; // 椭圆形状的圆角
+  color: @white;
+  font-size: @font-size-md;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+
+  &:hover {
+    background: darken(#626cda, 10%);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .mobile({
+    font-size: @font-size-sm;
+    padding: @spacing-sm;
+    max-width: 100%;
+  });
+}
+

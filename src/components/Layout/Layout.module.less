@@ -1,0 +1,23 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.main {
+  flex: 1;
+  padding-bottom: 0; // 移除底部padding，让内容自然流动
+
+  .mobile({
+    padding-bottom: 0;
+  });
+
+  .desktop({
+    padding-bottom: 0;
+  });
+}
+

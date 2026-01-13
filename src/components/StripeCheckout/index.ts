@@ -1,0 +1,2 @@
+export { StripeCheckout } from './StripeCheckout';
+

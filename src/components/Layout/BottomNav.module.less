@@ -1,0 +1,76 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.bottomNav {
+  position: fixed;
+  bottom: 3.75rem; // 60px
+  left: 0;
+  right: 0;
+  background: @white;
+  border: 1px solid @border-color; // border-width 保持 px
+  border-radius: 10vw;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: @spacing-xs 0;
+  // padding-bottom: calc(@spacing-xs + env(safe-area-inset-bottom, 0px)); // 考虑安全区域（iOS等）
+  z-index: @z-index-dropdown;
+  height: auto;
+  min-height: 3.5rem; // 56px 确保有足够的高度
+  width: 70vw;
+  margin: 0 auto;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  pointer-events: auto;
+
+  .desktop({
+    display: none;
+  });
+}
+
+.bottomNavHidden {
+  transform: translateY(calc(100% + 1.25rem)); // 20px
+  opacity: 0;
+  pointer-events: none;
+}
+
+.navItem {
+  .button-reset();
+  .flex-center();
+  flex-direction: column;
+  gap: @spacing-xs;
+  padding: @spacing-xs @spacing-md;
+  color: @text-color-secondary;
+  transition: color 0.2s ease;
+  .touch-friendly();
+  min-width: 3.75rem; // 60px
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.navItemActive {
+  color: @primary-color;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem; // 24px
+  height: 1.5rem; // 24px
+}
+
+.iconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.label {
+  font-size: @font-size-xs;
+  font-weight: 500;
+}
+

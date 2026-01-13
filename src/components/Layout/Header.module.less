@@ -1,0 +1,616 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  // height: 3.75rem; // 60px
+  background: @white;
+  z-index: @z-index-dropdown;
+
+  .mobile({
+    height: auto;
+    min-height: 3.125rem; // 50px
+    padding: @spacing-sm 0;
+  });
+  .tablet({
+    height: auto;
+    min-height: 3.125rem; // 50px
+    padding: @spacing-sm 0;
+  });
+  .desktop({
+    display: flex;
+    align-items: center;
+    height: 5rem;
+  });
+}
+
+
+.loginBar {
+  position: relative;
+  background: @background-color; // 灰色背景
+  padding: @spacing-sm;
+  padding-top: 4.375rem; // 70px
+  
+  &.loginBarHiddenOnDesktop {
+    .desktop({
+      display: none;
+    });
+  }
+  
+  .desktop({
+    position: absolute;
+    top: 14vw;
+    left: 1%;
+    z-index: 999;
+    width: 98%;
+    margin: 0 auto;
+    border-radius: 1rem;
+    box-shadow: @box-shadow-md;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    padding-top: 0;
+    height: 7rem;
+
+  });
+  .tablet({
+    padding-left: 1rem;
+    padding-right: 1rem;
+  })
+  
+}
+
+.loginContent {
+  width: 100%;
+}
+
+.userInfo {
+  .flex-start();
+  align-items: center;
+  gap: @spacing-sm;
+  cursor: pointer;
+
+  .mobile({
+    gap: @spacing-sm;
+  });
+}
+
+.avatar {
+  width: 3rem; // 40px
+  height: 3rem; // 40px
+  border-radius: @border-radius-md; // 方形圆角，不是圆形
+  // background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); // 橙色渐变背景
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: @box-shadow-sm;
+
+  .mobile({
+    width: 3rem; // 36px
+    height: 3rem; // 36px
+  });
+  .desktop({
+    width: 5rem; 
+    height: 5rem; 
+    border-radius: 1rem;
+  });
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: @border-radius-md;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  // 占位符样式已在 .avatar 的背景中定义
+}
+
+.userText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-xs;
+  font-size: @font-size-xs;
+}
+
+.gameNameRow {
+  display: none;
+  
+  .desktop({
+    display: block;
+    font-size: @font-size-md;
+    font-weight: 500;
+    color: @text-color;
+    margin-bottom: @spacing-xs;
+  });
+}
+
+.loginRow {
+  .flex-start();
+  align-items: center;
+  gap: @spacing-xs;
+  width: 100%;
+}
+
+.greetingText {
+  color: @text-color; // 正常字体颜色
+  font-size: @font-size-sm;
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+}
+
+.loginPromptText {
+  color: @primary-color; // 蓝色字体
+  font-size: @font-size-sm;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+}
+
+.arrowIcon {
+  display: inline-block;
+  width: auto;
+  height: 1em;
+  vertical-align: middle;
+  margin-left: @spacing-xs;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+
+  .mobile({
+    height: 1rem; // 16px
+    margin-left: 0.25rem; // 4px
+  });
+}
+
+.characterInfo {
+  .flex-start();
+  align-items: center;
+  gap: @spacing-xs;
+  flex-wrap: wrap;
+  font-size: @font-size-sm;
+}
+
+.characterNameLink {
+  color: @primary-color;
+  // font-size: @font-size-xs;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: darken(@primary-color, 10%);
+  }
+
+}
+
+.gameServerText {
+  color: @text-color-secondary;
+  font-size: @font-size-sm;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.switchServerButton {
+  .button-reset();
+  .flex-center();
+  padding: 0.125rem @spacing-xs; // 2px
+  background: transparent;
+  border: none;
+  color: @primary-color;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+
+  .mobile({
+    padding: 0.0625rem 0.25rem; // 1px 4px
+  });
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  gap: @spacing-lg;
+
+  .mobile({
+    padding: 0 @spacing-sm;
+    justify-content: space-between;
+  });
+  .tablet({
+    padding: 0 @spacing-sm;
+    justify-content: space-between;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  });
+
+  .desktop({
+    justify-content: space-between;
+    padding: @spacing-lg;
+    width: 100%;
+  });
+
+}
+
+.logoSection {
+  .flex-start();
+  gap: @spacing-sm;
+  align-items: center;
+
+  .mobile({
+    gap: @spacing-xs;
+  });
+  .tablet({
+    gap: @spacing-md;
+  });
+  .desktop({
+    gap: @spacing-lg;
+  });
+}
+
+.logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.logoImg {
+  height: 2.5rem; // 40px
+  width: auto;
+  object-fit: contain;
+  display: block;
+
+  .mobile({
+    height: 2rem; // 32px
+  });
+}
+
+.title {
+  font-weight: bold;
+  color: #000;
+  margin: 0;
+
+  .desktop({
+    font-size: @font-size-xxl;
+  });
+  .tablet({
+    font-size: @font-size-xl;
+  });
+
+  .mobile({
+    font-size: @font-size-lg;
+    margin-left: @spacing-xs;
+  });
+}
+
+.nav {
+  .flex-start();
+  gap: @spacing-lg;
+
+  // 平板和手机端都使用显隐菜单
+  @media (max-width: 1023px) {
+    position: fixed;
+    top: 3.75rem; // 60px
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: @white;
+    box-shadow: @box-shadow-md;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    gap: 0;
+    z-index: @z-index-dropdown;
+    padding: @spacing-xs 0;
+
+    &.navOpen {
+      transform: translateX(0);
+    }
+  }
+  // 电脑端隐藏
+  .desktop({
+    display: none;
+  });
+}
+
+.navItem {
+  color: @text-color;
+  text-decoration: none;
+  font-size: @font-size-md;
+  transition: color 0.3s ease;
+  .flex-start();
+  align-items: center;
+  gap: @spacing-sm;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+
+  &:hover {
+    color: @primary-color;
+  }
+
+  .mobile({
+    text-align: center;
+    margin: 0 auto;
+    border-bottom: 1px solid @border-color;
+    width: 70%;
+    padding: @spacing-md @spacing-lg;
+    .touch-friendly();
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: @font-size-sm;
+    gap: @spacing-md;
+  });
+  .tablet({
+    text-align: center;
+    margin: 0 auto;
+    border-bottom: 1px solid @border-color;
+    width: 70%;
+    padding: @spacing-md @spacing-lg;
+    .touch-friendly();
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: @font-size-sm;
+    gap: @spacing-md;
+  });
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem; // 20px
+  height: 1.25rem; // 20px
+  color: inherit;
+
+  .mobile({
+    width: 1.25rem; // 20px
+    height: 1.25rem; // 20px
+  });
+}
+
+.navText {
+  flex: 0 0 auto; // 不占据剩余空间，让内容自然居中
+}
+
+.actions {
+  .flex-start();
+  gap: @spacing-sm;
+  align-items: center;
+
+  .mobile({
+    gap: @spacing-xs;
+  });
+}
+
+// PC端导航
+.desktopNav {
+  display: none;
+  .flex-start();
+  gap: @spacing-xl;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+  padding-right: @spacing-xl;
+
+  .desktop({
+    display: flex;
+    justify-content: flex-start;
+    margin-left: @spacing-lg;
+  });
+  .tablet({
+    display: flex;
+    justify-content: flex-start;
+    margin-left: @spacing-lg;
+  });
+  .mobile({
+    display: none;
+  });
+}
+
+.desktopNavItem {
+  .button-reset();
+  color: @text-color-secondary;
+  font-size: @font-size-md;
+  text-decoration: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  font-size: @font-size-lg;
+  .mobile({
+    display: none;
+  });
+  .tablet({
+    display: none;
+  });
+
+  &:hover {
+    color: @primary-color;
+  }
+
+  &.desktopNavItemActive {
+    color: #6e69c9;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -0.8rem;
+      left: 0;
+      right: 0;
+      height: 3px;
+      width: 40%;
+      margin: 0 auto;
+      background-color: #6e69c9;
+    }
+  }
+  
+}
+
+// PC端登录按钮
+.loginButton {
+  display: none;
+  .button-reset();
+  padding: @spacing-sm @spacing-lg;
+  background-color: #636ddc;
+  color: @white;
+  border-radius: 999px;
+  font-size: @font-size-md;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+  .desktop({
+    display: block;
+  });
+}
+
+// PC端用户下拉菜单
+.userDropdown {
+  display: none;
+  position: relative;
+
+  .desktop({
+    display: block;
+  });
+}
+
+.userDropdownTrigger {
+  .button-reset();
+  display: flex;
+  align-items: center;
+  gap: @spacing-xs;
+  padding: @spacing-sm @spacing-md;
+  background-color: #fff;
+  border-radius: @border-radius-md;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+}
+
+.userEmail {
+  font-size: @font-size-md;
+  color: @text-color;
+  white-space: nowrap;
+}
+
+.chevronIcon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.userDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: @white;
+  border-radius: 0 0 @border-radius-md @border-radius-md;
+  box-shadow: @box-shadow-md;
+  min-width: 100%;
+  z-index: @z-index-dropdown;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.userDropdownDivider {
+  height: 1px;
+  background-color: @border-color;
+  margin: 0;
+}
+
+.userDropdownItem {
+  .button-reset();
+  width: 100%;
+  padding: @spacing-md;
+  text-align: left;
+  font-size: @font-size-md;
+  color: @text-color;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: @background-color;
+  }
+
+  &:active {
+    background-color: darken(@background-color, 5%);
+  }
+}
+
+.menuButton {
+  display: none;
+  .button-reset();
+  .touch-friendly();
+  .flex-center();
+  color: @text-color;
+  padding: @spacing-xs;
+
+  // 平板和手机端都显示菜单按钮
+  @media (max-width: 1023px) {
+    display: flex;
+  }
+  .desktop({
+    display: none;
+  });
+}
+

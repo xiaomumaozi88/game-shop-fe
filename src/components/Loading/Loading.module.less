@@ -1,0 +1,47 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.loading {
+  .flex-center();
+  flex-direction: column;
+  gap: @spacing-md;
+  padding: @spacing-lg;
+}
+
+.spinner {
+  border: 3px solid @border-color;
+  border-top-color: @primary-color;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.small {
+  width: 1.5rem; // 24px
+  height: 1.5rem; // 24px
+  border-width: 2px;
+}
+
+.medium {
+  width: 2.5rem; // 40px
+  height: 2.5rem; // 40px
+  border-width: 3px;
+}
+
+.large {
+  width: 3.75rem; // 60px
+  height: 3.75rem; // 60px
+  border-width: 4px;
+}
+
+.text {
+  font-size: @font-size-md;
+  color: @text-color-secondary;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

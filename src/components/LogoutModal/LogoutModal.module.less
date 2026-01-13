@@ -1,0 +1,215 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px); // 背景模糊效果
+  z-index: @z-index-modal;
+  .flex-center();
+  padding: @spacing-md;
+
+  .mobile({
+    padding: @spacing-md;
+  });
+}
+
+.modal {
+  position: relative;
+  background: @white;
+  border-radius: @border-radius-lg;
+  max-width: 25rem; // 400px
+  width: 100%;
+  padding: @spacing-lg @spacing-lg @spacing-xl;
+  box-shadow: @box-shadow-lg;
+  animation: slideUp 0.3s ease;
+
+  .mobile({
+    max-width: 90%;
+    padding: @spacing-md @spacing-lg;
+  });
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem); // 20px
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  font-size: @font-size-xxl;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  margin: 0 0 @spacing-md 0;
+  line-height: 1.4;
+
+  .mobile({
+    font-size: @font-size-xxl;
+  });
+}
+
+.message {
+  font-size: @font-size-md;
+  color: @text-color;
+  text-align: center;
+  margin: 0 0 @spacing-sm 0;
+  line-height: 1.6;
+  font-weight: bold;
+
+  .mobile({
+    font-size: @font-size-md;
+  });
+}
+
+.checkboxContainer {
+  display: flex;
+  justify-content: center;
+  margin: @spacing-lg 0 @spacing-xl 0;
+
+  .mobile({
+    margin: @spacing-md 0 @spacing-md 0;
+  });
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: @spacing-sm;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  width: 1rem; // 16px
+  height: 1rem; // 16px
+  cursor: pointer;
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #d0d0d0; // 浅灰色外圈
+  border-radius: 50%; // 圆形（radio button）
+  background: @white;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 2px rgba(208, 208, 208, 0.3); // 轻微模糊边缘效果
+
+  &:checked {
+    border-color: #d0d0d0; // 保持浅灰色外圈
+    background: @white; // 保持白色背景
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 0.75rem; // 12px
+      height: 0.75rem; // 12px
+      border-radius: 50%;
+      background: #5B5B5B; // 深灰色内圈
+    }
+  }
+
+  &:hover {
+    border-color: #b0b0b0;
+    box-shadow: 0 0 3px rgba(208, 208, 208, 0.5);
+  }
+}
+
+.checkboxText {
+  font-size: @font-size-sm;
+  color: @text-color-secondary;
+  font-weight: bolder;
+
+  .mobile({
+    font-size: @font-size-xs;
+  });
+}
+
+.actions {
+  display: flex;
+  gap: @spacing-md;
+  justify-content: space-between;
+
+  .mobile({
+    gap: @spacing-lg;
+    width: 100%;
+    margin: 0 auto;
+  });
+}
+
+.confirmButton {
+  .button-reset();
+  flex: 1;
+  // 框高比 72:25
+  aspect-ratio: 72 / 25;
+  min-height: 1.5625rem; // 25px
+  background: #626CDA; // 紫色背景
+  border: none;
+  border-radius: 999px; // 药丸形状
+  color: @white; // 白色文字
+  font-size: @font-size-md;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: darken(#626CDA, 10%);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.cancelButton {
+  .button-reset();
+  flex: 1;
+  // 框高比 72:25
+  aspect-ratio: 72 / 25;
+  min-height: 1.5625rem; // 25px
+  background: @white; // 白色背景
+  border: 1px solid #d0d0d0; // 灰色边框
+  border-radius: 999px; // 药丸形状
+  color: @text-color-secondary; // 深灰色文字
+  font-size: @font-size-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: @background-color;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
