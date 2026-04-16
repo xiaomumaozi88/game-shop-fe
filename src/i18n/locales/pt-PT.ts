@@ -10,7 +10,8 @@ export const ptPT = {
   },
   "common": {
     "loading": "Carregando...",
-    "noData": "Sem dados"
+    "noData": "Sem dados",
+    "server": "Servidor"
   },
   "footer": {
     "language": "Chinês (Simplificado)",
@@ -26,13 +27,15 @@ export const ptPT = {
     "greeting": "Olá",
     "loginPrompt": "Por favor, clique para entrar",
     "switchServer": "Alternar",
-    "title": "Plataforma de recarga do jogo"
+    "title": "Plataforma de recarga do jogo",
+    "logout": "Sair"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Oopsie Croco"
   },
   "history": {
+    "backToGameZone": "Voltar à loja do jogo",
     "empty": "Sem pedidos no momento",
     "filter": {
       "all": "Tudo",
@@ -42,6 +45,10 @@ export const ptPT = {
       "pendingDelivery": "Aguardando envio"
     },
     "orderTime": "Hora do pedido:",
+    "pendingAutoCancelPrefix": "O pedido será cancelado em",
+    "pendingAutoCancelSuffix": "automaticamente",
+    "cancelOrder": "Cancelar pedido",
+    "payOrder": "Pagar",
     "status": {
       "cancelled": "Cancelado",
       "completed": "Transação concluída",
@@ -56,7 +63,13 @@ export const ptPT = {
       "prefix": "Selecione o jogo que deseja ",
       "keyword": "recarregar",
       "suffix": ""
-    }
+    },
+    "noRoleAccount": "Ainda não tem personagem neste jogo. Crie um no jogo antes de comprar.",
+    "noRoleRefreshPrefix": "Já criou uma conta? Toque em ",
+    "noRoleRefreshAction": "Atualizar",
+    "noRoleRefreshing": "A atualizar…",
+    "noRoleRefreshNotFound": "Não foram encontradas informações do personagem",
+    "noRoleRefreshFailed": "Falha ao atualizar. Tente novamente mais tarde."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const ptPT = {
       "terms": "Termos de Serviço"
     },
     "cancel": "Cancelar",
+    "bindGameGuide": "Aviso de vinculação ao jogo",
+    "bindGameGuideContent": "Abra qualquer jogo Touka,\nvá às definições no jogo,\nvincule o seu e-mail\ne aproveite descontos especiais na loja!",
     "captchaPlaceholder": "Código de verificação",
     "invalidCaptcha": "Por favor, insira um código de verificação de 4 dígitos",
     "email": "E-mail",
@@ -78,7 +93,8 @@ export const ptPT = {
     "password": "Senha",
     "passwordPlaceholder": "Por favor, insira a senha",
     "submit": "Entrar",
-    "title": "Entrar"
+    "title": "Entrar",
+    "invalidEmail": "Introduza um endereço de e-mail válido"
   },
   "logout": {
     "cancel": "Cancelar",
@@ -108,7 +124,9 @@ export const ptPT = {
     "serverAndCharacter": "Servidor/Personagem: ",
     "title": "Obrigado pela sua compra ",
     "total": "Todos: ",
-    "unionPay": "UnionPay "
+    "unionPay": "UnionPay ",
+    "amountPaid": "Valor pago:",
+    "closeModal": "Fechar"
   },
   "productModal": {
     "confirm": "Confirmar ",

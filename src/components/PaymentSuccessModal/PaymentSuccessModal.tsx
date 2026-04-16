@@ -34,6 +34,17 @@ interface PaymentInfo {
   characterName?: string;
 }
 
+/** 订单日期展示：YYYY/MM/DD HH:mm:ss（24 小时制），各语言环境一致 */
+function formatOrderDateDisplay(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return `${y}/${m}/${d} ${h}:${min}:${s}`;
+}
+
 export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
   isOpen,
   onClose,
@@ -161,15 +172,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
       // 生成订单号
       const orderId = Date.now().toString().substring(0, 9);
 
-      // 获取订单日期
-      const orderDate = new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
+      const orderDate = formatOrderDateDisplay(new Date());
 
       setPaymentInfo({
         totalAmount,
@@ -186,7 +189,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
       });
     } catch (err) {
       console.error('加载支付信息失败:', err);
-      setError('加载支付信息失败');
+      setError(t('paymentSuccess.getPaymentInfoFailed'));
     } finally {
       setLoading(false);
     }
@@ -224,27 +227,12 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
 
       const orderData = result.data;
 
-      // 格式化支付成功时间
-      let orderDate = new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
+      let orderDate = formatOrderDateDisplay(new Date());
       if (orderData.pay_success_time) {
         try {
           const payTime = new Date(orderData.pay_success_time);
           if (!isNaN(payTime.getTime())) {
-            orderDate = payTime.toLocaleString('zh-CN', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            });
+            orderDate = formatOrderDateDisplay(payTime);
           }
         } catch (e) {
           console.warn('解析支付时间失败:', e);
@@ -328,12 +316,19 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
       }
     } catch (err) {
       console.error('获取订单信息失败:', err);
-      setError(err instanceof Error ? err.message : '获取订单信息失败');
+      setError(err instanceof Error ? err.message : t('paymentSuccess.getPaymentInfoFailed'));
       // 如果查询失败，降级到从 URL 参数加载
       loadPaymentInfoFromURL();
     } finally {
       setLoading(false);
     }
+  };
+
+  const paymentMethodLabel = (method: string): string => {
+    const m = method.toLowerCase();
+    if (m === 'paypal') return t('paymentSuccess.paypal');
+    if (m === 'cup' || m === 'unionpay') return t('paymentSuccess.unionPay');
+    return method;
   };
 
   if (!isOpen) return null;
@@ -350,7 +345,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
         <button
           className={styles.closeButton}
           onClick={onClose}
-          aria-label="关闭"
+          aria-label={t('paymentSuccess.closeModal')}
         >
           <ModalCloseIcon size={24} />
         </button>
@@ -365,23 +360,23 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
           </div>
         ) : paymentInfo ? (
           <>
-            <h2 className={styles.title}>感谢您的购买</h2>
+            <h2 className={styles.title}>{t('paymentSuccess.title')}</h2>
             <div className={styles.content}>
               <div className={styles.details}>
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>购买内容:</span>
-                  <span className={styles.value}>{paymentInfo.productName}*{paymentInfo.quantity}</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <span className={styles.label}>付款方式:</span>
+                  <span className={styles.label}>{t('paymentSuccess.purchaseContent')}</span>
                   <span className={styles.value}>
-                    {paymentInfo.paymentMethod === 'cup' ? 'cup' : 
-                     paymentInfo.paymentMethod === 'paypal' ? 'PayPal' : 
-                     paymentInfo.paymentMethod}
+                    {paymentInfo.productName}
+                    <span aria-hidden>×</span>
+                    {paymentInfo.quantity}
                   </span>
                 </div>
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>价格:</span>
+                  <span className={styles.label}>{t('paymentSuccess.paymentMethod')}</span>
+                  <span className={styles.value}>{paymentMethodLabel(paymentInfo.paymentMethod)}</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span className={styles.label}>{t('paymentSuccess.price')}</span>
                   <span className={styles.value}>
                     {paymentInfo.currency === 'CNY' || paymentInfo.currency === 'USD'
                       ? `${paymentInfo.currency === 'CNY' ? '¥' : '$'}${paymentInfo.price.toFixed(2)}`
@@ -389,12 +384,12 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
                   </span>
                 </div>
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>购买数量:</span>
+                  <span className={styles.label}>{t('paymentSuccess.quantity')}</span>
                   <span className={styles.value}>{paymentInfo.quantity}</span>
                 </div>
                 {paymentInfo.gameServer && (
                   <div className={styles.detailRow}>
-                    <span className={styles.label}>区组/角色:</span>
+                    <span className={styles.label}>{t('paymentSuccess.serverAndCharacter')}</span>
                     <span className={styles.value}>
                       {paymentInfo.gameServer}
                       {paymentInfo.characterName && `-${paymentInfo.characterName}`}
@@ -402,20 +397,20 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
                   </div>
                 )}
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>订单号:</span>
+                  <span className={styles.label}>{t('paymentSuccess.orderId')}</span>
                   <span className={styles.value}>{paymentInfo.orderId}</span>
                 </div>
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>订单日期:</span>
+                  <span className={styles.label}>{t('paymentSuccess.orderDate')}</span>
                   <span className={styles.value}>{paymentInfo.orderDate}</span>
                 </div>
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>账号:</span>
+                  <span className={styles.label}>{t('paymentSuccess.account')}</span>
                   <span className={styles.value}>{paymentInfo.customerEmail}</span>
                 </div>
               </div>
               <div className={styles.totalPrice}>
-                <span className={styles.totalLabel}>实付金额:</span>
+                <span className={styles.totalLabel}>{t('paymentSuccess.amountPaid')}</span>
                 <span className={styles.totalValue}>
                   {paymentInfo.currency === 'CNY' || paymentInfo.currency === 'USD' 
                     ? `${paymentInfo.currency === 'CNY' ? '¥' : '$'}${paymentInfo.totalAmount.toFixed(2)}`
@@ -425,7 +420,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
             </div>
             <div className={styles.confirmButtonContainer}>
               <button className={styles.confirmButton} onClick={onClose}>
-                确定
+                {t('paymentSuccess.confirm')}
               </button>
             </div>
             

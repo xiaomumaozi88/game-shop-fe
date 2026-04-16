@@ -10,7 +10,8 @@ export const jaJP = {
   },
   "common": {
     "loading": "読み込み中...",
-    "noData": "データなし"
+    "noData": "データなし",
+    "server": "サーバー"
   },
   "footer": {
     "language": "中国語（簡体字）",
@@ -26,13 +27,15 @@ export const jaJP = {
     "greeting": "こんにちは",
     "loginPrompt": "ログインしてください",
     "switchServer": "切り替え",
-    "title": "ゲームチャージプラットフォーム"
+    "title": "ゲームチャージプラットフォーム",
+    "logout": "ログアウト"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "おっと！クロコ"
   },
   "history": {
+    "backToGameZone": "ゲームストアに戻る",
     "empty": "注文なし",
     "filter": {
       "all": "すべて",
@@ -42,6 +45,10 @@ export const jaJP = {
       "pendingDelivery": "発送待ち"
     },
     "orderTime": "注文時間:",
+    "pendingAutoCancelPrefix": "注文は",
+    "pendingAutoCancelSuffix": "後に自動キャンセルされます",
+    "cancelOrder": "注文をキャンセル",
+    "payOrder": "支払う",
     "status": {
       "cancelled": "キャンセル済み",
       "completed": "取引完了",
@@ -56,7 +63,13 @@ export const jaJP = {
       "prefix": "",
       "keyword": "チャージ",
       "suffix": "するゲームを選択してください"
-    }
+    },
+    "noRoleAccount": "このゲームにはまだキャラクターがありません。購入前にゲーム内でキャラクターを作成してください。",
+    "noRoleRefreshPrefix": "アカウントは作成済みですか？タップして",
+    "noRoleRefreshAction": "更新",
+    "noRoleRefreshing": "更新中…",
+    "noRoleRefreshNotFound": "キャラクター情報が見つかりません",
+    "noRoleRefreshFailed": "更新に失敗しました。しばらくしてからお試しください。"
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const jaJP = {
       "terms": "利用規約"
     },
     "cancel": "キャンセル",
+    "bindGameGuide": "ゲーム連携について",
+    "bindGameGuideContent": "任意のToukaゲームを開き、\nゲーム内の設定画面で\nメールアドレスを連携すると、\n特価商品をお楽しみいただけます！",
     "captchaPlaceholder": "認証コード",
     "invalidCaptcha": "4桁の認証コードを入力してください",
     "email": "メールアドレス",
@@ -78,7 +93,8 @@ export const jaJP = {
     "password": "パスワード",
     "passwordPlaceholder": "パスワードを入力してください",
     "submit": "ログイン",
-    "title": "ログイン"
+    "title": "ログイン",
+    "invalidEmail": "有効なメールアドレスを入力してください"
   },
   "logout": {
     "cancel": "取消",
@@ -108,7 +124,9 @@ export const jaJP = {
     "serverAndCharacter": "サーバー／キャラクター：",
     "title": "ご購入ありがとうございます",
     "total": "すべて：",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "お支払い金額：",
+    "closeModal": "閉じる"
   },
   "productModal": {
     "confirm": "確定",

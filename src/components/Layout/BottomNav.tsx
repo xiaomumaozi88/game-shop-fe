@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
+import { resolveOrdersListPath } from '@/utils';
 import { LoginModal } from '@/components/LoginModal';
 import homeSelectImg from '@/assets/imgs/touka_home_BotomInf_homeSelect.png';
 import homeUnSelectImg from '@/assets/imgs/touka_home_BotomInf_homeUnSelect.png';
@@ -18,6 +19,8 @@ export const BottomNav: React.FC = () => {
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
+  const ordersPath = resolveOrdersListPath(location.pathname);
+
   const navItems = [
     {
       id: 'home',
@@ -29,28 +32,28 @@ export const BottomNav: React.FC = () => {
     {
       id: 'orders',
       label: t('bottomNav.myOrders'),
-      path: '/history',
+      path: ordersPath,
       iconActive: orderSelectImg,
       iconInactive: orderUnSelectImg,
     },
   ];
 
-  const isActive = (path: string) => {
-    if (path === '/') {
+  const isActive = (path: string, id: string) => {
+    if (id === 'home') {
       return location.pathname === '/';
     }
-    return location.pathname.startsWith(path);
+    return location.pathname.includes('/history');
   };
 
-  const handleNavClick = (path: string) => {
+  const handleNavClick = (path: string, id: string) => {
     // 主页不需要登录检查
-    if (path === '/') {
+    if (id === 'home') {
       navigate(path);
       return;
     }
     // 其他页面需要登录检查
     requireLogin(() => {
-      navigate(path);
+      navigate(resolveOrdersListPath(location.pathname));
     });
   };
 
@@ -104,12 +107,12 @@ export const BottomNav: React.FC = () => {
     <>
       <nav className={`${styles.bottomNav} ${!isVisible ? styles.bottomNavHidden : ''}`}>
         {navItems.map((item) => {
-          const active = isActive(item.path);
+          const active = isActive(item.path, item.id);
           return (
             <button
               key={item.id}
               className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
-              onClick={() => handleNavClick(item.path)}
+              onClick={() => handleNavClick(item.path, item.id)}
               aria-label={item.label}
             >
               <span className={styles.icon}>

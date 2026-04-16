@@ -10,7 +10,8 @@ export const frFR = {
   },
   "common": {
     "loading": "Chargement...",
-    "noData": "Aucune donnée"
+    "noData": "Aucune donnée",
+    "server": "Serveur"
   },
   "footer": {
     "language": "Chinois (simplifié)",
@@ -26,13 +27,15 @@ export const frFR = {
     "greeting": "Bonjour",
     "loginPrompt": "Veuillez cliquer pour vous connecter",
     "switchServer": "Changer",
-    "title": "Plateforme de recharge de jeu"
+    "title": "Plateforme de recharge de jeu",
+    "logout": "Se déconnecter"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Oopsie Croco"
   },
   "history": {
+    "backToGameZone": "Retour à la boutique du jeu",
     "empty": "Pas de commandes pour le moment",
     "filter": {
       "all": "Tout",
@@ -42,6 +45,10 @@ export const frFR = {
       "pendingDelivery": "En attente d'expédition"
     },
     "orderTime": "Heure de commande:",
+    "pendingAutoCancelPrefix": "La commande sera annulée dans",
+    "pendingAutoCancelSuffix": "automatiquement",
+    "cancelOrder": "Annuler la commande",
+    "payOrder": "Payer",
     "status": {
       "cancelled": "Annulé",
       "completed": "Transaction terminée",
@@ -56,7 +63,13 @@ export const frFR = {
       "prefix": "Choisissez le jeu auquel vous souhaitez ",
       "keyword": "recharger",
       "suffix": ""
-    }
+    },
+    "noRoleAccount": "Vous n'avez pas encore de personnage dans ce jeu. Veuillez en créer un dans le jeu avant d'acheter.",
+    "noRoleRefreshPrefix": "Compte déjà créé ? Appuyez sur ",
+    "noRoleRefreshAction": "Actualiser",
+    "noRoleRefreshing": "Actualisation…",
+    "noRoleRefreshNotFound": "Aucune information de personnage trouvée",
+    "noRoleRefreshFailed": "Échec de l’actualisation. Veuillez réessayer plus tard."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const frFR = {
       "terms": "Conditions de service"
     },
     "cancel": "Annuler",
+    "bindGameGuide": "Notice de liaison au jeu",
+    "bindGameGuideContent": "Ouvrez n’importe quel jeu Touka,\nallez dans les paramètres du jeu,\nliez votre adresse e-mail\net profitez des promotions sur la boutique !",
     "captchaPlaceholder": "Code de vérification",
     "invalidCaptcha": "Veuillez saisir un code de vérification à 4 chiffres",
     "email": "Email",
@@ -78,7 +93,8 @@ export const frFR = {
     "password": "Mot de passe",
     "passwordPlaceholder": "Veuillez entrer le mot de passe",
     "submit": "Se connecter",
-    "title": "Se connecter"
+    "title": "Se connecter",
+    "invalidEmail": "Veuillez saisir une adresse e-mail valide"
   },
   "logout": {
     "cancel": "Annuler",
@@ -108,7 +124,9 @@ export const frFR = {
     "serverAndCharacter": "Serveur / Personnage :",
     "title": "Merci pour votre achat",
     "total": "Tout :",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "Montant payé :",
+    "closeModal": "Fermer"
   },
   "productModal": {
     "confirm": "Confirmer",

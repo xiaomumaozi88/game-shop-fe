@@ -117,6 +117,7 @@
 .productsButton {
   width: 90%;
   margin: 0 auto;
+  margin-bottom: 0.5rem;
   padding-top: @spacing-md;
   padding-bottom: @spacing-md;
   display: flex;
@@ -218,6 +219,7 @@
   // 根据设计稿比例：74.67dp × 16dp，宽高比约为 4.67:1
   // 使用 aspect-ratio 保持比例，宽度在容器内自适应占三分之一
   flex: 1; // 平均分配容器宽度，每个占三分之一
+  max-width: 250px;
   aspect-ratio: 74.67 / 16;
   padding: 0 @spacing-sm; // 左右padding
   background: #d3d3d3; // 灰色背景（未激活）

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Loading } from '@/components/Loading';
 import { stripeApi } from '@/utils/api';
-import { trackStoreIapSuccess, trackStoreIapFail, PAYMENT_TYPES } from '@/utils';
+import { trackStoreIapSuccess, trackStoreIapFail, PAYMENT_TYPES, resolveOrdersListPath } from '@/utils';
 import { Product } from '@/types';
 import styles from './PaymentReturn.module.less';
 
 const PaymentReturn: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const [status, setStatus] = useState<string | null>(null);
   const [customerEmail, setCustomerEmail] = useState<string>('');
@@ -157,7 +158,7 @@ const PaymentReturn: React.FC = () => {
           <div className={styles.actions}>
             <button
               className={styles.button}
-              onClick={() => navigate('/history')}
+              onClick={() => navigate(resolveOrdersListPath(location.pathname))}
             >
               查看订单
             </button>

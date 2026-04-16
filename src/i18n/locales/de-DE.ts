@@ -10,7 +10,8 @@ export const deDE = {
   },
   "common": {
     "loading": "Laden...",
-    "noData": "Keine Daten"
+    "noData": "Keine Daten",
+    "server": "Server"
   },
   "footer": {
     "language": "Chinesisch (vereinfacht)",
@@ -26,13 +27,15 @@ export const deDE = {
     "greeting": "Hallo",
     "loginPrompt": "Bitte klicken Sie auf Anmelden",
     "switchServer": "Wechseln",
-    "title": "Spiel-Aufladeplattform"
+    "title": "Spiel-Aufladeplattform",
+    "logout": "Abmelden"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Oopsie Croco"
   },
   "history": {
+    "backToGameZone": "Zurück zum Spiel-Shop",
     "empty": "Keine Bestellungen",
     "filter": {
       "all": "Alle",
@@ -42,6 +45,10 @@ export const deDE = {
       "pendingDelivery": "Ausstehender Versand "
     },
     "orderTime": "Bestellzeit:",
+    "pendingAutoCancelPrefix": "Die Bestellung wird in",
+    "pendingAutoCancelSuffix": "automatisch storniert",
+    "cancelOrder": "Bestellung stornieren",
+    "payOrder": "Bezahlen",
     "status": {
       "cancelled": "Storniert ",
       "completed": "Transaktion abgeschlossen ",
@@ -56,7 +63,13 @@ export const deDE = {
       "prefix": "Wählen Sie das Spiel, das Sie ",
       "keyword": "aufladen",
       "suffix": " möchten"
-    }
+    },
+    "noRoleAccount": "Sie haben in diesem Spiel noch keinen Charakter. Bitte erstellen Sie zuerst einen Charakter im Spiel, bevor Sie kaufen.",
+    "noRoleRefreshPrefix": "Konto bereits erstellt? Tippen Sie auf ",
+    "noRoleRefreshAction": "Aktualisieren",
+    "noRoleRefreshing": "Wird aktualisiert…",
+    "noRoleRefreshNotFound": "Keine Charakterinformationen gefunden",
+    "noRoleRefreshFailed": "Aktualisierung fehlgeschlagen. Bitte versuchen Sie es später erneut."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const deDE = {
       "terms": "Nutzungsbedingungen "
     },
     "cancel": "Abbrechen ",
+    "bindGameGuide": "Hinweis zur Spielverknüpfung",
+    "bindGameGuideContent": "Öffnen Sie ein beliebiges Touka-Spiel,\ngehen Sie zu den Spieleinstellungen,\nverknüpfen Sie Ihre E-Mail,\nund profitieren Sie von Sonderangeboten im Shop!",
     "captchaPlaceholder": "Bestätigungscode ",
     "invalidCaptcha": "Bitte geben Sie einen 4-stelligen Bestätigungscode ein",
     "email": "E-Mail ",
@@ -78,7 +93,8 @@ export const deDE = {
     "password": "Passwort ",
     "passwordPlaceholder": "Bitte Passwort eingeben ",
     "submit": "Anmelden",
-    "title": "Anmelden"
+    "title": "Anmelden",
+    "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
   },
   "logout": {
     "cancel": "Abbrechen",
@@ -108,7 +124,9 @@ export const deDE = {
     "serverAndCharacter": "Server/Charakter:",
     "title": "Vielen Dank für Ihren Kauf",
     "total": "Alle:",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "Gezahlter Betrag:",
+    "closeModal": "Schließen"
   },
   "productModal": {
     "confirm": "Bestätigen",

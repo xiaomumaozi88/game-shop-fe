@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Locale, translations } from '@/i18n';
 import { useLocation, useParams } from 'react-router-dom';
-import { parseURLParams, storage, STORAGE_KEYS } from '@/utils';
+import { parseURLParams, storage, STORAGE_KEYS, isGameStoreProductsPath } from '@/utils';
 import { SupportModal } from '../SupportModal';
 import { ChevronDownIcon } from '../Icons/ChevronDownIcon';
 import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
@@ -79,9 +79,9 @@ export const Footer: React.FC = () => {
     return LANGUAGE_NAMES[loc] || loc;
   };
 
-  // 判断是否在商品页面
+  // 判断是否在商品页面（订单页 /game/:id/history 不算）
   const isProductsPage = useMemo(() => {
-    return location.pathname.startsWith('/game/') || location.pathname === '/products';
+    return isGameStoreProductsPath(location.pathname);
   }, [location.pathname]);
 
   // 根据 gameId 或 appKey 获取本地化的游戏名称

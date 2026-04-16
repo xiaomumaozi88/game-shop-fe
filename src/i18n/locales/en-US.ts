@@ -10,7 +10,8 @@ export const enUS = {
   },
   "common": {
     "loading": "Loading...",
-    "noData": "No data"
+    "noData": "No data",
+    "server": "Server"
   },
   "auth": {
     "tokenExpired": "Login expired, please login again"
@@ -51,13 +52,15 @@ export const enUS = {
     "greeting": "Hello",
     "loginPrompt": "Please click to log in",
     "switchServer": "Switch",
-    "title": "Game Recharge Platform"
+    "title": "Game Recharge Platform",
+    "logout": "Log out"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Oopsie Croco"
   },
   "history": {
+    "backToGameZone": "Back to game zone",
     "empty": "No Orders",
     "filter": {
       "all": "All",
@@ -67,6 +70,19 @@ export const enUS = {
       "pendingDelivery": "Pending Shipment"
     },
     "orderTime": "Order Time:",
+    "pendingAutoCancelPrefix": "Order will be cancelled in",
+    "pendingAutoCancelSuffix": "automatically",
+    "cancelOrder": "Cancel Order",
+    "payOrder": "Pay",
+    "cancelOrderConfirmTitle": "Are you sure you want to cancel this order?",
+    "cancelOrderConfirmPrimary": "Confirm cancel",
+    "cancelOrderDismiss": "Not now",
+    "cancelOrderSuccess": "Order cancelled",
+    "cancelOrderFailed": "Could not cancel the order. Please try again.",
+    "fetchOrderFailed": "Failed to get latest order information",
+    "createOrderFailed": "Failed to create order",
+    "payConfigError": "Payment configuration error, please contact support",
+    "payRetryFailed": "Failed to retry payment, please try again",
     "status": {
       "cancelled": "Canceled",
       "completed": "Transaction Completed",
@@ -81,7 +97,13 @@ export const enUS = {
       "prefix": "Select the game you want to ",
       "keyword": "recharge",
       "suffix": ""
-    }
+    },
+    "noRoleAccount": "You don't have a character in this game yet. Please create one in the game before purchasing.",
+    "noRoleRefreshPrefix": "Already created an account? Tap ",
+    "noRoleRefreshAction": "Refresh",
+    "noRoleRefreshing": "Refreshing…",
+    "noRoleRefreshNotFound": "No character information found",
+    "noRoleRefreshFailed": "Refresh failed. Please try again later."
   },
   "login": {
     "agreeTerms": {
@@ -91,6 +113,8 @@ export const enUS = {
       "terms": "Terms of Service"
     },
     "cancel": "Cancel",
+    "bindGameGuide": "Game binding notice",
+    "bindGameGuideContent": "Open any Touka game,\ngo to in-game Settings,\nbind your email, and you can enjoy\nspecial store discounts!",
     "captchaPlaceholder": "Verification Code",
     "invalidCaptcha": "Please enter a 4-digit verification code",
     "email": "Email",
@@ -136,7 +160,9 @@ export const enUS = {
     "serverAndCharacter": "Region/Character:",
     "title": "Thank you for your purchase",
     "total": "All:",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "Amount paid:",
+    "closeModal": "Close"
   },
   "productModal": {
     "confirm": "Confirm",

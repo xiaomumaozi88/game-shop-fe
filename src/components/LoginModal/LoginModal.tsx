@@ -29,12 +29,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [captcha, setCaptcha] = useState('');
   const [keepLogin, setKeepLogin] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState(''); // 邮箱错误信息（显示在输入框下）
   const [captchaError, setCaptchaError] = useState(''); // 验证码错误信息（显示在输入框下）
   const [loading, setLoading] = useState(false);
-  const [accountGuideOpen, setAccountGuideOpen] = useState(false);
+  /** null 关闭；default 为「如何创建账号」样式；bindGuide 为绑定游戏须知 */
+  const [accountGuideVariant, setAccountGuideVariant] = useState<'default' | 'bindGuide' | null>(null);
   const [showVerification, setShowVerification] = useState(false);
   // 验证码相关状态
   const [codes, setCodes] = useState<string[]>(['', '', '', '', '', '']);
@@ -63,7 +64,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       setEmail('');
       setCaptcha('');
       setKeepLogin(false);
-      setAgreeTerms(true);
+      setAgreeTerms(false);
       setError('');
       setEmailError('');
       setCaptchaError('');
@@ -75,6 +76,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       setCaptcha('');
       setCaptchaId('');
       setCaptchaImage('');
+      setAccountGuideVariant(null);
     } else {
       fetchCaptcha();
     }
@@ -300,6 +302,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setVerificationError('');
   };
 
+  const handleEmailInvalid = (e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const requiredMessage = t('login.emailPlaceholder');
+    const invalidMessage = t('login.invalidEmail');
+
+    if (input.validity.valueMissing) {
+      input.setCustomValidity(requiredMessage);
+      setEmailError(requiredMessage);
+      return;
+    }
+
+    if (input.validity.typeMismatch) {
+      input.setCustomValidity(invalidMessage);
+      setEmailError(invalidMessage);
+      return;
+    }
+
+    input.setCustomValidity('');
+  };
+
   const isFormValid = email.trim() !== '' && agreeTerms;
 
   return (
@@ -332,9 +354,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 placeholder={t('login.emailPlaceholder')}
                 value={email}
                 onChange={(e) => {
+                  e.currentTarget.setCustomValidity('');
                   setEmail(e.target.value);
                   setEmailError('');
                 }}
+                onInvalid={handleEmailInvalid}
                 required
               />
               {emailError && (
@@ -399,8 +423,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 />
                 <span className={styles.checkboxText}>
                   {t('login.agreeTerms.prefix')}
-                  <a href="/PrivacyPolicy.html" className={styles.link}>{t('login.agreeTerms.privacy')}</a>
-                  {t('login.agreeTerms.and')}
+                  {' '}<a href="/PrivacyPolicy.html" className={styles.link}>{t('login.agreeTerms.privacy')}</a>
+                  {' '}{t('login.agreeTerms.and')}{' '}
                   <a href="/TermsOfService.html" className={styles.link}>{t('login.agreeTerms.terms')}</a>
                 
                 </span>
@@ -432,6 +456,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               >
                 {t('login.cancel')}
               </button>
+              <button
+                type="button"
+                className={`${styles.linkButton} ${styles.bindGameGuideButton}`}
+                onClick={() => setAccountGuideVariant('bindGuide')}
+              >
+                {t('login.bindGameGuide')}
+              </button>
             </div>
 
             {/* 还没有账号链接 */}
@@ -439,7 +470,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 className={styles.linkButton}
-                onClick={() => setAccountGuideOpen(true)}
+                onClick={() => setAccountGuideVariant('default')}
               >
                 {t('login.noAccount')}
               </button>
@@ -520,8 +551,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       </div>
 
       <AccountGuideModal
-        isOpen={accountGuideOpen}
-        onClose={() => setAccountGuideOpen(false)}
+        isOpen={accountGuideVariant !== null}
+        variant={accountGuideVariant === 'bindGuide' ? 'bindGuide' : 'default'}
+        onClose={() => setAccountGuideVariant(null)}
       />
     </>
   );

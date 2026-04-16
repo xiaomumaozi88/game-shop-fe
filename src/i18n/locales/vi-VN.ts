@@ -10,7 +10,8 @@ export const viVN = {
   },
   "common": {
     "loading": "Đang tải...",
-    "noData": "Không có dữ liệu"
+    "noData": "Không có dữ liệu",
+    "server": "Máy chủ"
   },
   "footer": {
     "language": "Tiếng Trung (Giản thể)",
@@ -26,13 +27,15 @@ export const viVN = {
     "greeting": "Xin chào",
     "loginPrompt": "Vui lòng nhấn đăng nhập",
     "switchServer": "Chuyển đổi",
-    "title": "Nền tảng nạp game"
+    "title": "Nền tảng nạp game",
+    "logout": "Đăng xuất"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Ối! Croco"
   },
   "history": {
+    "backToGameZone": "Quay lại cửa hàng game",
     "empty": "Chưa có đơn hàng",
     "filter": {
       "all": "Tất cả",
@@ -42,6 +45,10 @@ export const viVN = {
       "pendingDelivery": "Chờ gửi hàng"
     },
     "orderTime": "Thời gian đặt hàng:",
+    "pendingAutoCancelPrefix": "Đơn hàng sẽ tự động hủy sau",
+    "pendingAutoCancelSuffix": "nữa",
+    "cancelOrder": "Hủy đơn hàng",
+    "payOrder": "Thanh toán",
     "status": {
       "cancelled": "Đã hủy",
       "completed": "Giao dịch hoàn thành",
@@ -56,7 +63,13 @@ export const viVN = {
       "prefix": "Chọn trò chơi bạn muốn ",
       "keyword": "nạp tiền",
       "suffix": ""
-    }
+    },
+    "noRoleAccount": "Bạn chưa có nhân vật trong game này. Vui lòng tạo nhân vật trong game trước khi mua.",
+    "noRoleRefreshPrefix": "Đã tạo tài khoản? Nhấn ",
+    "noRoleRefreshAction": "Làm mới",
+    "noRoleRefreshing": "Đang làm mới…",
+    "noRoleRefreshNotFound": "Không tìm thấy thông tin nhân vật",
+    "noRoleRefreshFailed": "Làm mới thất bại. Vui lòng thử lại sau."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const viVN = {
       "terms": "Điều khoản dịch vụ"
     },
     "cancel": "Hủy",
+    "bindGameGuide": "Lưu ý liên kết game",
+    "bindGameGuideContent": "Mở bất kỳ game Touka nào,\nvào mục Cài đặt trong game,\nliên kết email của bạn\nđể được hưởng ưu đãi đặc biệt tại cửa hàng!",
     "captchaPlaceholder": "Mã xác nhận",
     "invalidCaptcha": "Vui lòng nhập mã xác nhận 4 chữ số",
     "email": "Email",
@@ -78,7 +93,8 @@ export const viVN = {
     "password": "Mật khẩu",
     "passwordPlaceholder": "Vui lòng nhập mật khẩu",
     "submit": "Đăng nhập",
-    "title": "Đăng nhập"
+    "title": "Đăng nhập",
+    "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ"
   },
   "logout": {
     "cancel": "Hủy",
@@ -108,7 +124,9 @@ export const viVN = {
     "serverAndCharacter": "Khu vực/nhân vật:",
     "title": "Cảm ơn bạn đã mua hàng",
     "total": "Tất cả:",
-    "unionPay": "Ngân hàng UnionPay"
+    "unionPay": "Ngân hàng UnionPay",
+    "amountPaid": "Số tiền thanh toán:",
+    "closeModal": "Đóng"
   },
   "productModal": {
     "confirm": "Xác nhận",

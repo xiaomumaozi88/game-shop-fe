@@ -10,7 +10,8 @@ export const zhTW = {
   },
   "common": {
     "loading": "加載中…",
-    "noData": "暫無數據"
+    "noData": "暫無數據",
+    "server": "服務器"
   },
   "footer": {
     "language": "中文（簡體）",
@@ -26,13 +27,15 @@ export const zhTW = {
     "greeting": "您好",
     "loginPrompt": "請點擊登入",
     "switchServer": "切換",
-    "title": "遊戲儲值平台"
+    "title": "遊戲儲值平台",
+    "logout": "登出"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "哎呀！克洛克"
   },
   "history": {
+    "backToGameZone": "返回專區",
     "empty": "暫無訂單",
     "filter": {
       "all": "全部",
@@ -42,6 +45,10 @@ export const zhTW = {
       "pendingDelivery": "待發貨"
     },
     "orderTime": "下單時間:",
+    "pendingAutoCancelPrefix": "訂單將在",
+    "pendingAutoCancelSuffix": "後自動取消",
+    "cancelOrder": "取消訂單",
+    "payOrder": "支付",
     "status": {
       "cancelled": "已取消",
       "completed": "交易完成",
@@ -56,7 +63,13 @@ export const zhTW = {
       "prefix": "選擇您要",
       "keyword": "充值",
       "suffix": "的遊戲"
-    }
+    },
+    "noRoleAccount": "您在此遊戲內還沒有角色帳號，請先在遊戲內建立角色後再進行購買。",
+    "noRoleRefreshPrefix": "已建立帳號？點選",
+    "noRoleRefreshAction": "重新整理",
+    "noRoleRefreshing": "重新整理中…",
+    "noRoleRefreshNotFound": "查無角色資訊",
+    "noRoleRefreshFailed": "重新整理失敗，請稍後再試"
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const zhTW = {
       "terms": "服務條款"
     },
     "cancel": "取消",
+    "bindGameGuide": "綁定遊戲須知",
+    "bindGameGuideContent": "打開任意一款Touka遊戲，\n前往遊戲內設定頁面，綁定\n你的郵箱，即可享受特價商\n品優惠！",
     "captchaPlaceholder": "驗證碼",
     "invalidCaptcha": "請輸入4位數字驗證碼",
     "email": "郵箱",
@@ -78,7 +93,8 @@ export const zhTW = {
     "password": "密碼",
     "passwordPlaceholder": "請輸入密碼",
     "submit": "登入",
-    "title": "登入"
+    "title": "登入",
+    "invalidEmail": "請輸入有效的郵箱地址"
   },
   "logout": {
     "cancel": "取消",
@@ -108,7 +124,9 @@ export const zhTW = {
     "serverAndCharacter": "區組／角色：",
     "title": "感謝您的購買",
     "total": "全部：",
-    "unionPay": "銀聯"
+    "unionPay": "銀聯",
+    "amountPaid": "實付金額：",
+    "closeModal": "關閉"
   },
   "productModal": {
     "confirm": "確定",

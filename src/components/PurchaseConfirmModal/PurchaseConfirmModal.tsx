@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUser } from '@/hooks/useUser';
 import { useGameRole } from '@/hooks/useGameRole';
 import { Product } from '@/types';
-import { PAYMENT_TYPES } from '@/utils';
-import defaultAvatar from '@/assets/imgs/default_avatar.png';
+import { PAYMENT_TYPES, getDefaultAvatarForCurrentGame } from '@/utils';
 import styles from './PurchaseConfirmModal.module.less';
 
 interface PurchaseConfirmModalProps {
@@ -28,6 +27,7 @@ export const PurchaseConfirmModal: React.FC<PurchaseConfirmModalProps> = ({
   const { user } = useUser();
   const { getAllRoles } = useGameRole();
   const [dontAskAgain, setDontAskAgain] = useState(false);
+  const fallbackAvatarUrl = useMemo(() => getDefaultAvatarForCurrentGame(), [isOpen, product?.id]);
 
   // 平台展示文案
   const getPlatformLabel = (platform: string | undefined): string => {
@@ -106,12 +106,11 @@ export const PurchaseConfirmModal: React.FC<PurchaseConfirmModalProps> = ({
         <div className={styles.accountInfo}>
           <div className={styles.avatar}>
             <img 
-              src={user?.avatar || defaultAvatar} 
+              src={user?.avatar || fallbackAvatarUrl} 
               alt="avatar" 
               className={styles.avatarImg}
               onError={(e) => {
-                // 如果头像加载失败，使用默认头像
-                e.currentTarget.src = defaultAvatar;
+                e.currentTarget.src = fallbackAvatarUrl;
               }}
             />
           </div>

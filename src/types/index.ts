@@ -45,7 +45,12 @@ export interface Order {
   totalAmount: number;
   currency: string;
   status: OrderStatus;
+  /** 列表展示用时间：优先 pay_success_time，否则 created_time（见后端订单接口） */
   createdAt: string;
+  /** 后端 created_time，展示/字符串兜底用 */
+  bmallCreatedTime?: string;
+  /** 后端 created_at_unix，待支付「30 分钟内自动取消」倒计时以此为准（秒或毫秒由 History 归一化） */
+  bmallCreatedAtUnix?: number;
   updatedAt?: string;
 }
 

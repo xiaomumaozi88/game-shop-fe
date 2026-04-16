@@ -592,3 +592,90 @@
     font-size: @font-size-sm;
   });
 }
+
+.pendingActionsSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: @spacing-sm;
+  margin-top: @spacing-sm;
+  padding-top: @spacing-sm;
+  border-top: 1px solid @border-color;
+}
+
+.pendingAutoCancelText {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.125rem;
+  font-size: @font-size-sm;
+  color: #949494;
+  font-weight: 500;
+}
+
+.pendingAutoCancelTime {
+  font-variant-numeric: tabular-nums;
+  color: #949494;
+  font-weight: 600;
+}
+
+.pendingActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: @spacing-sm;
+}
+
+.pendingActionsPayOnly {
+  justify-content: flex-end;
+}
+
+.cancelOrderButton {
+  .button-reset();
+  min-width: 6.25rem;
+  height: 2.125rem;
+  padding: 0 @spacing-md;
+  border: 1px solid @border-color;
+  border-radius: 1.5rem;
+  background: @white;
+  color: @text-color;
+  font-size: @font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: @transition-base;
+
+  &:hover:not(:disabled) {
+    border-color: darken(@border-color, 8%);
+    background: @background-color;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.payOrderButton {
+  .button-reset();
+  min-width: 6.25rem;
+  height: 2rem;
+  padding: 0 @spacing-md;
+  border-radius: 1.5rem;
+  background: #626cda;;
+  color: @white;
+  font-size: @font-size-sm;
+  font-weight: 600;
+  cursor: pointer;
+  transition: @transition-base;
+
+  &:hover:not(:disabled) {
+    background: darken(@primary-color, 6%);
+    border-color: darken(@primary-color, 6%);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}

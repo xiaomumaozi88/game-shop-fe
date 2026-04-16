@@ -297,7 +297,8 @@ export const authApi = {
   },
 
   /**
-   * 邮箱验证码登录
+   * 邮箱验证码登录（/bmall/login）
+   * 固定携带 game=toukagame，供后端区分来源（与 send-code 一致）
    * @param email 邮箱地址
    * @param code 邮箱验证码
    * @param appKeys 游戏的app商城地址key数组
@@ -319,6 +320,7 @@ export const authApi = {
           email, 
           code, 
           app_keys: appKeys,
+          game: 'toukagame',
           ...(keepLogin !== undefined ? { keep_login: keepLogin } : {}),
         }),
       });
@@ -351,7 +353,8 @@ export const authApi = {
   },
 
   /**
-   * 发送邮箱验证码
+   * 发送邮箱验证码（/bmall/send-code）
+   * 固定携带 game=toukagame，供后端区分来源
    */
   async sendCode(params: {
     email: string;
@@ -370,6 +373,7 @@ export const authApi = {
           type: params.type || 'login',
           captcha_id: params.captcha_id,
           captcha_code: params.captcha_code,
+          game: 'toukagame',
         }),
       });
       const json: SendCodeResponse = await resp.json();
@@ -620,7 +624,12 @@ export interface BmallOrderQueryData {
   order_no: string;
   pay_status: number;
   transaction_id: string;
+  /** 支付成功时间；待支付、已取消等状态可能为空，此时用 created_time 展示下单时间 */
   pay_success_time: string;
+  /** 订单创建时间；待支付/已取消时 pay_success_time 为空，列表时间与倒计时均依赖此字段 */
+  created_time?: string;
+  /** 订单创建时间 Unix 时间戳（秒或毫秒，见前端归一化逻辑），用于待支付倒计时，避免时区问题 */
+  created_at_unix?: number | string;
   product_name: string;
   multi_name?: string; // 多语言名称，JSON字符串，如 "{\"fr\": \"sfdf\", \"zh\": \"名称1\"}"
   product_id: string;
@@ -818,6 +827,75 @@ export const bmallOrderApi = {
       return {
         success: false,
         error: error instanceof Error ? error.message : '查询订单列表失败',
+      };
+    }
+  },
+
+  /**
+   * 取消商城订单
+   * 对接文档 4.14 商城订单取消 /bmall/order-cancel
+   * 订单号与 session_id 必传其一
+   */
+  async cancelOrder(params: {
+    appKey: string;
+    orderNo?: string;
+    sessionId?: string;
+  }): Promise<ApiResponse<Record<string, never> | null>> {
+    if (!params.orderNo && !params.sessionId) {
+      return {
+        success: false,
+        error: 'order_no 与 session_id 需至少传一个',
+      };
+    }
+
+    try {
+      const body: Record<string, string> = {
+        app_key: params.appKey,
+      };
+      if (params.orderNo) {
+        body.order_no = params.orderNo;
+      }
+      if (params.sessionId) {
+        body.session_id = params.sessionId;
+      }
+
+      const resp = await fetch(`${BMALL_BASE_URL}/order-cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `${authToken}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+
+      const json: {
+        code: number;
+        msg?: string;
+        data?: Record<string, never> | null;
+        ts?: number;
+        biz_code?: number;
+      } = await resp.json();
+
+      handleApiResponse(json);
+
+      if (json?.code === 0) {
+        return {
+          success: true,
+          data: json.data ?? null,
+          message: json.msg,
+          bizCode: json.biz_code,
+        };
+      }
+
+      return {
+        success: false,
+        error: json?.msg || '取消订单失败',
+        bizCode: json.biz_code,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '取消订单失败',
       };
     }
   },

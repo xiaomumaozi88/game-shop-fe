@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Order, OrderStatus } from '@/types';
-import { formatPrice, storage, STORAGE_KEYS } from '@/utils';
+import { formatPrice, storage, STORAGE_KEYS, resolveOrdersListPath } from '@/utils';
 import { Button } from '@/components/Button';
 import styles from './OrderDetail.module.less';
 
@@ -10,6 +10,7 @@ const ORDER_STORAGE_KEY = STORAGE_KEYS.ORDERS;
 export const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export const OrderDetail: React.FC = () => {
         <div className={styles.container}>
           <div className={styles.empty}>
             <h2>订单不存在</h2>
-            <Button variant="primary" onClick={() => navigate('/history')}>
+            <Button variant="primary" onClick={() => navigate(resolveOrdersListPath(location.pathname))}>
               返回订单列表
             </Button>
           </div>
@@ -108,7 +109,7 @@ export const OrderDetail: React.FC = () => {
           </div>
 
           <div className={styles.actions}>
-            <Button variant="outline" onClick={() => navigate('/history')}>
+            <Button variant="outline" onClick={() => navigate(resolveOrdersListPath(location.pathname))}>
               返回订单列表
             </Button>
             <Button variant="primary" onClick={() => navigate('/')}>

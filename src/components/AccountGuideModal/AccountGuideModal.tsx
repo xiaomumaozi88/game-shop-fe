@@ -7,10 +7,17 @@ import styles from './AccountGuideModal.module.less';
 interface AccountGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** 绑定游戏须知：仅展示说明文案，无顶部 logo 与标题 */
+  variant?: 'default' | 'bindGuide';
 }
 
-export const AccountGuideModal: React.FC<AccountGuideModalProps> = ({ isOpen, onClose }) => {
+export const AccountGuideModal: React.FC<AccountGuideModalProps> = ({
+  isOpen,
+  onClose,
+  variant = 'default',
+}) => {
   const { t } = useLanguage();
+  const isBindGuide = variant === 'bindGuide';
 
   if (!isOpen) return null;
 
@@ -22,22 +29,31 @@ export const AccountGuideModal: React.FC<AccountGuideModalProps> = ({ isOpen, on
 
   return (
     <div className={styles.overlay} onClick={handleBackdropClick}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose} aria-label="关闭">
+      <div
+        className={isBindGuide ? `${styles.modal} ${styles.modalBindGuide}` : styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          className={styles.closeButton}
+          onClick={onClose}
+          aria-label={t('paymentSuccess.closeModal')}
+        >
           <CloseIcon size={24} />
         </button>
 
-        {/* TOUKA ID Logo */}
-        <div className={styles.logoSection}>
-          <span className={styles.logoText}>TOUKA</span>
-          <img src={idIcon} alt="ID" className={styles.idBadge} />
-        </div>
+        {!isBindGuide && (
+          <>
+            <div className={styles.logoSection}>
+              <span className={styles.logoText}>TOUKA</span>
+              <img src={idIcon} alt="ID" className={styles.idBadge} />
+            </div>
+            <h2 className={styles.title}>{t('accountGuide.title')}</h2>
+          </>
+        )}
 
-        {/* 标题 */}
-        <h2 className={styles.title}>{t('accountGuide.title')}</h2>
-
-        {/* 内容 */}
-        <p className={styles.content}>{t('accountGuide.content')}</p>
+        <p className={isBindGuide ? styles.contentBindGuide : styles.content}>
+          {isBindGuide ? t('login.bindGameGuideContent') : t('accountGuide.content')}
+        </p>
       </div>
     </div>
   );

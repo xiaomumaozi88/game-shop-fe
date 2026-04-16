@@ -10,7 +10,8 @@ export const esES = {
   },
   "common": {
     "loading": "Cargando...",
-    "noData": "Sin datos"
+    "noData": "Sin datos",
+    "server": "Servidor"
   },
   "footer": {
     "language": "Chino (Simplificado)",
@@ -26,13 +27,15 @@ export const esES = {
     "greeting": "Hola",
     "loginPrompt": "Por favor, haz clic para iniciar sesión",
     "switchServer": "Cambiar",
-    "title": "Plataforma de recarga del juego"
+    "title": "Plataforma de recarga del juego",
+    "logout": "Cerrar sesión"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Oopsie Croco"
   },
   "history": {
+    "backToGameZone": "Volver a la tienda del juego",
     "empty": "Sin pedidos",
     "filter": {
       "all": "Todos",
@@ -42,6 +45,10 @@ export const esES = {
       "pendingDelivery": "Pendiente de envío"
     },
     "orderTime": "Hora del pedido:",
+    "pendingAutoCancelPrefix": "El pedido se cancelará en",
+    "pendingAutoCancelSuffix": "automáticamente",
+    "cancelOrder": "Cancelar pedido",
+    "payOrder": "Pagar",
     "status": {
       "cancelled": "Cancelado",
       "completed": "Transacción completada",
@@ -56,7 +63,13 @@ export const esES = {
       "prefix": "Seleccione el juego para ",
       "keyword": "recargar",
       "suffix": ""
-    }
+    },
+    "noRoleAccount": "Aún no tienes un personaje en este juego. Crea uno en el juego antes de comprar.",
+    "noRoleRefreshPrefix": "¿Ya creaste una cuenta? Pulsa ",
+    "noRoleRefreshAction": "Actualizar",
+    "noRoleRefreshing": "Actualizando…",
+    "noRoleRefreshNotFound": "No se encontró información del personaje",
+    "noRoleRefreshFailed": "Error al actualizar. Inténtalo de nuevo más tarde."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const esES = {
       "terms": "Términos de servicio"
     },
     "cancel": "Cancelar",
+    "bindGameGuide": "Aviso de vinculación del juego",
+    "bindGameGuideContent": "Abre cualquier juego Touka,\nve a Ajustes dentro del juego,\nvincula tu correo\ny disfruta de ofertas especiales en la tienda.",
     "captchaPlaceholder": "Código de verificación",
     "invalidCaptcha": "Por favor, ingrese un código de verificación de 4 dígitos",
     "email": "Correo electrónico",
@@ -78,7 +93,8 @@ export const esES = {
     "password": "Contraseña",
     "passwordPlaceholder": "Por favor ingrese la contraseña",
     "submit": "Iniciar sesión",
-    "title": "Iniciar sesión"
+    "title": "Iniciar sesión",
+    "invalidEmail": "Introduce una dirección de correo válida"
   },
   "logout": {
     "cancel": "Cancelar",
@@ -108,7 +124,9 @@ export const esES = {
     "serverAndCharacter": "Servidor/Personaje:",
     "title": "Gracias por su compra",
     "total": "Todo:",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "Importe pagado:",
+    "closeModal": "Cerrar"
   },
   "productModal": {
     "confirm": "Confirmar",

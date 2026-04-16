@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const Dotenv = require('dotenv-webpack');
 
@@ -124,6 +125,16 @@ module.exports = (env, argv) => {
               useShortDoctype: true,
             }
           : false,
+      }),
+      // 将 public 下的静态文件（favicon、政策页等）复制到 dist，排除 index.html（由 HtmlWebpackPlugin 生成）
+      new CopyPlugin({
+        patterns: [
+          {
+            from: path.resolve(__dirname, 'public'),
+            to: '.',
+            globOptions: { ignore: ['**/index.html'] },
+          },
+        ],
       }),
       // 使用 dotenv-webpack 加载 .env 文件
       // dotenv-webpack 会自动将所有环境变量注入到 DefinePlugin 中

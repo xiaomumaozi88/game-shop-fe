@@ -35,6 +35,15 @@
   });
 }
 
+.modalBindGuide {
+  padding-top: 3rem; // 为右上角关闭按钮留出空间
+
+  .mobile({
+    height: auto;
+    min-height: 0;
+  });
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -124,6 +133,20 @@
   line-height: 1.6;
   margin: 0;
   font-weight: bold;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.contentBindGuide {
+  font-size: @font-size-md;
+  color: @text-color;
+  text-align: center;
+  line-height: 1.65;
+  margin: 0;
+  font-weight: 400;
+  white-space: pre-line;
 
   .mobile({
     font-size: @font-size-sm;

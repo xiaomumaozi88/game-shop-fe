@@ -10,7 +10,8 @@ export const ruRU = {
   },
   "common": {
     "loading": "Загрузка...",
-    "noData": "Нет данных"
+    "noData": "Нет данных",
+    "server": "Сервер"
   },
   "footer": {
     "language": "Китайский (упрощённый)",
@@ -26,13 +27,15 @@ export const ruRU = {
     "greeting": "Здравствуйте",
     "loginPrompt": "Пожалуйста, нажмите для входа",
     "switchServer": "Переключить",
-    "title": "Платформа пополнения игры"
+    "title": "Платформа пополнения игры",
+    "logout": "Выйти"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "Упс! Кроко"
   },
   "history": {
+    "backToGameZone": "Вернуться в магазин игры",
     "empty": "Нет заказов",
     "filter": {
       "all": "Все",
@@ -42,6 +45,10 @@ export const ruRU = {
       "pendingDelivery": "Ожидает отправки"
     },
     "orderTime": "Время заказа:",
+    "pendingAutoCancelPrefix": "Заказ будет отменён через",
+    "pendingAutoCancelSuffix": "автоматически",
+    "cancelOrder": "Отменить заказ",
+    "payOrder": "Оплатить",
     "status": {
       "cancelled": "Отменён",
       "completed": "Сделка завершена",
@@ -56,7 +63,13 @@ export const ruRU = {
       "prefix": "Выберите игру для ",
       "keyword": "пополнения",
       "suffix": ""
-    }
+    },
+    "noRoleAccount": "У вас ещё нет персонажа в этой игре. Создайте персонажа в игре перед покупкой.",
+    "noRoleRefreshPrefix": "Уже создали аккаунт? Нажмите ",
+    "noRoleRefreshAction": "Обновить",
+    "noRoleRefreshing": "Обновление…",
+    "noRoleRefreshNotFound": "Информация о персонаже не найдена",
+    "noRoleRefreshFailed": "Не удалось обновить. Попробуйте позже."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const ruRU = {
       "terms": "Условиями обслуживания"
     },
     "cancel": "Отмена",
+    "bindGameGuide": "Справка по привязке игры",
+    "bindGameGuideContent": "Откройте любую игру Touka,\nзайдите в настройки внутри игры,\nпривяжите почту —\nи пользуйтесь специальными ценами в магазине!",
     "captchaPlaceholder": "Код подтверждения",
     "invalidCaptcha": "Пожалуйста, введите 4-значный код подтверждения",
     "email": "Электронная почта",
@@ -78,7 +93,8 @@ export const ruRU = {
     "password": "Пароль",
     "passwordPlaceholder": "Пожалуйста, введите пароль",
     "submit": "Войти",
-    "title": "Войти"
+    "title": "Войти",
+    "invalidEmail": "Введите действительный адрес электронной почты"
   },
   "logout": {
     "cancel": "Отменить",
@@ -108,7 +124,9 @@ export const ruRU = {
     "serverAndCharacter": "Кластер/Персонаж:",
     "title": "Благодарим за вашу покупку",
     "total": "Все:",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "Сумма к оплате:",
+    "closeModal": "Закрыть"
   },
   "productModal": {
     "confirm": "Подтвердить",

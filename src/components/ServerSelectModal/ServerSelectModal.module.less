@@ -22,7 +22,7 @@
   position: relative;
   background: @white;
   border-radius: @border-radius-lg;
-  max-width: 25rem; // 400px
+  max-width: min(100%, 32rem); // 约 512px，长 placeholder / 多语言更易完整显示
   width: 100%;
   padding: @spacing-xxl @spacing-lg @spacing-xl;
   box-shadow: @box-shadow-lg;
@@ -71,6 +71,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  min-width: 0; // 允许子项 input 在 flex 内正确收缩，避免 placeholder 被异常裁切
   border: 1px solid #e0e0e0;
   border-radius: 1.25rem; // 20px 圆角（默认状态）
   background: @white;
@@ -92,7 +93,10 @@
 
 .input {
   flex: 1;
+  min-width: 0; // 与 inputWrapper 配合，保证占位符在可用宽度内尽量完整显示
+  width: 100%;
   padding: @spacing-md;
+  padding-right: @spacing-xs;
   border: none;
   outline: none;
   font-size: @font-size-md;
@@ -103,11 +107,19 @@
 
   &::placeholder {
     color: #cccccc; // 更浅的灰色
+    font-size: 1rem; 
+    line-height: 1.4;
+    letter-spacing: -0.015em;
   }
 
   .mobile({
     padding: @spacing-sm;
     font-size: @font-size-sm;
+
+    &::placeholder {
+      font-size: 0.8rem; 
+      letter-spacing: -0.02em;
+    }
   });
 }
 

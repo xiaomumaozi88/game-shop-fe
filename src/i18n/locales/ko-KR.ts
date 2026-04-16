@@ -10,7 +10,8 @@ export const koKR = {
   },
   "common": {
     "loading": "로딩 중...",
-    "noData": "데이터 없음"
+    "noData": "데이터 없음",
+    "server": "서버"
   },
   "footer": {
     "language": "중국어(간체)",
@@ -26,13 +27,15 @@ export const koKR = {
     "greeting": "안녕하세요",
     "loginPrompt": "로그인해 주세요",
     "switchServer": "전환",
-    "title": "게임 충전 플랫폼"
+    "title": "게임 충전 플랫폼",
+    "logout": "로그아웃"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "앗차! 크로코"
   },
   "history": {
+    "backToGameZone": "게임 스토어로 돌아가기",
     "empty": "주문 없음",
     "filter": {
       "all": "전체",
@@ -42,6 +45,10 @@ export const koKR = {
       "pendingDelivery": "배송 대기"
     },
     "orderTime": "주문 시간:",
+    "pendingAutoCancelPrefix": "주문이",
+    "pendingAutoCancelSuffix": "후 자동으로 취소됩니다",
+    "cancelOrder": "주문 취소",
+    "payOrder": "결제",
     "status": {
       "cancelled": "취소됨",
       "completed": "거래 완료",
@@ -56,7 +63,13 @@ export const koKR = {
       "prefix": "",
       "keyword": "충전",
       "suffix": "할 게임 선택"
-    }
+    },
+    "noRoleAccount": "이 게임에 아직 캐릭터가 없습니다. 구매 전 게임에서 캐릭터를 먼저 생성해 주세요.",
+    "noRoleRefreshPrefix": "이미 계정을 만드셨나요? 눌러서 ",
+    "noRoleRefreshAction": "새로고침",
+    "noRoleRefreshing": "새로고침 중…",
+    "noRoleRefreshNotFound": "캐릭터 정보를 찾을 수 없습니다",
+    "noRoleRefreshFailed": "새로고침에 실패했습니다. 잠시 후 다시 시도해 주세요."
   },
   "login": {
     "agreeTerms": {
@@ -66,6 +79,8 @@ export const koKR = {
       "terms": "서비스 약관"
     },
     "cancel": "취소",
+    "bindGameGuide": "게임 연동 안내",
+    "bindGameGuideContent": "Touka 게임을 실행한 뒤\n게임 내 설정에서\n이메일을 연동하면\n특가 상품을 이용할 수 있습니다!",
     "captchaPlaceholder": "인증 코드",
     "invalidCaptcha": "4자리 인증 코드를 입력하세요",
     "email": "이메일",
@@ -78,7 +93,8 @@ export const koKR = {
     "password": "비밀번호",
     "passwordPlaceholder": "비밀번호를 입력해 주세요",
     "submit": "로그인",
-    "title": "로그인"
+    "title": "로그인",
+    "invalidEmail": "유효한 이메일 주소를 입력해 주세요"
   },
   "logout": {
     "cancel": "취소",
@@ -108,7 +124,9 @@ export const koKR = {
     "serverAndCharacter": "서버/캐릭터:",
     "title": "구매해 주셔서 감사합니다",
     "total": "전체:",
-    "unionPay": "UnionPay"
+    "unionPay": "UnionPay",
+    "amountPaid": "실제 결제 금액:",
+    "closeModal": "닫기"
   },
   "productModal": {
     "confirm": "확인",

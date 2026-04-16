@@ -10,7 +10,8 @@ export const zhCN = {
   },
   "common": {
     "loading": "加载中...",
-    "noData": "暂无数据"
+    "noData": "暂无数据",
+    "server": "服务器"
   },
   "auth": {
     "tokenExpired": "登录已过期，请重新登录"
@@ -51,13 +52,15 @@ export const zhCN = {
     "greeting": "您好",
     "loginPrompt": "请点击登录",
     "switchServer": "切换",
-    "title": "游戏充值平台"
+    "title": "游戏充值平台",
+    "logout": "退出登录"
   },
   "games": {
     "bamBamSquad": "BamBamSquad",
     "oopsieCroco": "哎呀！克洛克"
   },
   "history": {
+    "backToGameZone": "返回专区",
     "empty": "暂无订单",
     "filter": {
       "all": "全部",
@@ -67,6 +70,19 @@ export const zhCN = {
       "pendingDelivery": "待发货"
     },
     "orderTime": "下单时间:",
+    "pendingAutoCancelPrefix": "订单将在",
+    "pendingAutoCancelSuffix": "后自动取消",
+    "cancelOrder": "取消订单",
+    "payOrder": "支付",
+    "cancelOrderConfirmTitle": "是否确认取消订单？",
+    "cancelOrderConfirmPrimary": "确认取消",
+    "cancelOrderDismiss": "暂不取消",
+    "cancelOrderSuccess": "订单已取消",
+    "cancelOrderFailed": "取消订单失败，请稍后重试",
+    "fetchOrderFailed": "获取订单信息失败",
+    "createOrderFailed": "创建订单失败",
+    "payConfigError": "支付配置错误，请联系客服",
+    "payRetryFailed": "重新支付失败，请重试",
     "status": {
       "cancelled": "已取消",
       "completed": "交易完成",
@@ -82,7 +98,12 @@ export const zhCN = {
       "keyword": "充值",
       "suffix": "的游戏"
     },
-    "noRoleAccount": "您在此游戏内还没有角色账号，请先在游戏内创建角色后再进行购买。"
+    "noRoleAccount": "您在此游戏内还没有角色账号，请先在游戏内创建角色后再进行购买。",
+    "noRoleRefreshPrefix": "已创建账号？点击",
+    "noRoleRefreshAction": "刷新",
+    "noRoleRefreshing": "刷新中…",
+    "noRoleRefreshNotFound": "未查询到角色信息",
+    "noRoleRefreshFailed": "刷新失败，请稍后重试"
   },
   "login": {
     "agreeTerms": {
@@ -92,6 +113,8 @@ export const zhCN = {
       "terms": "服务条款"
     },
     "cancel": "取消",
+    "bindGameGuide": "绑定游戏须知",
+    "bindGameGuideContent": "打开任意一款Touka游戏，\n前往游戏内设置页面，绑定\n你的邮箱，即可享受特价商\n品优惠！",
     "captchaPlaceholder": "验证码",
     "invalidCaptcha": "请输入4位数字验证码",
     "email": "邮箱",
@@ -137,7 +160,9 @@ export const zhCN = {
     "serverAndCharacter": "区组/角色:",
     "title": "感谢您的购买",
     "total": "全部:",
-    "unionPay": "银联"
+    "unionPay": "银联",
+    "amountPaid": "实付金额:",
+    "closeModal": "关闭"
   },
   "productModal": {
     "confirm": "确定",

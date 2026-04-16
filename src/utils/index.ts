@@ -141,6 +141,8 @@ export const navigateTo = (url: string): void => {
 // 导出API和常量
 export * from './api';
 export * from './constants';
+export * from './historyNavigation';
+export * from './defaultAvatar';
 export * from './thinkingData';
 export * from './analytics';
 

@@ -62,12 +62,78 @@
   font-size: @font-size-md;
   color: @text-color; // 黑色，不是灰色
   text-align: center;
-  margin: 0 0 @spacing-xl 0;
+  margin: 0 0 @spacing-md 0;
   line-height: 1.5;
 
   .mobile({
     font-size: @font-size-sm;
   });
+}
+
+.extraBelow {
+  text-align: center;
+  margin: 0 0 @spacing-lg 0;
+  font-size: @font-size-md;
+  color: @text-color;
+  line-height: 1.5;
+
+  .mobile({
+    font-size: @font-size-sm;
+  });
+}
+
+.refreshLine {
+  margin: 0;
+}
+
+.refreshLink {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: #1a4dad; // 与白底对比度 > 4.5:1
+  text-decoration: underline;
+  text-underline-offset: 0.125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  vertical-align: baseline;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    text-decoration: none;
+  }
+
+  // loading 时仅展示转圈，保证占位与点击热区
+  &[aria-busy='true'] {
+    min-width: 1.25rem;
+    min-height: 1.125rem;
+    justify-content: center;
+  }
+
+  &:not(:disabled):hover {
+    color: #153d8f;
+  }
+}
+
+.refreshSpinner {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid rgba(26, 77, 173, 0.28);
+  border-top-color: #1a4dad;
+  border-radius: 50%;
+  animation: refreshSpinnerRotate 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes refreshSpinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .actions {
@@ -78,6 +144,51 @@
     width: 80%;
     margin: 0 auto;
   });
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: space-between;
+  gap: @spacing-md;
+
+  .mobile({
+    gap: @spacing-sm;
+    width: 80%;
+    margin: 0 auto;
+  });
+}
+
+.dismissButton {
+  flex: 1;
+  padding: @spacing-md;
+  background: @white;
+  border: 1px solid @border-color;
+  border-radius: 999px; // 椭圆形状的圆角
+  color: @text-color; // 黑色文字，不是灰色
+  font-size: @font-size-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  .touch-friendly();
+  font-weight: normal;
+
+  &:hover:not(:disabled) {
+    background: @background-color;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .mobile({
+    font-size: @font-size-sm;
+    padding: @spacing-sm;
+  });
+}
+
+.actionsRow .confirmButton {
+  flex: 1;
+  max-width: none;
 }
 
 .confirmButton {

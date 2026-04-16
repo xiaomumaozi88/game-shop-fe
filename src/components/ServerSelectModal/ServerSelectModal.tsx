@@ -178,9 +178,11 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
   // 弹窗打开时，用当前值预填充（仅在弹窗刚打开时设置一次）
   useEffect(() => {
     if (!isOpen) {
-      // 弹窗关闭时，重置初始化标记
+      // 弹窗关闭时，重置初始化标记并收起下拉，避免下次打开仍呈展开态
       initializedRef.current = false;
       setHasUserTyped(false);
+      setShowServerList(false);
+      setShowCharacterList(false);
       return;
     }
 
@@ -328,6 +330,7 @@ const result = onConfirm(selectedServer, selectedCharacter || '', gameUserId, se
               type="text"
               className={styles.input}
               placeholder={t('serverSelect.serverPlaceholder')}
+              title={t('serverSelect.serverPlaceholder')}
               value={searchText}
               onChange={(e) => {
                 setSearchText(e.target.value);

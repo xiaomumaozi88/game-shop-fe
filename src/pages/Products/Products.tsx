@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCart } from '@/hooks/useCart';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
@@ -131,12 +131,20 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
 
 export const Products: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, locale } = useLanguage();
   const { addItem } = useCart();
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const { user, clearGameSpecificFields, saveGameRoleSelection, getGameRoleSelection } = useUser();
   const { roles } = useGameRole(); // 获取全局角色列表状态
+
+  // 商品页需有效登录态：无 token（未登录、已退出、登录过期被清空）时回到游戏列表首页（含直接刷新）
+  useEffect(() => {
+    if (!user?.token) {
+      navigate('/', { replace: true });
+    }
+  }, [user?.token, navigate]);
   const { isDesktop } = useResponsive();
   const [activeCategory, setActiveCategory] = useState<ProductCategory>('vouchers');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -272,6 +280,12 @@ export const Products: React.FC = () => {
     { id: 'diamond', label: t('products.diamond') },
     { id: 'giftPacks', label: t('products.giftPacks') },
   ];
+
+  // 仅展示有数据的分类 tab（无数据则不显示该 tab）
+  const visibleCategories = useMemo(
+    () => categories.filter((c) => products.some((p) => p.categoryId === c.id)),
+    [products, categories]
+  );
 
   // 处理 quick_sign 快速登录：仅执行一次（只做轻量校验 + 调用后端校验）
   useEffect(() => {
@@ -481,6 +495,15 @@ export const Products: React.FC = () => {
       setShowVoucherGuide(false);
     }
   }, [activeCategory]);
+
+  // 当某分类无数据被隐藏后，若当前选中的正是该分类，则自动切换到第一个有数据的分类
+  useEffect(() => {
+    if (loadingProducts || visibleCategories.length === 0) return;
+    const isActiveVisible = visibleCategories.some((c) => c.id === activeCategory);
+    if (!isActiveVisible) {
+      setActiveCategory(visibleCategories[0].id);
+    }
+  }, [loadingProducts, products, activeCategory, visibleCategories]);
 
   const shouldSkipAccountConfirm = () => {
     const dontAskExpiry = localStorage.getItem('purchaseConfirmDontAsk');
@@ -1093,18 +1116,20 @@ export const Products: React.FC = () => {
         </button>
       </div>
 
-      {/* 分类标签 */}
-      <div className={styles.tabs}>
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            className={`${styles.tab} ${activeCategory === category.id ? styles.tabActive : ''}`}
-            onClick={() => setActiveCategory(category.id)}
-          >
-            {category.label}
-          </button>
-        ))}
-      </div>
+      {/* 分类标签（仅当有多种分类时显示，单一分类时隐藏） */}
+      {visibleCategories.length > 1 && (
+        <div className={styles.tabs}>
+          {visibleCategories.map((category) => (
+            <button
+              key={category.id}
+              className={`${styles.tab} ${activeCategory === category.id ? styles.tabActive : ''}`}
+              onClick={() => setActiveCategory(category.id)}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 商品网格或使用引导 */}
       {showVoucherGuide && activeCategory === 'vouchers' ? (

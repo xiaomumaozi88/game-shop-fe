@@ -6,8 +6,10 @@ import { useUser } from '@/hooks/useUser';
 import { useResponsive } from '@/hooks/useResponsive';
 import { LoginModal } from '@/components/LoginModal';
 import { AlertModal } from '@/components/AlertModal';
+import alertModalStyles from '@/components/AlertModal/AlertModal.module.less';
 import { useGameRole } from '@/hooks/useGameRole';
 import { gameRoleStore } from '@/store/gameRoleStore';
+import { messageStore } from '@/store/messageStore';
 import { gameRoleApi } from '@/utils/api';
 import { storage, STORAGE_KEYS } from '@/utils';
 import BAM_IMG from '@/assets/imgs/bam_bam_game_img.png';
@@ -83,10 +85,9 @@ export const Home: React.FC = () => {
   // 当前显示的索引（初始为1，即第一张真实图片）
   const [currentIndex, setCurrentIndex] = useState(1);
 
-  // 当 banners 变化时，重置 currentIndex 到初始值并清除定时器
+  // 端别或套图切换时重置索引（仅依赖 length 无法覆盖「仍是 2 张图但 PC/移动图不同」的情况）
   useEffect(() => {
     if (banners.length > 0) {
-      // 清除现有定时器
       if (autoPlayTimerRef.current) {
         clearInterval(autoPlayTimerRef.current);
         autoPlayTimerRef.current = null;
@@ -94,7 +95,7 @@ export const Home: React.FC = () => {
       setCurrentIndex(1);
       currentIndexRef.current = 1;
     }
-  }, [banners.length]);
+  }, [isDesktop, banners.length]);
   
   // 是否启用过渡动画
   const [enableTransition, setEnableTransition] = useState(true);
@@ -110,19 +111,31 @@ export const Home: React.FC = () => {
   const currentIndexRef = useRef<number>(1); // 用于在回调中获取最新的 currentIndex
   const infiniteBannersLengthRef = useRef<number>(0); // 用于在定时器中获取最新的 infiniteBanners 长度
 
-  // 同步 infiniteBanners.length 到 ref
-  useEffect(() => {
-    infiniteBannersLengthRef.current = infiniteBanners.length;
-  }, [infiniteBanners.length]);
+  // 渲染期同步长度，避免首帧 effect 尚未跑时 ref 为 0
+  infiniteBannersLengthRef.current = infiniteBanners.length;
 
-  // 提示弹窗状态
+  // 提示弹窗：存 i18n key，渲染时再 t(key)，切换语言后文案会同步更新
   const [showAlertModal, setShowAlertModal] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alertMessageI18nKey, setAlertMessageI18nKey] = useState<string | null>(null);
+  /** 无角色提示弹窗：记录用户点击的游戏，用于刷新角色列表后判断是否进入商店 */
+  const [pendingNoRoleGameId, setPendingNoRoleGameId] = useState<string | null>(null);
+  const [noRoleRefreshLoading, setNoRoleRefreshLoading] = useState(false);
 
   // 同步 currentIndex 到 ref
   useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
+
+  // 索引越界时拉回（防止 transitionend 未触发等异常导致 translateX 极大、首屏空白）
+  useEffect(() => {
+    const n = infiniteBanners.length;
+    if (n === 0) return;
+    if (currentIndex < 0 || currentIndex >= n) {
+      setEnableTransition(false);
+      setCurrentIndex(1);
+      currentIndexRef.current = 1;
+    }
+  }, [currentIndex, infiniteBanners.length]);
 
   // 将内部索引转换为真实索引（用于圆点显示）
   const getRealIndex = (index: number): number => {
@@ -191,12 +204,11 @@ export const Home: React.FC = () => {
     const minSwipeDistance = 50;
 
     if (Math.abs(diff) > minSwipeDistance) {
+      const n = infiniteBannersLengthRef.current;
       if (diff > 0) {
-        // 向左滑动，下一张
-        setCurrentIndex((prev) => prev + 1);
+        setCurrentIndex((prev) => (n <= 1 ? prev : Math.min(prev + 1, n - 1)));
       } else {
-        // 向右滑动，上一张
-        setCurrentIndex((prev) => prev - 1);
+        setCurrentIndex((prev) => (n <= 1 ? prev : Math.max(prev - 1, 0)));
       }
     }
     
@@ -233,10 +245,13 @@ export const Home: React.FC = () => {
     // 如果未暂停且有banner内容，重新启动自动轮播
     if (!isPausedRef.current && banners.length > 0 && infiniteBannersLengthRef.current > 1) {
       autoPlayTimerRef.current = setInterval(() => {
-        // 使用 ref 来获取最新的 infiniteBanners 长度，避免闭包问题
-        if (infiniteBannersLengthRef.current <= 1) return;
-        // 使用函数式更新确保获取最新的状态
-        setCurrentIndex((prev) => prev + 1);
+        const n = infiniteBannersLengthRef.current;
+        if (n <= 1) return;
+        setCurrentIndex((prev) => {
+          // 最后一格为克隆首图，须等 transitionend 复位；若此处再累加会出现 translateX 数千 % 的失控
+          if (prev >= n - 1) return prev;
+          return prev + 1;
+        });
       }, 5000); // 每5秒切换一次
     }
   }, [banners.length, infiniteBanners.length]);
@@ -367,6 +382,38 @@ export const Home: React.FC = () => {
     loadGameRoles();
   }, [user?.token]);
 
+  /** 无角色弹窗内：重新拉取区服角色列表，若已有当前游戏角色则进入商店 */
+  const handleNoRoleRefreshRoles = useCallback(async () => {
+    const gid = pendingNoRoleGameId;
+    if (!gid || noRoleRefreshLoading) return;
+    const game = games.find((g) => g.id === gid);
+    if (!game || !user?.token) return;
+
+    setNoRoleRefreshLoading(true);
+    try {
+      const appKeys = games.map((g) => g.app_key);
+      const res = await gameRoleApi.getGameServerRoleList(appKeys);
+      if (res.success && res.data) {
+        gameRoleStore.setRoles(res.data);
+        const hasCurrent = res.data.some((r) => r.app_key === game.app_key);
+        if (hasCurrent) {
+          setShowAlertModal(false);
+          setAlertMessageI18nKey(null);
+          setPendingNoRoleGameId(null);
+          navigate(`/game/${gid}`);
+        } else {
+          messageStore.show(t('home.noRoleRefreshNotFound'));
+        }
+      } else {
+        messageStore.show(res.error || t('home.noRoleRefreshFailed'));
+      }
+    } catch {
+      messageStore.show(t('home.noRoleRefreshFailed'));
+    } finally {
+      setNoRoleRefreshLoading(false);
+    }
+  }, [pendingNoRoleGameId, noRoleRefreshLoading, user?.token, navigate, t]);
+
   // 游戏卡片点击
   const handleGameClick = (gameId: string) => {
     requireLogin(() => {
@@ -391,10 +438,10 @@ export const Home: React.FC = () => {
 
       // 检查是否有该游戏的角色账号（使用全局 hook）
       const hasRoles = hasRolesForAppKey(game.app_key);
-      
+
       if (!hasRoles) {
-        // 没有角色账号，显示提示弹窗
-        setAlertMessage(t('home.noRoleAccount'));
+        setPendingNoRoleGameId(gameId);
+        setAlertMessageI18nKey('home.noRoleAccount');
         setShowAlertModal(true);
         return;
       }
@@ -493,8 +540,34 @@ export const Home: React.FC = () => {
       {/* 提示弹窗 */}
       <AlertModal
         isOpen={showAlertModal}
-        onClose={() => setShowAlertModal(false)}
-        message={alertMessage}
+        onClose={() => {
+          setShowAlertModal(false);
+          setAlertMessageI18nKey(null);
+          setPendingNoRoleGameId(null);
+          setNoRoleRefreshLoading(false);
+        }}
+        message={alertMessageI18nKey ? t(alertMessageI18nKey) : ''}
+        extraBelowMessage={
+          alertMessageI18nKey === 'home.noRoleAccount' && pendingNoRoleGameId ? (
+            <p className={alertModalStyles.refreshLine}>
+              <span>{t('home.noRoleRefreshPrefix')}</span>
+              <button
+                type="button"
+                className={alertModalStyles.refreshLink}
+                onClick={handleNoRoleRefreshRoles}
+                disabled={noRoleRefreshLoading}
+                aria-busy={noRoleRefreshLoading}
+                aria-label={noRoleRefreshLoading ? t('home.noRoleRefreshing') : t('home.noRoleRefreshAction')}
+              >
+                {noRoleRefreshLoading ? (
+                  <span className={alertModalStyles.refreshSpinner} aria-hidden />
+                ) : (
+                  t('home.noRoleRefreshAction')
+                )}
+              </button>
+            </p>
+          ) : null
+        }
       />
 
     </div>

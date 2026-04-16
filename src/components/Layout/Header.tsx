@@ -5,7 +5,7 @@ import { useUser } from '@/hooks/useUser';
 import { useGameRole } from '@/hooks/useGameRole';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
-import { storage, STORAGE_KEYS } from '@/utils';
+import { storage, STORAGE_KEYS, resolveOrdersListPath, isGameStoreProductsPath, getDefaultAvatarByAppKey } from '@/utils';
 import { userDetailApi, gameRoleApi } from '@/utils/api';
 import { gameRoleStore } from '@/store/gameRoleStore';
 import { thinkingData } from '@/utils/thinkingData';
@@ -24,7 +24,6 @@ import { ServerSelectModal } from '../ServerSelectModal';
 import { LoginModal } from '../LoginModal';
 import exitIcon from '@/assets/imgs/touka_home_ic_exit.png';
 import logoImg from '@/assets/imgs/touka_home_logo.png';
-import defaultAvatar from '@/assets/imgs/default_avatar.png';
 import styles from './Header.module.less';
 
 export const Header: React.FC = () => {
@@ -37,7 +36,10 @@ export const Header: React.FC = () => {
   const [currentAppKey, setCurrentAppKey] = useState<string | undefined>(
     storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined) || undefined
   );
-console.log('🍠 用户信息', user);
+  const fallbackAvatarUrl = useMemo(
+    () => getDefaultAvatarByAppKey(currentAppKey),
+    [currentAppKey]
+  );
   // 监听 localStorage 中 CURRENT_GAME_APP_KEY 的变化，并在页面加载时初始化数数SDK
   useEffect(() => {
     const handleStorageChange = () => {
@@ -247,8 +249,8 @@ console.log('🍠 用户信息', user);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   
-  // 判断是否在商品页面
-  const isProductsPage = location.pathname.startsWith('/game/') || location.pathname === '/products';
+  // 判断是否在商品页面（订单页 /game/:id/history 等不算商品页）
+  const isProductsPage = isGameStoreProductsPath(location.pathname);
   // 判断是否为home页面
   const isHomePage = location.pathname === '/';
 
@@ -326,15 +328,15 @@ console.log('🍠 用户信息', user);
           <nav className={styles.desktopNav}>
             <Link
               to="/"
-              className={`${styles.desktopNavItem} ${location.pathname === '/' || location.pathname.startsWith('/game/') || location.pathname === '/products' ? styles.desktopNavItemActive : ''}`}
+              className={`${styles.desktopNavItem} ${location.pathname === '/' || isGameStoreProductsPath(location.pathname) ? styles.desktopNavItemActive : ''}`}
             >
               {t('menu.gameList')}
             </Link>
             <button
-              className={`${styles.desktopNavItem} ${location.pathname === '/history' ? styles.desktopNavItemActive : ''}`}
+              className={`${styles.desktopNavItem} ${location.pathname.includes('/history') ? styles.desktopNavItemActive : ''}`}
               onClick={() => {
                 requireLogin(() => {
-                  navigate('/history');
+                  navigate(resolveOrdersListPath(location.pathname));
                 });
               }}
             >
@@ -372,7 +374,7 @@ console.log('🍠 用户信息', user);
                       className={styles.userDropdownItem}
                       onClick={handleLogoutClick}
                     >
-                      退出登录
+                      {t('header.logout')}
                     </button>
                   </div>
                 )}
@@ -407,12 +409,12 @@ console.log('🍠 用户信息', user);
               {isProductsPage && (
                 <div className={styles.avatar}>
                     <img 
-                    src={user.avatar || defaultAvatar} 
+                    src={user.avatar || fallbackAvatarUrl}
                       alt="avatar" 
                       className={styles.avatarImage}
                       onError={(e) => {
-                      // 如果头像加载失败，使用默认头像
-                      e.currentTarget.src = defaultAvatar;
+                      // 如果头像加载失败，使用当前游戏默认头像
+                      e.currentTarget.src = fallbackAvatarUrl;
                       }}
                     />
                 </div>
@@ -487,7 +489,7 @@ console.log('🍠 用户信息', user);
           onClick={() => {
             setMobileMenuOpen(false);
             requireLogin(() => {
-              navigate('/history');
+              navigate(resolveOrdersListPath(location.pathname));
             });
           }}
         >
