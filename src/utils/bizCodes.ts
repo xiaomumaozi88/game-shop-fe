@@ -5,6 +5,8 @@
  */
 
 // 默认业务错误码
+export type BizCode = number;
+
 export const DefaultBizCode = 900400; // 默认业务错误码，内部参数错误
 export const DefaultBizCodeAuthenticationFailed = 900401; // 登录认证失败
 export const DefaultBizCodeAuthenticationExpired = 900402; // 登录认证过期
@@ -23,16 +25,19 @@ export const EmailCouldNotBeEmpty = 1000007; // Email could not be empty.
 export const CodeCouldNotBeEmpty = 1000008; // Code could not be empty.
 export const CodeInvalid = 1000009; // Code invalid.
 export const GetUserLoginTokenError = 1000010; // Get user login token error.
+export const CodeExpired = 1000019; // Code expired.
 
 // 商品相关错误码
 export const ProductIsInactive = 1000011; // Product is inactive, please try another product.
 export const ProductPurchaseLimitExceeded = 1000012; // The product has exceeded the purchase limit, please select another product.
 export const ProductTakenOffline = 1000013; // The product has been taken offline.
+export const SinglePurchaseQuantityLimitReached = 1000018; // The single purchase quantity limit has been reached.
 
 // 支付相关错误码
 export const PaymentMethodNotEnabled = 1000014; // Payment method not enabled.
 export const AccountNotSupportPurchase = 1000015; // Your account does not support purchasing products, please contact customer service.
 export const CreateOrderFailed = 1000016; // Failed to create an order, please try again.
+export const BmallOrderCannotCancel = 1000017; // 订单不可取消（非待支付或无权操作）
 
 /**
  * 验证码相关的错误码列表
@@ -47,5 +52,5 @@ export const CAPTCHA_RELATED_ERROR_CODES = [
   EmailCouldNotBeEmpty,
   CodeCouldNotBeEmpty,
   CodeInvalid,
+  CodeExpired,
 ] as const;
-

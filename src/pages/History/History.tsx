@@ -2,24 +2,54 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUser } from '@/hooks/useUser';
-import { useGameRole } from '@/hooks/useGameRole';
-import { Order, OrderStatus } from '@/types';
+import { Order, OrderStatus, Product } from '@/types';
 import { bmallOrderApi } from '@/utils/api';
-import { storage, STORAGE_KEYS, getGameIdFromAppKey, navigateTo } from '@/utils';
-import { ChevronUpIcon } from '@/components/Icons/ChevronUpIcon';
+import {
+  storage,
+  STORAGE_KEYS,
+  getGameIdFromAppKey,
+  navigateTo,
+  buildNoRoleHomeState,
+  refreshGameStoreRoles,
+  hasGameStoreRolesForAppKey,
+  resolveGameStoreTargetFromRouteAndAppKey,
+  isGameStoreEntryVisible,
+  getDefaultGameStoreAppKey,
+  formatServerChannelForDisplay,
+} from '@/utils';
+import {
+  parseProductMultiName,
+  resolveOrderProductFallbackName,
+} from '@/utils/productMultiName';
+import {
+  getGiftPackOrderThumbnail,
+  parseGiftPackPurchaseLimitType,
+} from '@/utils/giftPackPurchaseLimitType';
 import { ChevronDownIcon } from '@/components/Icons/ChevronDownIcon';
 import { Loading } from '@/components/Loading';
 import { AlertModal } from '@/components/AlertModal';
 import { AirwallexCheckout } from '@/components/AirwallexCheckout/AirwallexCheckout';
 import { messageStore } from '@/store/messageStore';
-import shadowImg from '@/assets/imgs/touka_buy_Item_ic_shadow.png';
-import homeIcon from '@/assets/imgs/touka_web_icon_home_white.png';
+import emptyOrderImg from '@/assets/img2/pay_order_null.png';
+import logoTextImg from '@/assets/img2/login_modal_logotext.png';
+import homeIcon from '@/assets/img2/touka_web_icon_home_white.png';
+import { HomeBackgroundPattern } from '@/pages/Home/components/HomeBackgroundPattern';
 import styles from './History.module.less';
 
+
+const ALL_GAMES_APP_KEY = '__all__';
 
 type FilterStatus = 'all' | 'inProgress' | 'completed' | 'closed';
 type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks';
 const ORDER_AUTO_CANCEL_SECONDS = 30 * 60;
+const ORDERS_PAGE_SIZE = 10;
+
+function getOrderItemDisplayImage(product: Product): string | null {
+  if (product.categoryId === 'giftPacks') {
+    return getGiftPackOrderThumbnail(product.purchase_limit_type);
+  }
+  return product.image?.trim() ? product.image : null;
+}
 
 /** 将后端 Unix 时间戳转为毫秒：>1e12 视为毫秒，否则视为秒 */
 function normalizeCreatedAtUnixToMs(unix: number): number {
@@ -30,7 +60,7 @@ function normalizeCreatedAtUnixToMs(unix: number): number {
 const games = [
   { id: 'bam-bam-squad', appKey: 'f6594168ce3a9cc57ab7ed74426e25e1' },
   { id: 'oopsie-croco', appKey: '45a56d38bbdd60353438aa25d1ccff20' },
-];
+].filter((game) => isGameStoreEntryVisible(game.id));
 
 function appKeyFromRouteGameId(id: string | undefined): string | undefined {
   if (!id) return undefined;
@@ -44,7 +74,6 @@ export const History: React.FC = () => {
   const { gameId: routeGameId } = useParams<{ gameId: string }>();
   const { t, locale } = useLanguage();
   const { user } = useUser();
-  const { hasRolesForAppKey } = useGameRole();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [listRefreshToken, setListRefreshToken] = useState(0);
@@ -52,14 +81,15 @@ export const History: React.FC = () => {
     const fromRoute = appKeyFromRouteGameId(routeGameId);
     if (fromRoute) return fromRoute;
     const stored = storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
-    return stored ?? 'f6594168ce3a9cc57ab7ed74426e25e1';
+    return stored ?? getDefaultGameStoreAppKey();
   });
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filterGameDropdownOpen, setFilterGameDropdownOpen] = useState(false);
-  const filterGameDropdownRef = useRef<HTMLDivElement>(null);
-  const [noRoleAlertOpen, setNoRoleAlertOpen] = useState(false);
+  const filterGameDropdownMobileRef = useRef<HTMLDivElement>(null);
+  const filterGameDropdownDesktopRef = useRef<HTMLDivElement>(null);
+  const historyPageRef = useRef<HTMLDivElement>(null);
+  const expiredPendingOrderRefreshRef = useRef<Set<string>>(new Set());
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
   const [nowTs, setNowTs] = useState(() => Date.now());
   const [showAirwallexCheckout, setShowAirwallexCheckout] = useState(false);
@@ -76,6 +106,9 @@ export const History: React.FC = () => {
 
   // 根据 appKey 获取本地化的游戏名称
   const getLocalizedGameName = (appKey: string): string => {
+    if (appKey === ALL_GAMES_APP_KEY) {
+      return t('history.allGames');
+    }
     if (appKey === 'f6594168ce3a9cc57ab7ed74426e25e1') {
       return t('games.bamBamSquad');
     }
@@ -117,58 +150,6 @@ export const History: React.FC = () => {
     return positionMap[position.toLowerCase()] || 'vouchers';
   };
 
-  // 解析多语言名称
-  const parseMultiName = (multiNameStr: string | undefined, locale: string, fallbackName: string): string => {
-    if (!multiNameStr) return fallbackName;
-    
-    try {
-      const multiNameRaw = JSON.parse(multiNameStr || '{}') || {};
-      const multiName: Record<string, string> = {};
-      
-      // 统一转换为小写键名
-      Object.keys(multiNameRaw || {}).forEach((k) => {
-        multiName[k.toLowerCase()] = multiNameRaw[k];
-      });
-
-      // 英文使用 name 字段，不取 multi_name
-      if (locale.toLowerCase().startsWith('en')) {
-        return fallbackName;
-      }
-
-      // 获取当前语言的代码（如 zh-CN -> zh）
-      const langCode = getLanguageCode(locale).toLowerCase();
-      const localeLower = locale.toLowerCase();
-      
-      // 尝试匹配的语言代码列表（从最具体到最通用）
-      // 对于简体中文（zh-CN），优先使用 cn
-      const candidates = localeLower === 'zh-cn' 
-        ? ['cn', 'zh', localeLower, 'zh-cn']
-        : [
-        langCode, // 当前语言代码
-            localeLower.split('-')[0], // 语言部分（如 zh-CN -> zh）
-            localeLower, // 完整 locale
-      ];
-
-      // 按优先级查找
-      const found = candidates.find((code) => multiName[code]);
-      if (found) return multiName[found];
-
-      // 降级策略：尝试常见变体
-      // 对于简体中文，优先使用 cn
-      if (localeLower === 'zh-cn' && multiName['cn']) return multiName['cn'];
-      if (multiName['zh']) return multiName['zh'];
-      if (multiName['cn']) return multiName['cn'];
-      if (multiName['en']) return multiName['en'];
-
-      // 如果都没有，返回第一个可用的
-      const firstKey = Object.keys(multiName)[0];
-      return firstKey ? multiName[firstKey] : fallbackName;
-    } catch (error) {
-      console.warn('解析 multi_name 失败:', error);
-      return fallbackName;
-    }
-  };
-
   // 将后端订单数据转换为前端 Order 格式（使用 useCallback 避免重复创建）
   const convertOrderDataToOrder = useCallback((orderData: any): Order & { 
     platform?: string; 
@@ -181,17 +162,17 @@ export const History: React.FC = () => {
       'closed': OrderStatus.CANCELLED,
     };
 
-    // 解析商品名称（优先使用 multi_name，没有则使用 product_name）
-    const productName = parseMultiName(
+    // 解析商品名称：multi_name 仅匹配当前语言键，未命中则用 name
+    const productName = parseProductMultiName(
       orderData.multi_name,
       locale,
-      orderData.product_name
+      resolveOrderProductFallbackName(orderData)
     );
 
     // 根据 product_position 或默认值确定 categoryId
     const categoryId = orderData.product_position 
       ? mapPositionToCategoryId(orderData.product_position)
-      : 'vouchers'; // 默认代金券
+      : 'vouchers'; // 默认 Touka币
 
     const paySuccess = orderData.pay_success_time?.trim() || '';
     const createdTime = orderData.created_time?.trim() || '';
@@ -224,6 +205,7 @@ export const History: React.FC = () => {
             stock: 0,
             currency: orderData.currency,
             position: orderData.product_position, // 保存 product_position 字段
+            purchase_limit_type: parseGiftPackPurchaseLimitType(orderData.purchase_limit_type),
           },
           quantity: orderData.quantity,
         },
@@ -266,8 +248,26 @@ export const History: React.FC = () => {
         }
 
         const language = getLanguageCode(locale);
+
+        if (selectedGameAppKey === ALL_GAMES_APP_KEY) {
+          const responses = await Promise.all(
+            games.map((game) =>
+              bmallOrderApi.queryOrderList({
+                appKey: game.appKey,
+                language,
+              })
+            )
+          );
+          if (cancelled) return;
+          const convertedOrders = responses.flatMap((result) =>
+            result.success && result.data ? result.data.items.map(convertOrderDataToOrder) : []
+          );
+          setOrders(convertedOrders);
+          return;
+        }
+
         const result = await bmallOrderApi.queryOrderList({
-          appKey,
+          appKey: selectedGameAppKey,
           language,
         });
 
@@ -277,12 +277,12 @@ export const History: React.FC = () => {
           const convertedOrders = result.data.items.map(convertOrderDataToOrder);
           setOrders(convertedOrders);
         } else {
-          console.error('获取订单列表失败:', result.error);
+          // console.error('获取订单列表失败:', result.error);
           setOrders([]);
         }
       } catch (error) {
         if (cancelled) return;
-        console.error('加载订单列表异常:', error);
+        // console.error('加载订单列表异常:', error);
         setOrders([]);
       } finally {
         if (!cancelled) {
@@ -302,27 +302,13 @@ export const History: React.FC = () => {
     setListRefreshToken((n) => n + 1);
   };
 
-  // 处理点击外部关闭下拉框
+  // 点击外部关闭游戏下拉菜单（移动端 / PC 端各一处）
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
-
-  // 点击外部关闭 filterTabs 的游戏下拉菜单
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (filterGameDropdownRef.current && !filterGameDropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inMobile = filterGameDropdownMobileRef.current?.contains(target);
+      const inDesktop = filterGameDropdownDesktopRef.current?.contains(target);
+      if (!inMobile && !inDesktop) {
         setFilterGameDropdownOpen(false);
       }
     };
@@ -336,57 +322,59 @@ export const History: React.FC = () => {
     };
   }, [filterGameDropdownOpen]);
 
-  const handleGameSelect = (appKey: string) => {
-    setSelectedGameAppKey(appKey);
-    storage.set(STORAGE_KEYS.CURRENT_GAME_APP_KEY, appKey);
-    setDropdownOpen(false);
-    navigate(`/game/${getGameIdFromAppKey(appKey)}/history`, { replace: true });
+  const handleBackToProducts = async () => {
+    if (selectedGameAppKey === ALL_GAMES_APP_KEY && !routeGameId) {
+      navigate('/');
+      return;
+    }
+
+    const target =
+      selectedGameAppKey === ALL_GAMES_APP_KEY
+        ? resolveGameStoreTargetFromRouteAndAppKey(routeGameId, '')
+        : resolveGameStoreTargetFromRouteAndAppKey(undefined, selectedGameAppKey);
+
+    if (!target) {
+      navigate('/');
+      return;
+    }
+
+    storage.set(STORAGE_KEYS.CURRENT_GAME_APP_KEY, target.appKey);
+
+    await refreshGameStoreRoles();
+
+    if (!hasGameStoreRolesForAppKey(target.appKey)) {
+      navigate('/', { state: buildNoRoleHomeState(target.gameId) });
+      return;
+    }
+
+    navigate(`/game/${target.gameId}`);
   };
 
   const handleFilterGameSelect = (appKey: string) => {
     setSelectedGameAppKey(appKey);
-    storage.set(STORAGE_KEYS.CURRENT_GAME_APP_KEY, appKey);
+    setCurrentPage(1);
     setFilterGameDropdownOpen(false);
-    navigate(`/game/${getGameIdFromAppKey(appKey)}/history`, { replace: true });
-  };
-
-  const handleBackToProducts = () => {
-    const currentGame = games.find((g) => g.appKey === selectedGameAppKey);
-    if (!currentGame) return;
-    if (!hasRolesForAppKey(selectedGameAppKey)) {
-      setNoRoleAlertOpen(true);
+    if (appKey === ALL_GAMES_APP_KEY) {
+      navigate('/history', { replace: true });
       return;
     }
-    navigate(`/game/${currentGame.id}`);
-  };
-
-  // 格式化平台显示名称
-  const formatPlatform = (platform: string | undefined): string => {
-    if (!platform) return '';
-    const platformLower = platform.toLowerCase();
-    if (platformLower === 'ios') {
-      return 'iOS';
-    }
-    if (platformLower === 'android') {
-      return 'Android';
-    }
-    // 其他情况首字母大写
-    return platform.charAt(0).toUpperCase() + platform.slice(1).toLowerCase();
+    storage.set(STORAGE_KEYS.CURRENT_GAME_APP_KEY, appKey);
+    navigate(`/game/${getGameIdFromAppKey(appKey)}/history`, { replace: true });
   };
 
   // 根据 categoryId 获取本地化的类别名称
   const getCategoryName = (categoryId: string | undefined): string => {
-    if (!categoryId) return t('products.vouchers');
+    if (!categoryId) return t('products.toukaCoin');
     
     switch (categoryId) {
       case 'vouchers':
-        return t('products.vouchers');
+        return t('products.toukaCoin');
       case 'diamond':
         return t('products.diamond');
       case 'giftPacks':
         return t('products.giftPacks');
       default:
-        return t('products.vouchers');
+        return t('products.toukaCoin');
     }
   };
 
@@ -401,15 +389,37 @@ export const History: React.FC = () => {
     return statusMap[status] || status;
   };
 
+  const formatPlatform = (platform: string | undefined): string => {
+    if (!platform) return '';
+    const platformLower = platform.toLowerCase();
+    if (platformLower === 'ios') return 'iOS';
+    if (platformLower === 'android') return locale.startsWith('zh') ? '安卓' : 'Android';
+    return platform.charAt(0).toUpperCase() + platform.slice(1).toLowerCase();
+  };
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return dateString;
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    if (locale.startsWith('zh')) {
+      return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`;
+    }
+
     return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const formatOrderPlatformLine = (order: Order & { platform?: string; gameServerChannel?: string }): string => {
+    const platformText = formatPlatform(order.platform);
+    const serverText = formatServerChannelForDisplay(order.gameServerChannel);
+    if (platformText && serverText) return `${platformText} / ${serverText}`;
+    return platformText || serverText;
   };
 
   const formatDuration = (totalSeconds: number): string => {
@@ -452,6 +462,13 @@ export const History: React.FC = () => {
       remainingSeconds: remaining,
       showCountdownAndCancel: remaining > 0,
     };
+  };
+
+  const getEffectiveOrderStatus = (order: Order): OrderStatus => {
+    if (order.status !== OrderStatus.PENDING) return order.status;
+
+    const pendingAutoCancelUi = getPendingAutoCancelUi(order);
+    return pendingAutoCancelUi.remainingSeconds <= 0 ? OrderStatus.CANCELLED : OrderStatus.PENDING;
   };
 
   const detectCurrentPlatform = (): string => {
@@ -500,6 +517,11 @@ export const History: React.FC = () => {
   };
 
   const handlePayOrder = async (order: Order) => {
+    if (getEffectiveOrderStatus(order) !== OrderStatus.PENDING) {
+      requestOrdersRefresh();
+      return;
+    }
+
     const appKey = selectedGameAppKey;
     if (!appKey) {
       messageStore.show(t('history.payConfigError'));
@@ -556,9 +578,9 @@ export const History: React.FC = () => {
       }
 
       messageStore.show(t('history.payConfigError'));
-      console.error('支付配置错误，未返回可用支付参数:', paymentData);
+      // console.error('支付配置错误，未返回可用支付参数:', paymentData);
     } catch (error) {
-      console.error('重新支付失败:', error);
+      // console.error('重新支付失败:', error);
       messageStore.show(t('history.payRetryFailed'));
     } finally {
       setPayingOrderId(null);
@@ -566,26 +588,55 @@ export const History: React.FC = () => {
   };
 
   const filteredOrders = orders.filter((order) => {
+    const effectiveStatus = getEffectiveOrderStatus(order);
     if (filterStatus === 'all') return true;
     if (filterStatus === 'inProgress') {
-      // 进行中：包括待支付、已支付、已发货但未完成的订单（如果出现问题没有马上下发）
-      return order.status === OrderStatus.PENDING || 
-             order.status === OrderStatus.PAID || 
-             order.status === OrderStatus.SHIPPED;
+      return effectiveStatus === OrderStatus.PENDING || effectiveStatus === OrderStatus.PAID;
     }
     if (filterStatus === 'completed') {
       // 已完成：玩家成功支付并成功下发的订单状态
-      return order.status === OrderStatus.COMPLETED;
+      return effectiveStatus === OrderStatus.COMPLETED;
     }
     if (filterStatus === 'closed') {
       // 已关闭：玩家拉起支付但后续关闭/退出支付的订单状态
-      return order.status === OrderStatus.CANCELLED;
+      return effectiveStatus === OrderStatus.CANCELLED;
     }
     return true;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PAGE_SIZE));
+  const currentPageSafe = Math.min(currentPage, totalPages);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPageSafe - 1) * ORDERS_PAGE_SIZE,
+    currentPageSafe * ORDERS_PAGE_SIZE
+  );
+  const showPagination = filteredOrders.length > ORDERS_PAGE_SIZE;
+
   useEffect(() => {
-    const hasPendingOrders = filteredOrders.some((order) => order.status === OrderStatus.PENDING);
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handleFilterStatusSelect = (nextStatus: FilterStatus) => {
+    setFilterStatus(nextStatus);
+    setCurrentPage(1);
+    requestOrdersRefresh();
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    const boundedPage = Math.min(Math.max(nextPage, 1), totalPages);
+    if (boundedPage === currentPageSafe) return;
+
+    setCurrentPage(boundedPage);
+    window.setTimeout(() => {
+      historyPageRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 0);
+  };
+
+  useEffect(() => {
+    const hasPendingOrders = filteredOrders.some((order) => getEffectiveOrderStatus(order) === OrderStatus.PENDING);
     if (!hasPendingOrders) return;
 
     const timer = window.setInterval(() => {
@@ -597,160 +648,223 @@ export const History: React.FC = () => {
     };
   }, [filteredOrders]);
 
+  useEffect(() => {
+    const newlyExpiredPendingOrders = orders.filter((order) => {
+      if (order.status !== OrderStatus.PENDING) return false;
+      if (expiredPendingOrderRefreshRef.current.has(order.id)) return false;
+      return getPendingAutoCancelUi(order).remainingSeconds <= 0;
+    });
+
+    if (newlyExpiredPendingOrders.length === 0) return;
+
+    newlyExpiredPendingOrders.forEach((order) => {
+      expiredPendingOrderRefreshRef.current.add(order.id);
+    });
+    requestOrdersRefresh();
+  }, [orders, nowTs]);
+
   return (
-    <div className={styles.history}>
-      {/* 游戏选择 */}
-      <div className={styles.gameSelector} ref={dropdownRef}>
-        <div
-          className={styles.gameSelectorContent}
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-        >
-          <span className={styles.gameName}>{getLocalizedGameName(selectedGameAppKey)}</span>
-          <ChevronUpIcon
-            className={`${styles.dropdownIcon} ${dropdownOpen ? styles.dropdownIconOpen : styles.dropdownIconClosed}`}
-            color="#333"
-          />
-        </div>
-        {dropdownOpen && (
-          <div className={styles.dropdownList}>
-            {games.map((game) => (
-              <div
-                key={game.id}
-                className={`${styles.dropdownItem} ${
-                  selectedGameAppKey === game.appKey ? styles.dropdownItemActive : ''
-                }`}
-                onClick={() => handleGameSelect(game.appKey)}
-              >
-                {getLocalizedGameName(game.appKey)}
-              </div>
-            ))}
-          </div>
-        )}
+    <div className={styles.history} ref={historyPageRef}>
+      <div className={styles.historyPagePattern} aria-hidden>
+        <HomeBackgroundPattern />
       </div>
 
-      {/* 订单筛选标签 */}
-      <div className={styles.filterTabs}>
-        <div className={styles.filterTabsLeft}>
-        <button
-          className={`${styles.filterTab} ${filterStatus === 'all' ? styles.filterTabActive : ''}`}
-          onClick={() => {
-            setFilterStatus('all');
-            requestOrdersRefresh();
-          }}
-        >
-          {t('history.filter.all')}
-        </button>
-        <button
-          className={`${styles.filterTab} ${filterStatus === 'inProgress' ? styles.filterTabActive : ''}`}
-          onClick={() => {
-            setFilterStatus('inProgress');
-            requestOrdersRefresh();
-          }}
-        >
-          {t('history.filter.inProgress')}
-        </button>
-        <button
-          className={`${styles.filterTab} ${filterStatus === 'completed' ? styles.filterTabActive : ''}`}
-          onClick={() => {
-            setFilterStatus('completed');
-            requestOrdersRefresh();
-          }}
-        >
-          {t('history.filter.completed')}
-        </button>
-        <button
-          className={`${styles.filterTab} ${filterStatus === 'closed' ? styles.filterTabActive : ''}`}
-          onClick={() => {
-            setFilterStatus('closed');
-            requestOrdersRefresh();
-          }}
-        >
-          {t('history.filter.closed')}
-        </button>
-        </div>
-        
-        <div className={styles.filterTabsRight}>
-           {/* 返回专区按钮 */}
-           <button className={styles.backToProductsButton} onClick={handleBackToProducts}>
-            <img src={homeIcon} alt="home" className={styles.backToProductsIcon} />
-            <span>{t('history.backToGameZone')}</span>
-          </button>
-          {/* 游戏选择下拉框 */}
-          <div className={styles.filterGameSelector} ref={filterGameDropdownRef}>
-            <div
-              className={styles.filterGameSelectorContent}
-              onClick={() => setFilterGameDropdownOpen(!filterGameDropdownOpen)}
-            >
-              <span className={styles.filterGameName}>{getLocalizedGameName(selectedGameAppKey)}</span>
-              <ChevronDownIcon
-                className={`${styles.filterDropdownIcon} ${filterGameDropdownOpen ? styles.filterDropdownIconOpen : ''}`}
-                color="#585858"
-              />
+      <div className={styles.filterSection}>
+        {/* 移动端：顶部居中游戏筛选 */}
+        <div className={styles.gameFilterBar}>
+          <div
+            className={`${styles.filterSectionInner} ${filterGameDropdownOpen ? styles.filterSectionInnerOpen : ''}`}
+            ref={filterGameDropdownMobileRef}
+          >
+            <div className={styles.filterGameSelector}>
+              <button
+                type="button"
+                className={styles.filterGameSelectorContent}
+                onClick={() => setFilterGameDropdownOpen(!filterGameDropdownOpen)}
+                aria-expanded={filterGameDropdownOpen}
+              >
+                <span className={styles.filterGameName}>{getLocalizedGameName(selectedGameAppKey)}</span>
+                <ChevronDownIcon
+                  className={`${styles.filterDropdownIcon} ${filterGameDropdownOpen ? styles.filterDropdownIconOpen : ''}`}
+                  color="#b5b5b5"
+                />
+              </button>
             </div>
             {filterGameDropdownOpen && (
               <div className={styles.filterDropdownList}>
+                <button
+                  type="button"
+                  className={`${styles.filterDropdownItem} ${
+                    selectedGameAppKey === ALL_GAMES_APP_KEY ? styles.filterDropdownItemActive : ''
+                  }`}
+                  onClick={() => handleFilterGameSelect(ALL_GAMES_APP_KEY)}
+                >
+                  {t('history.allGames')}
+                </button>
                 {games.map((game) => (
-                  <div
+                  <button
                     key={game.id}
+                    type="button"
                     className={`${styles.filterDropdownItem} ${
                       selectedGameAppKey === game.appKey ? styles.filterDropdownItemActive : ''
                     }`}
                     onClick={() => handleFilterGameSelect(game.appKey)}
                   >
                     {getLocalizedGameName(game.appKey)}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
-         
+        </div>
+
+        {/* Tab 条：PC 左侧橙条 + Tab，右侧返回专区 + 游戏下拉 */}
+        <div className={styles.filterTabsBar}>
+          <div className={styles.filterSectionInner}>
+            <div className={styles.filterTabsRow}>
+              <div className={styles.filterTabsLeft}>
+                <div className={styles.filterTabsBarBg} aria-hidden>
+                  <span className={styles.filterTabsBarBgLeft} />
+                  <span className={styles.filterTabsBarBgMiddle} />
+                  <span className={styles.filterTabsBarBgRight} />
+                </div>
+                <div className={styles.filterTabs}>
+                  <button
+                    type="button"
+                    className={`${styles.filterTab} ${filterStatus === 'all' ? styles.filterTabActive : ''}`}
+                    onClick={() => handleFilterStatusSelect('all')}
+                  >
+                    {t('history.filter.all')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterTab} ${filterStatus === 'inProgress' ? styles.filterTabActive : ''}`}
+                    onClick={() => handleFilterStatusSelect('inProgress')}
+                  >
+                    {t('history.filter.inProgress')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterTab} ${filterStatus === 'completed' ? styles.filterTabActive : ''}`}
+                    onClick={() => handleFilterStatusSelect('completed')}
+                  >
+                    {t('history.filter.completed')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterTab} ${filterStatus === 'closed' ? styles.filterTabActive : ''}`}
+                    onClick={() => handleFilterStatusSelect('closed')}
+                  >
+                    {t('history.filter.closed')}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.filterTabsRight}>
+                <button type="button" className={styles.backToProductsButton} onClick={handleBackToProducts}>
+                  <img src={homeIcon} alt="" className={styles.backToProductsIcon} />
+                  <span>{t('history.backToGameZone')}</span>
+                </button>
+                <div
+                  className={`${styles.filterGameSelectorDesktop} ${filterGameDropdownOpen ? styles.filterSectionInnerOpen : ''}`}
+                  ref={filterGameDropdownDesktopRef}
+                >
+                  <button
+                    type="button"
+                    className={styles.filterGameSelectorContent}
+                    onClick={() => setFilterGameDropdownOpen(!filterGameDropdownOpen)}
+                    aria-expanded={filterGameDropdownOpen}
+                  >
+                    <span className={styles.filterGameName}>{getLocalizedGameName(selectedGameAppKey)}</span>
+                    <ChevronDownIcon
+                      className={`${styles.filterDropdownIcon} ${filterGameDropdownOpen ? styles.filterDropdownIconOpen : ''}`}
+                      color="#585858"
+                    />
+                  </button>
+                  {filterGameDropdownOpen && (
+                    <div className={styles.filterDropdownList}>
+                      <button
+                        type="button"
+                        className={`${styles.filterDropdownItem} ${
+                          selectedGameAppKey === ALL_GAMES_APP_KEY ? styles.filterDropdownItemActive : ''
+                        }`}
+                        onClick={() => handleFilterGameSelect(ALL_GAMES_APP_KEY)}
+                      >
+                        {t('history.allGames')}
+                      </button>
+                      {games.map((game) => (
+                        <button
+                          key={game.id}
+                          type="button"
+                          className={`${styles.filterDropdownItem} ${
+                            selectedGameAppKey === game.appKey ? styles.filterDropdownItemActive : ''
+                          }`}
+                          onClick={() => handleFilterGameSelect(game.appKey)}
+                        >
+                          {getLocalizedGameName(game.appKey)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 订单列表 */}
-      <div className={styles.ordersList}>
+      <div className={styles.historyContent}>
+        <div className={styles.ordersList}>
         {loading ? (
-          <div className={styles.empty}>
+          <div className={`${styles.empty} ${styles.emptyLoading}`}>
             <Loading />
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className={styles.empty}>
-            <p>{t('history.empty')}</p>
+            <div className={styles.emptyCard}>
+              <img src={emptyOrderImg} alt="" className={styles.emptyImage} aria-hidden />
+              <p className={styles.emptyText}>{t('history.empty')}</p>
+            </div>
           </div>
         ) : (
-          filteredOrders.map((order) => {
+          <>
+          {paginatedOrders.map((order) => {
             const firstItem = order.items[0];
             const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
             const pendingAutoCancelUi =
               order.status === OrderStatus.PENDING ? getPendingAutoCancelUi(order) : null;
+            const effectiveStatus = getEffectiveOrderStatus(order);
+            const orderExt = order as Order & { platform?: string; gameServerChannel?: string };
+            const platformLine = formatOrderPlatformLine(orderExt);
+            const orderItemDisplayImage = getOrderItemDisplayImage(firstItem.product);
 
             return (
               <div key={order.id} className={styles.orderCard}>
                 {/* 订单头部 */}
                 <div className={styles.orderHeader}>
                   <span className={styles.orderId}>{t('paymentSuccess.orderId')} {order.id}</span>
-                  <span className={styles.orderStatus}>{getStatusText(order.status)}</span>
+                  <span className={styles.orderStatus}>{getStatusText(effectiveStatus)}</span>
                 </div>
 
                 {/* 订单内容 */}
                 <div className={styles.orderContent}>
+                  <img
+                    src={logoTextImg}
+                    alt=""
+                    className={styles.orderWatermark}
+                    aria-hidden
+                  />
                   {/* 左侧：商品图标 */}
                   <div className={styles.orderItemIcon}>
                     <div className={styles.iconWrapper}>
-                      {firstItem.product.image ? (
-                        // 所有类型（代金券、钻石、礼包）：背景图 + 主图 + 阴影
+                      {orderItemDisplayImage ? (
                         <div className={styles.orderImageContainer}>
-                          <div 
-                            className={`${styles.voucherImageBg} ${
-                              firstItem.product.categoryId === 'diamond' ? styles.voucherImageBgDiamond : ''
-                            }`}
-                          ></div>
+                          <div className={styles.voucherImageBg} aria-hidden />
                           <img
-                            src={firstItem.product.image}
+                            src={orderItemDisplayImage}
                             alt={firstItem.product.name}
                             className={styles.voucherImageMain}
                           />
-                          <img src={shadowImg} alt="shadow" className={styles.voucherImageShadow} />
                         </div>
                       ) : (
                         // 没有图片时的占位符
@@ -766,17 +880,17 @@ export const History: React.FC = () => {
                     <div className={styles.itemName}>{firstItem.product.name}*{totalQuantity}</div>
                     <div className={styles.orderTime}>{t('history.orderTime')} {formatDate(order.createdAt)}</div>
                     <div className={styles.itemInfo}>
-                      <button className={styles.voucherButton}>{getCategoryName(firstItem.product.categoryId)}</button>
-                      <span className={styles.itemQuantity}>{firstItem.product.name}*{totalQuantity}</span>
+                      <span className={styles.voucherTag}>{getCategoryName(firstItem.product.categoryId)}</span>
+                      <span className={styles.itemInfoExtra}>
+                        {firstItem.product.name}*{totalQuantity}
+                      </span>
                     </div>
-                      <div className={styles.platformInfo}>
-                        {formatPlatform((order as any).platform)}
-                        {(order as any).gameServerChannel &&
-                          ` / ${t('common.server')} ${(order as any).gameServerChannel}`}
-                      </div>
+                    {platformLine && (
+                      <div className={styles.platformInfo}>{platformLine}</div>
+                    )}
                   </div>
                 </div>
-                {order.status === OrderStatus.PENDING && (
+                {effectiveStatus === OrderStatus.PENDING && (
                   <div className={styles.pendingActionsSection}>
                     {pendingAutoCancelUi?.showCountdownAndCancel && (
                       <div className={styles.pendingAutoCancelText}>
@@ -815,15 +929,32 @@ export const History: React.FC = () => {
                 )}
               </div>
             );
-          })
+          })}
+          {showPagination && (
+            <div className={styles.pagination}>
+              <button
+                type="button"
+                className={styles.paginationButton}
+                onClick={() => handlePageChange(currentPageSafe - 1)}
+                disabled={currentPageSafe <= 1}
+              >
+                {t('history.previousPage')}
+              </button>
+              <button
+                type="button"
+                className={styles.paginationButton}
+                onClick={() => handlePageChange(currentPageSafe + 1)}
+                disabled={currentPageSafe >= totalPages}
+              >
+                {t('history.nextPage')}
+              </button>
+            </div>
+          )}
+          </>
         )}
+        </div>
       </div>
 
-      <AlertModal
-        isOpen={noRoleAlertOpen}
-        onClose={() => setNoRoleAlertOpen(false)}
-        message={noRoleAlertOpen ? t('home.noRoleAccount') : ''}
-      />
       <AlertModal
         isOpen={cancelDialogOpen}
         onClose={closeCancelOrderDialog}

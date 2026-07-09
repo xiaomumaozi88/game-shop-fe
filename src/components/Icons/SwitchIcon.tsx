@@ -1,5 +1,5 @@
 import React from 'react';
-import switchIconImg from '@/assets/imgs/touka_home_ic_switch.png';
+import switchIconImg from '@/assets/img2/touka_home_ic_switch.png';
 
 export const SwitchIcon: React.FC<{ size?: number }> = ({ size = 16 }) => {
   return (

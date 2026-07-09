@@ -2,7 +2,10 @@
 // 实际项目中应该连接真实的后端API
 
 import { config } from './config';
-import { handleTokenExpired } from './auth';
+import {
+  getDefaultApiErrorMessage,
+  handleApiError,
+} from './errorHandler';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 const BMALL_BASE_URL = config.bmall.baseUrl;
@@ -14,7 +17,7 @@ const loadAuthToken = (): string | null => {
   try {
     return localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
   } catch (error) {
-    console.error('Failed to load auth token from localStorage:', error);
+    // console.error('Failed to load auth token from localStorage:', error);
     return null;
   }
 };
@@ -30,7 +33,7 @@ export const setAuthToken = (token: string | null) => {
       localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     }
   } catch (error) {
-    console.error('Failed to save auth token to localStorage:', error);
+    // console.error('Failed to save auth token to localStorage:', error);
   }
 };
 
@@ -39,24 +42,19 @@ export const getAuthToken = (): string | null => {
   return authToken;
 };
 
-/**
- * 检查API响应是否为token过期错误
- * @param code 响应码
- * @param msg 响应消息
- * @returns 是否为token过期
- */
-const isTokenExpired = (code: number, msg?: string): boolean => {
-  return code === 401  || msg === 'JWT token has expired';
-};
+interface ApiErrorPayload {
+  code?: number;
+  msg?: string;
+  biz_code?: number;
+}
 
-/**
- * 处理API响应，检查token过期
- * @param json 响应JSON对象
- */
-const handleApiResponse = (json: { code: number; msg?: string }): void => {
-  if (isTokenExpired(json.code, json.msg)) {
-    handleTokenExpired();
+const getLocalizedApiError = (json?: ApiErrorPayload | null): string => {
+  if (!json) {
+    return getDefaultApiErrorMessage();
   }
+
+  return handleApiError(json.code ?? -1, json.biz_code, json.msg)
+    || getDefaultApiErrorMessage();
 };
 
 export interface ApiResponse<T> {
@@ -93,14 +91,29 @@ class ApiClient {
       }
 
       const data = await response.json();
+      if (
+        data
+        && typeof data === 'object'
+        && 'code' in data
+        && typeof (data as ApiErrorPayload).code === 'number'
+        && (data as ApiErrorPayload).code !== 0
+      ) {
+        const errorPayload = data as ApiErrorPayload;
+        return {
+          success: false,
+          error: getLocalizedApiError(errorPayload),
+          bizCode: errorPayload.biz_code,
+        };
+      }
+
       return {
         success: true,
         data,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: getDefaultApiErrorMessage(),
       };
     }
   }
@@ -285,13 +298,13 @@ export const authApi = {
 
       return {
         success: false,
-        error: json?.msg || '获取图形验证码失败',
+        error: getLocalizedApiError(json),
         bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取图形验证码失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -341,13 +354,13 @@ export const authApi = {
 
       return {
         success: false,
-        error: json?.msg || '登录失败',
+        error: getLocalizedApiError(json),
         bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '登录失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -389,13 +402,57 @@ export const authApi = {
 
       return {
         success: false,
-        error: json?.msg || '发送验证码失败',
+        error: getLocalizedApiError(json),
         bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '发送验证码失败',
+        error: getDefaultApiErrorMessage(),
+      };
+    }
+  },
+
+  /**
+   * 商城退出登录（/bmall/logout）
+   * 携带 Authorization 请求头，无业务参数
+   */
+  async logout(): Promise<ApiResponse<Record<string, never>>> {
+    try {
+      const resp = await fetch(`${BMALL_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `${authToken}` } : {}),
+        },
+        body: JSON.stringify({}),
+      });
+      const json: {
+        code: number;
+        msg?: string;
+        data?: Record<string, never> | null;
+        ts?: number;
+        biz_code?: number;
+      } = await resp.json();
+
+      if (json?.code === 0) {
+        return {
+          success: true,
+          data: json.data ?? {},
+          message: json.msg,
+          bizCode: json.biz_code,
+        };
+      }
+
+      return {
+        success: false,
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
+      };
+    } catch {
+      return {
+        success: false,
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -416,6 +473,7 @@ export interface GameServerRoleItem {
 interface GameServerRoleListResponse {
   code: number;
   msg?: string;
+  biz_code?: number;
   data?: {
     items: GameServerRoleItem[];
   };
@@ -440,25 +498,24 @@ export const gameRoleApi = {
       });
       const json: GameServerRoleListResponse = await resp.json();
 
-      // 检查token过期
-      handleApiResponse(json);
-
       if (json?.code === 0 && json.data?.items) {
         return {
           success: true,
           data: json.data.items,
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '获取游戏区服角色列表失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取游戏区服角色列表失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -487,6 +544,7 @@ export interface UserDetailResponse {
 interface QuickLoginResponse {
   code: number;
   msg?: string;
+  biz_code?: number;
   data?: {
     token: string;
     email?: string; // 与此次登录 token 对应的邮箱
@@ -498,6 +556,7 @@ interface QuickLoginResponse {
 interface UserDetailApiResponse {
   code: number;
   msg?: string;
+  biz_code?: number;
   data?: UserDetailResponse;
   ts?: number;
 }
@@ -521,25 +580,24 @@ export const userDetailApi = {
       });
       const json: UserDetailApiResponse = await resp.json();
 
-      // 检查token过期
-      handleApiResponse(json);
-
       if (json?.code === 0 && json.data) {
         return {
           success: true,
           data: json.data,
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '获取用户详情失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取用户详情失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -578,17 +636,19 @@ export const quickLoginApi = {
             items: json.data.items || [],
           },
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '快速登录失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '快速登录失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -598,7 +658,7 @@ export const quickLoginApi = {
 // 支持 Stripe 和 Airwallex 两种支付方式
 export interface BmallOrderCreateData {
   order_no: string;
-  payment_type?: string; // 支付方式，如 "stripe_h5store"、"stripe_store" 等
+  payment_type?: string; // 支付方式：stripe_store | stripe_h5store | airwallex_store | airwallex_h5store 等
   session_id?: string; // 支付会话ID
   // Stripe 相关字段
   h5_url?: string;
@@ -615,6 +675,7 @@ export interface BmallOrderCreateData {
 interface BmallOrderCreateResponse {
   code: number;
   msg?: string;
+  biz_code?: number;
   data?: BmallOrderCreateData | null;
   ts?: number;
 }
@@ -630,11 +691,15 @@ export interface BmallOrderQueryData {
   created_time?: string;
   /** 订单创建时间 Unix 时间戳（秒或毫秒，见前端归一化逻辑），用于待支付倒计时，避免时区问题 */
   created_at_unix?: number | string;
-  product_name: string;
+  /** 英文默认商品名（订单列表等接口主字段） */
+  product_name?: string;
+  /** 部分接口仍使用 name，与 product_name 二选一 */
+  name?: string;
   multi_name?: string; // 多语言名称，JSON字符串，如 "{\"fr\": \"sfdf\", \"zh\": \"名称1\"}"
   product_id: string;
   product_image?: string; // 商品图片链接
   product_position?: string; // 商品类型/位置，如 "coupon", "luxury", "gift"
+  purchase_limit_type?: number; // 1 终身特惠 2 周特惠 3 月特惠
   price: number;
   currency: string;
   quantity: number;
@@ -646,12 +711,13 @@ export interface BmallOrderQueryData {
   iap: string;
   iap_id: string;
   order_status: 'pending' | 'completed' | 'closed';
-  payment_type?: string; // 支付方式，如 "stripe_h5store"、"stripe_store" 等
+  payment_type?: string; // 支付方式：stripe_store | stripe_h5store | airwallex_store | airwallex_h5store 等
 }
 
 interface BmallOrderQueryResponse {
   code: number;
   msg?: string;
+  biz_code?: number;
   data?: BmallOrderQueryData | null;
   ts?: number;
 }
@@ -692,25 +758,24 @@ export const bmallOrderApi = {
 
       const json: BmallOrderCreateResponse = await resp.json();
 
-      // 检查 token 是否过期
-      handleApiResponse(json);
-
       if (json?.code === 0 && json.data) {
         return {
           success: true,
           data: json.data,
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '创建订单失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '创建订单失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -754,25 +819,24 @@ export const bmallOrderApi = {
 
       const json: BmallOrderQueryResponse = await resp.json();
 
-      // 检查 token 是否过期
-      handleApiResponse(json);
-
       if (json?.code === 0 && json.data) {
         return {
           success: true,
           data: json.data,
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '查询订单失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '查询订单失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -804,29 +868,29 @@ export const bmallOrderApi = {
       const json: {
         code: number;
         msg?: string;
+        biz_code?: number;
         data?: { items: BmallOrderQueryData[] } | null;
         ts?: number;
       } = await resp.json();
-
-      // 检查 token 是否过期
-      handleApiResponse(json);
 
       if (json?.code === 0 && json.data) {
         return {
           success: true,
           data: json.data,
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '查询订单列表失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '查询订单列表失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -876,8 +940,6 @@ export const bmallOrderApi = {
         biz_code?: number;
       } = await resp.json();
 
-      handleApiResponse(json);
-
       if (json?.code === 0) {
         return {
           success: true,
@@ -889,13 +951,13 @@ export const bmallOrderApi = {
 
       return {
         success: false,
-        error: json?.msg || '取消订单失败',
+        error: getLocalizedApiError(json),
         bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '取消订单失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
@@ -915,11 +977,17 @@ export interface ProductListItem {
   multi_name: string; // 多语言名称，JSON字符串，如 "{\"fr\": \"sfdf\", \"zh\": \"名称1\"}"
   iap?: string; // IAP标识
   iap_id?: string; // IAP ID
+  value_ratio?: number;
+  gem_count?: number;
+  small_images?: string; // JSON 字符串
+  purchase_limit_type?: number; // 1 终身 2 自然周 3 自然月
+  is_gray?: number;
 }
 
 interface ProductListResponse {
   code: number;
   msg?: string;
+  biz_code?: number;
   data?: {
     items: ProductListItem[];
   };
@@ -953,27 +1021,25 @@ export const productListApi = {
       });
       const json: ProductListResponse = await resp.json();
 
-      // 检查token过期
-      handleApiResponse(json);
-
       if (json?.code === 0 && json.data?.items) {
         return {
           success: true,
           data: json.data.items,
           message: json.msg,
+          bizCode: json.biz_code,
         };
       }
 
       return {
         success: false,
-        error: json?.msg || '获取商品列表失败',
+        error: getLocalizedApiError(json),
+        bizCode: json.biz_code,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取商品列表失败',
+        error: getDefaultApiErrorMessage(),
       };
     }
   },
 };
-

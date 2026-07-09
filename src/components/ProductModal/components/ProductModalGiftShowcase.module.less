@@ -1,0 +1,170 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+@gift-modal-banner-aspect-w: 424;
+@gift-modal-banner-aspect-h: 240;
+@gift-modal-small-icon-size: 3.25rem;
+@gift-modal-small-icon-size-mobile: 2rem;
+@gift-modal-small-items-inset-left: 0.825rem;
+@gift-modal-small-items-reserve-right: 42%;
+@gift-modal-name-plate-reserve: 2.75rem;
+@gift-modal-name-plate-reserve-mobile: 2.125rem;
+@gift-modal-small-items-bottom-gap: 1.5em;
+@gift-modal-small-items-bottom-gap-mobile: 0.5625rem;
+
+.bannerWrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  // // 为底部角标铭牌预留空间，避免与 purchaseSection 视觉重叠
+  // padding-bottom: @gift-modal-name-plate-reserve;
+
+  // .mobile({
+  //   padding-bottom: @gift-modal-name-plate-reserve-mobile;
+  // });
+}
+
+.bannerWrapHasItems {
+  // 小物图标在横幅内部底边上方，不再向下溢出
+  margin-bottom: 0;
+}
+
+.banner {
+  position: relative;
+  width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  border-radius: 0.625rem;
+  overflow: hidden;
+}
+
+.bannerImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: @gift-modal-banner-aspect-w / @gift-modal-banner-aspect-h;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0.5rem;
+}
+
+.smallItems {
+  position: absolute;
+  left: 0;
+  right: auto;
+  bottom: @gift-modal-small-items-bottom-gap;
+  top: auto;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  width: calc(100% - @gift-modal-small-items-reserve-right);
+  margin: 0;
+  padding: 0 @gift-modal-small-items-inset-left;
+  list-style: none;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  gap: 0.625rem;
+  transform: none;
+  pointer-events: none;
+
+  .mobile({
+    bottom: @gift-modal-small-items-bottom-gap-mobile;
+    width: 62%;
+    gap: 0.2rem;
+    padding-left: 0.5rem;
+  });
+}
+
+.smallItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.smallItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: @gift-modal-small-icon-size;
+  height: @gift-modal-small-icon-size;
+  border: 2px solid #fff883;
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 0.125rem #2a2118;
+  background: #ffa737;
+
+  &[data-quality='white'] {
+    background: #ececec;
+    border-color: #ffffff;
+  }
+
+  &[data-quality='green'] {
+    background: #5cc94f;
+    border-color: #c8f5b8;
+  }
+
+  &[data-quality='blue'] {
+    background: #4ba8e8;
+    border-color: #b8e4ff;
+  }
+
+  &[data-quality='purple'] {
+    background: #9b6bff;
+    border-color: #e0ccff;
+  }
+
+  &[data-quality='red'] {
+    background: #e7413e;
+    border-color: #fd9491;
+  }
+
+  &[data-quality='orange'],
+  &[data-quality='gold'],
+  &[data-quality='yellow'] {
+    background: #ffa737;
+    border-color: #fff883;
+  }
+
+  .mobile({
+    width: @gift-modal-small-icon-size-mobile;
+    height: @gift-modal-small-icon-size-mobile;
+    border-radius: 0.375rem;
+    box-shadow: 0 0 0 0.09375rem #2a2118;
+  });
+}
+
+.smallItemImage {
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+}
+
+.smallItemQty {
+  position: relative;
+  z-index: 3;
+  margin-top: -0.3125rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  color: @white;
+  -webkit-text-stroke: 0.0625rem #121212;
+  paint-order: stroke fill;
+  text-shadow:
+    0.0625rem 0 0 #121212,
+    -0.0625rem 0 0 #121212,
+    0 0.0625rem 0 #121212,
+    0 -0.0625rem 0 #121212;
+
+  .mobile({
+    font-size: 0.75rem;
+    margin-top: -0.375rem;
+    -webkit-text-stroke-width: 0.05rem;
+  });
+}

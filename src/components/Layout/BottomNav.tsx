@@ -1,25 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
+import { shouldShowMobileHomeNav } from '@/i18n';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
-import { resolveOrdersListPath } from '@/utils';
+import { resolveOrdersListPath, isGameStoreProductsPath } from '@/utils';
 import { LoginModal } from '@/components/LoginModal';
-import homeSelectImg from '@/assets/imgs/touka_home_BotomInf_homeSelect.png';
-import homeUnSelectImg from '@/assets/imgs/touka_home_BotomInf_homeUnSelect.png';
-import orderSelectImg from '@/assets/imgs/touka_home_BotomInf_OrderSelect.png';
-import orderUnSelectImg from '@/assets/imgs/touka_home_BotomInf_OrderUnSelect.png';
+import homeSelectImg from '@/assets/img2/touka_home_BotomInf_homeSelect.png';
+import homeUnSelectImg from '@/assets/img2/touka_home_BotomInf_homeUnSelect.png';
+import orderSelectImg from '@/assets/img2/touka_home_BotomInf_OrderSelect.png';
+import orderUnSelectImg from '@/assets/img2/touka_home_BotomInf_OrderUnSelect.png';
 import styles from './BottomNav.module.less';
 
 export const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
   const ordersPath = resolveOrdersListPath(location.pathname);
+  const isHomePage = location.pathname === '/';
+  const isProductsPage = isGameStoreProductsPath(location.pathname);
+  const isHistoryPage = location.pathname.includes('/history');
+  const showMobileHomeNav = shouldShowMobileHomeNav(locale);
+  // 首页不展示 BottomNav；顶栏有 mobileHomeNav 时也不展示，避免与顶栏导航重复
+  const hideBottomNav =
+    isHomePage || (showMobileHomeNav && (isProductsPage || isHistoryPage));
 
   const navItems = [
     {
@@ -102,6 +110,15 @@ export const BottomNav: React.FC = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  if (hideBottomNav) {
+    return (
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+    );
+  }
 
   return (
     <>

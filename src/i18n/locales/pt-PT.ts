@@ -5,7 +5,7 @@ export const ptPT = {
     "title": "Como criar uma conta?"
   },
   "bottomNav": {
-    "home": "Página inicial",
+    "home": "Início",
     "myOrders": "Meus pedidos"
   },
   "common": {
@@ -13,9 +13,38 @@ export const ptPT = {
     "noData": "Sem dados",
     "server": "Servidor"
   },
+  "auth": {
+    "tokenExpired": "Sessão expirada"
+  },
+  "errors": {
+    "900400": "Erro de parâmetro interno",
+    "900401": "Falha na autenticação",
+    "900402": "Sessão expirada",
+    "1000000": "Erro do sistema. Tente novamente mais tarde",
+    "1000001": "Erro de parâmetro do sistema. Tente novamente mais tarde",
+    "1000002": "O ID ou código do captcha não pode ficar vazio",
+    "1000003": "E-mail inválido",
+    "1000004": "Código captcha inválido",
+    "1000005": "O código de e-mail já foi enviado. Aguarde 1 minuto e tente novamente",
+    "1000006": "Limite de envio de código atingido. Tente novamente amanhã",
+    "1000007": "O e-mail não pode ficar vazio",
+    "1000008": "O código não pode ficar vazio",
+    "1000009": "Código inválido",
+    "1000010": "Erro ao obter o token de login",
+    "1000011": "O produto está inativo. Selecione outro produto",
+    "1000012": "O produto excedeu o limite de compra. Selecione outro produto",
+    "1000013": "O produto foi retirado do ar",
+    "1000014": "Método de pagamento não ativado",
+    "1000015": "Sua conta não permite comprar produtos. Entre em contato com o suporte",
+    "1000016": "Falha ao criar o pedido. Tente novamente",
+    "1000017": "Este pedido não pode ser cancelado",
+    "1000018": "O limite de quantidade para uma única compra foi atingido",
+    "1000019": "O código de verificação expirou. Solicite um novo"
+  },
   "footer": {
     "language": "Chinês (Simplificado)",
     "privacyPolicy": "Política de privacidade",
+    "refundPolicy": "Política de reembolso",
     "termsOfService": "Termos de serviço",
     "userSupport": "Suporte ao usuário",
     "downloadNow": "Baixar agora!"
@@ -27,7 +56,7 @@ export const ptPT = {
     "greeting": "Olá",
     "loginPrompt": "Por favor, clique para entrar",
     "switchServer": "Alternar",
-    "title": "Plataforma de recarga do jogo",
+    "title": "Central de recarga do jogo",
     "logout": "Sair"
   },
   "games": {
@@ -36,6 +65,7 @@ export const ptPT = {
   },
   "history": {
     "backToGameZone": "Voltar à loja do jogo",
+    "allGames": "Todos os jogos",
     "empty": "Sem pedidos no momento",
     "filter": {
       "all": "Tudo",
@@ -49,8 +79,13 @@ export const ptPT = {
     "pendingAutoCancelSuffix": "automaticamente",
     "cancelOrder": "Cancelar pedido",
     "payOrder": "Pagar",
+    "cancelOrderConfirmTitle": "Confirmar cancelamento do pedido?",
+    "cancelOrderConfirmPrimary": "Confirmar",
+    "cancelOrderDismiss": "Agora não",
+    "previousPage": "Anterior",
+    "nextPage": "Seguinte",
     "status": {
-      "cancelled": "Cancelado",
+      "cancelled": "Fechado",
       "completed": "Transação concluída",
       "paid": "Pago",
       "pending": "Aguardando pagamento",
@@ -59,9 +94,16 @@ export const ptPT = {
   },
   "home": {
     "selectGame": "Selecione o jogo que deseja recarregar",
+    "selectGameMobileTitle": "Escolher jogo para recarregar",
+    "mobileGameCardGo": "Ir",
     "selectGameParts": {
       "prefix": "Selecione o jogo que deseja ",
       "keyword": "recarregar",
+      "suffix": ""
+    },
+    "purchaseEntryParts": {
+      "prefix": "Ir para ",
+      "keyword": "comprar",
       "suffix": ""
     },
     "noRoleAccount": "Ainda não tem personagem neste jogo. Crie um no jogo antes de comprar.",
@@ -84,7 +126,7 @@ export const ptPT = {
     "captchaPlaceholder": "Código de verificação",
     "invalidCaptcha": "Por favor, insira um código de verificação de 4 dígitos",
     "email": "E-mail",
-    "emailNotBound": "Falha na recuperação, por favor insira o e-mail vinculado dentro do jogo~",
+    "emailNotBound": "Não foi possível localizar a conta. Insira o e-mail vinculado à sua conta no jogo~",
     "emailPlaceholder": "Por favor, insira seu e-mail eletrônico",
     "keepLogin": "Manter login por 15 dias",
     "loading": "Entrando...",
@@ -100,9 +142,9 @@ export const ptPT = {
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "dontRemind": "Não lembrar da próxima vez",
-    "messageLine1": "Após cancelar a inscrição, em todos os dispositivos nos últimos 30 dias",
-    "messageLine2": "O estado de login será inválido.",
-    "title": "Dica amigável"
+    "messageLine1": "Após sair da conta, o status de login em todos os dispositivos usados nos últimos 30 dias",
+    "messageLine2": "será invalidado.",
+    "title": "Aviso"
   },
   "menu": {
     "contactSupport": "Contato com o atendimento ao cliente ",
@@ -111,6 +153,7 @@ export const ptPT = {
   },
   "paymentSuccess": {
     "account": "Conta: ",
+    "celebrationTitle": "Compra bem-sucedida",
     "confirm": "Confirmar ",
     "getPaymentInfoFailed": "Falha ao obter informações de pagamento ",
     "loading": "Carregando... ",
@@ -122,8 +165,8 @@ export const ptPT = {
     "purchaseContent": "Conteúdo da compra: ",
     "quantity": "Quantidade comprada: ",
     "serverAndCharacter": "Servidor/Personagem: ",
-    "title": "Obrigado pela sua compra ",
-    "total": "Todos: ",
+    "title": "Obrigado pela compra",
+    "total": "Total:",
     "unionPay": "UnionPay ",
     "amountPaid": "Valor pago:",
     "closeModal": "Fechar"
@@ -132,7 +175,7 @@ export const ptPT = {
     "confirm": "Confirmar ",
     "purchaseDetails": "Detalhes da compra ",
     "quantity": "Quantidade: ",
-    "total": "Todos: ",
+    "total": "Total:",
     "unitPrice": "Preço unitário: "
   },
   "products": {
@@ -140,24 +183,33 @@ export const ptPT = {
     "diamond": "Diamante ",
     "products": "Produto ",
     "vouchers": "Voucher ",
+    "toukaCoin": "Touka Coin",
+    "toukaCoinBonusTip": "Compre na TOUKA Store e ganhe 10% extra de recompensa!",
+    "superValue": "Super valor",
     "limitShort": "Limite",
-    "remainingShort": "Rest.",
-    "howToUseVouchers": "Como usar o voucher?",
+    "remainingShort": "Tempo rest.",
+    "giftPackLimitType": {
+      "lifetime": "Oferta vitalícia",
+      "weekly": "Oferta semanal",
+      "monthly": "Oferta mensal"
+    },
+    "howToUseVouchers": "Como usar Touka Coin?",
     "voucherGuide": {
-      "title": "Como usar o voucher?",
-      "step1": "1.Por favor, verifique o voucher comprado na caixa de correio dentro do jogo.",
-      "step2": "2.Você pode visualizar a quantidade de vouchers na parte superior da aba da loja do jogo. Quando a quantidade de vouchers atingir o necessário para comprar o pacote, os vouchers serão usados prioritariamente para a compra.",
+      "title": "Como usar Touka Coin?",
+      "step1": "1. Verifique a caixa de correio do jogo para receber os Touka Coin que você comprou.",
+      "step2": "2. Você pode conferir seu saldo de Touka Coin na parte superior da aba da loja no jogo. Quando tiver Touka Coin suficiente para comprar um pacote de presente, eles serão usados primeiro na compra.",
       "backToProducts": "Voltar à lista de produtos"
-    }
+    },
+    "luxuryVouchers": "Voucher de luxo"
   },
   "purchaseConfirm": {
     "card": "Cartão de crédito/débito ",
     "confirm": "Confirmar ",
     "dontAskAgain": "Não perguntar novamente nos próximos 30 dias",
-    "gameServer": "Grupo de jogo ",
-    "paymentMethods": "Formas de pagamento suportadas ",
+    "gameServer": "Grupo de jogo",
+    "paymentMethods": "Formas de pagamento suportadas",
     "paypal": "PayPal ",
-    "title": "Você tem certeza de que deseja comprar com esta conta? ",
+    "title": "Tem certeza de que deseja fazer esta compra com esta conta?",
     "unionPay": "Cartão UnionPay "
   },
   "serverSelect": {
@@ -165,15 +217,17 @@ export const ptPT = {
     "characterPlaceholder": "Por favor, selecione um personagem ",
     "confirm": "Confirmar ",
     "noResults": "Sem resultados ",
-    "serverPlaceholder": "Por favor, digite o nome do servidor para buscar ",
-    "title": "Selecionar região do jogo ",
-    "title": "Selecionar grupo de jogo "
+    "serverPlaceholder": "Por favor, digite o nome do servidor para buscar",
+    "title": "Selecionar servidor do jogo"
+  },
+  "orientation": {
+    "bestExperience": "Mude para o modo retrato para uma melhor experiência"
   },
   "support": {
     "cancel": "Cancelar ",
     "copied": "Copiado ",
     "copy": "Copiar com um clique ",
-    "description": "Por favor, envie suas informações detalhadas pelo e-mail oficial ",
+    "description": "Por favor, envie suas informações detalhadas para o e-mail oficial de suporte.",
     "title": "Suporte ao cliente "
   },
   "verification": {
@@ -182,7 +236,7 @@ export const ptPT = {
     "incorrectCode": "Código de verificação incorreto ",
     "invalidCode": "Por favor, insira o código de verificação de 6 dígitos ",
     "noCode": "Não recebeu o código? ",
-    "sentTo": "O código de verificação foi enviado para ",
+    "sentTo": "O código de verificação foi enviado para",
     "submit": "Enviar ",
     "submitting": "Enviando..."
   }

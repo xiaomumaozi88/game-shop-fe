@@ -8,9 +8,49 @@ export const parseURLParams = (): Record<string, string> => {
   return result;
 };
 
-// 格式化价格
+// 货币代码 → 符号
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  CNY: '¥',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  KRW: '₩',
+  HKD: 'HK$',
+  TWD: 'NT$',
+  AUD: 'A$',
+  CAD: 'C$',
+  SGD: 'S$',
+  THB: '฿',
+  VND: '₫',
+  RUB: '₽',
+  INR: '₹',
+  BRL: 'R$',
+  MXN: 'MX$',
+};
+
+const normalizeCurrencyCode = (currency: string): string => currency.trim().toUpperCase();
+
+export const getCurrencySymbol = (currency: string): string => {
+  const code = normalizeCurrencyCode(currency);
+  return CURRENCY_SYMBOLS[code] ?? currency;
+};
+
+const formatAmount = (price: number): string => {
+  const hasFraction = Math.abs(price % 1) > Number.EPSILON;
+  return hasFraction
+    ? price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : price.toLocaleString(undefined, { maximumFractionDigits: 0 });
+};
+
+// 格式化价格，已知货币代码显示符号前缀（如 USD → $4.99）
 export const formatPrice = (price: number, currency: string = '金币'): string => {
-  return `${price.toLocaleString()} ${currency}`;
+  const code = normalizeCurrencyCode(currency);
+  const symbol = CURRENCY_SYMBOLS[code];
+  if (symbol) {
+    return `${symbol}${formatAmount(price)}`;
+  }
+  return `${formatAmount(price)} ${currency}`;
 };
 
 // 防抖函数
@@ -54,21 +94,21 @@ export const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Storage set error:', error);
+      // console.error('Storage set error:', error);
     }
   },
   remove: (key: string): void => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('Storage remove error:', error);
+      // console.error('Storage remove error:', error);
     }
   },
   clear: (): void => {
     try {
       localStorage.clear();
     } catch (error) {
-      console.error('Storage clear error:', error);
+      // console.error('Storage clear error:', error);
     }
   },
 };
@@ -128,12 +168,12 @@ export const navigateTo = (url: string): void => {
       window.location.href = url;
     }
   } catch (error) {
-    console.error('页面跳转失败:', error);
+    // console.error('页面跳转失败:', error);
     // 如果以上方法都失败，尝试使用 replace
     try {
       window.location.replace(url);
     } catch (e) {
-      console.error('页面跳转替换失败:', e);
+      // console.error('页面跳转替换失败:', e);
     }
   }
 };
@@ -142,9 +182,12 @@ export const navigateTo = (url: string): void => {
 export * from './api';
 export * from './constants';
 export * from './historyNavigation';
+export * from './gameStoreNavigation';
 export * from './defaultAvatar';
 export * from './thinkingData';
 export * from './analytics';
+export * from './productPurchaseLimit';
+export * from './serverDisplay';
 
 /**
  * 将秒数转换为剩余时间格式
@@ -180,4 +223,3 @@ export const formatCountdown = (seconds: number): string => {
 
   return parts.length > 0 ? parts.join('') : '0D';
 };
-

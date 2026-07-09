@@ -25,7 +25,7 @@ export const zhCN = {
     "1000002": "验证码ID或验证码不能为空",
     "1000003": "邮箱格式无效",
     "1000004": "验证码无效",
-    "1000005": "验证码已发送，请等待5分钟后重试",
+    "1000005": "验证码已发送，请等待1分钟后重试",
     "1000006": "验证码发送次数已达上限，请明天再试",
     "1000007": "邮箱不能为空",
     "1000008": "验证码不能为空",
@@ -36,11 +36,15 @@ export const zhCN = {
     "1000013": "商品已下架",
     "1000014": "支付方式未启用",
     "1000015": "您的账号不支持购买商品，请联系客服",
-    "1000016": "创建订单失败，请重试"
+    "1000016": "创建订单失败，请重试",
+    "1000017": "订单不可取消",
+    "1000018": "单次购买数量已达上限",
+    "1000019": "验证码已过期，请重新获取"
   },
   "footer": {
     "language": "中文(简体)",
     "privacyPolicy": "隐私政策",
+    "refundPolicy": "退款政策",
     "termsOfService": "服务条款",
     "userSupport": "用户支持",
     "downloadNow": "立即下载！"
@@ -61,6 +65,7 @@ export const zhCN = {
   },
   "history": {
     "backToGameZone": "返回专区",
+    "allGames": "全部游戏",
     "empty": "暂无订单",
     "filter": {
       "all": "全部",
@@ -71,10 +76,10 @@ export const zhCN = {
     },
     "orderTime": "下单时间:",
     "pendingAutoCancelPrefix": "订单将在",
-    "pendingAutoCancelSuffix": "后自动取消",
+    "pendingAutoCancelSuffix": "后取消",
     "cancelOrder": "取消订单",
     "payOrder": "支付",
-    "cancelOrderConfirmTitle": "是否确认取消订单？",
+    "cancelOrderConfirmTitle": "确认取消订单？",
     "cancelOrderConfirmPrimary": "确认取消",
     "cancelOrderDismiss": "暂不取消",
     "cancelOrderSuccess": "订单已取消",
@@ -83,8 +88,10 @@ export const zhCN = {
     "createOrderFailed": "创建订单失败",
     "payConfigError": "支付配置错误，请联系客服",
     "payRetryFailed": "重新支付失败，请重试",
+    "previousPage": "上一页",
+    "nextPage": "下一页",
     "status": {
-      "cancelled": "已取消",
+      "cancelled": "已关闭",
       "completed": "交易完成",
       "paid": "已支付",
       "pending": "待支付",
@@ -93,10 +100,17 @@ export const zhCN = {
   },
   "home": {
     "selectGame": "选择您要充值的游戏",
+    "selectGameMobileTitle": "选择充值游戏",
+    "mobileGameCardGo": "前往",
     "selectGameParts": {
       "prefix": "选择您要",
       "keyword": "充值",
       "suffix": "的游戏"
+    },
+    "purchaseEntryParts": {
+      "prefix": "前往",
+      "keyword": "购买",
+      "suffix": ""
     },
     "noRoleAccount": "您在此游戏内还没有角色账号，请先在游戏内创建角色后再进行购买。",
     "noRoleRefreshPrefix": "已创建账号？点击",
@@ -136,7 +150,8 @@ export const zhCN = {
     "cancel": "取消",
     "confirm": "确认",
     "dontRemind": "下次不再提醒",
-    "messageLine1": "注销后,近30天内所有设备的",
+    "failed": "退出登录失败，请稍后重试",
+    "messageLine1": "退出登录后,近30天内所有设备的",
     "messageLine2": "登录状态将会失效。",
     "title": "温馨提示"
   },
@@ -147,6 +162,7 @@ export const zhCN = {
   },
   "paymentSuccess": {
     "account": "账号:",
+    "celebrationTitle": "购买成功",
     "confirm": "确定",
     "getPaymentInfoFailed": "获取支付信息失败",
     "loading": "加载中...",
@@ -176,15 +192,24 @@ export const zhCN = {
     "diamond": "钻石",
     "products": "商品",
     "vouchers": "代金券",
+    "toukaCoin": "Touka币",
+    "toukaCoinBonusTip": "在TOUKA Store购物，享受额外10%的奖励！",
+    "superValue": "超值",
     "limitShort": "限购",
-    "remainingShort": "剩余",
-    "howToUseVouchers": "如何使用代金券？",
+    "remainingShort": "剩余时间",
+    "giftPackLimitType": {
+      "lifetime": "终身特惠",
+      "weekly": "周特惠",
+      "monthly": "月特惠"
+    },
+    "howToUseVouchers": "如何使用Touka币？",
     "voucherGuide": {
-      "title": "如何使用代金券？",
-      "step1": "1.请在游戏内邮箱查收您购买的代金券。",
-      "step2": "2.您可以在游戏商城标签页上方查看您的代金券数量。当您的代金券数量达到购买礼包需要的数量要求时，将优先使用代金券进行购买。",
+      "title": "如何使用Touka币？",
+      "step1": "1.请在游戏内邮箱查收您购买的Touka币。",
+      "step2": "2.您可以在游戏商城标签页上方查看您的Touka币数量。当您的Touka币数量达到购买礼包需要的数量要求时，将优先使用Touka币进行购买。",
       "backToProducts": "返回商品列表"
-    }
+    },
+    "luxuryVouchers": "豪华代金券"
   },
   "purchaseConfirm": {
     "card": "信用卡/借记卡",
@@ -203,6 +228,9 @@ export const zhCN = {
     "noResults": "暂无结果",
     "serverPlaceholder": "请输入区服名字进行搜索",
     "title": "选择游戏区组"
+  },
+  "orientation": {
+    "bestExperience": "请切换为竖屏以获得最佳体验"
   },
   "support": {
     "cancel": "取消",

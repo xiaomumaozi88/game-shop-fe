@@ -1,46 +1,65 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
 import { useUser } from '@/hooks/useUser';
-import { useResponsive } from '@/hooks/useResponsive';
 import { LoginModal } from '@/components/LoginModal';
 import { AlertModal } from '@/components/AlertModal';
 import alertModalStyles from '@/components/AlertModal/AlertModal.module.less';
 import { useGameRole } from '@/hooks/useGameRole';
+import { useResponsive } from '@/hooks/useResponsive';
 import { gameRoleStore } from '@/store/gameRoleStore';
 import { messageStore } from '@/store/messageStore';
 import { gameRoleApi } from '@/utils/api';
-import { storage, STORAGE_KEYS } from '@/utils';
-import BAM_IMG from '@/assets/imgs/bam_bam_game_img.png';
-import CROCO_IMG from '@/assets/imgs/croco_game_img.png';
-import BAM_ICON from '@/assets/imgs/bam_icon.png';
-import OOPSIE_ICON from '@/assets/imgs/oopsie_icon.png';
-import crocoBannerImg from '@/assets/imgs/croco_banner.png';
-import banBamBannerImg from '@/assets/imgs/ban_bam_banner.jpg';
-import toukaWebHomeBanner1 from '@/assets/imgs/touka_web_home_banner1.png';
-import toukaWebHomeBanner2 from '@/assets/imgs/touka_web_home_banner2.png';
+import { storage, STORAGE_KEYS, type GameStoreNoRoleLocationState, isGameStoreEntryVisible } from '@/utils';
+import BAM_ICON from '@/assets/img2/bam_icon.png';
+import OOPSIE_ICON from '@/assets/img2/oopsie_icon.png';
+import oopsieDesktopBannerImg from '@/assets/img2/home-oopsie-desktop-banner-packs.png';
+import oopsieMobileCarouselBannerImg from '@/assets/img2/pay_item_banner.png';
+import bamBannerImg from '@/assets/img2/pay_item_gift_banner_Lifetime.png';
+import oopsieMobileGameListBanner from '@/assets/img2/home_mobile_game_list_oopsie_croco.png';
+import bamMobileGameListBanner from '@/assets/img2/home_mobile_game_list_bam_bam_squad.png';
+import bannerArrowImg from '@/assets/img2/pay_home_banner_arrow.png';
+import { HomeBackgroundPattern } from './components/HomeBackgroundPattern';
+import { HomeMobileGameList } from './components/HomeMobileGameList';
 import styles from './Home.module.less';
 
 // 游戏数据
 interface Game {
   id: string;
   name: string;
-  image: string; // 游戏卡片完整图片
+  /** ≥768px 轮播图 */
+  bannerImage: string;
+  /** <768px 轮播图，未设置则与 bannerImage 相同 */
+  mobileCarouselBannerImage?: string;
+  mobileBannerImage: string;
   app_key: string;
-  icon: string; // 游戏图标（用于 Footer 下载部分）
+  icon: string;
   downloadLinks: {
-    ios: string; // iOS App Store 下载链接
-    android: string; // Google Play 下载链接
+    ios: string;
+    android: string;
   };
 }
 
-// 导出游戏数据，供 Footer 组件使用
 export const games: Game[] = [
   {
+    id: 'oopsie-croco',
+    name: 'Oopsie Croco',
+    bannerImage: oopsieDesktopBannerImg,
+    mobileCarouselBannerImage: oopsieMobileCarouselBannerImg,
+    mobileBannerImage: oopsieMobileGameListBanner,
+    app_key: '45a56d38bbdd60353438aa25d1ccff20',
+    icon: OOPSIE_ICON,
+    downloadLinks: {
+      ios: 'https://apps.apple.com/app/id6746253182',
+      android: 'https://play.google.com/store/apps/details?id=com.oopsie.croco.challenge.leisure.battle.game',
+    },
+  },
+  {
     id: 'bam-bam-squad',
-    name: 'Bam! Bam Squad', // 包包3 
-    image: BAM_IMG,
+    name: 'Bam! Bam Squad',
+    bannerImage: bamBannerImg,
+    mobileBannerImage: bamMobileGameListBanner,
     app_key: 'f6594168ce3a9cc57ab7ed74426e25e1',
     icon: BAM_ICON,
     downloadLinks: {
@@ -48,42 +67,36 @@ export const games: Game[] = [
       android: 'https://play.google.com/store/apps/details?id=com.bam.bam.squad.pigeon.wall.wow.clash.battle.game',
     },
   },
-  {
-    id: 'oopsie-croco',
-    name: 'Oopsie Croco', // 包包4 
-    image: CROCO_IMG,
-    app_key: '45a56d38bbdd60353438aa25d1ccff20',
-    icon: OOPSIE_ICON,
-    downloadLinks: {
-      ios: 'https://apps.apple.com/app/id6746253182',
-      android: 'https://play.google.com/store/apps/details?id=com.oopsie.croco.challenge.leisure.battle.game',
-    },
-  }
-];
+].filter((game) => isGameStoreEntryVisible(game.id));
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const { user, clearGameSpecificFields } = useUser();
-  const { hasRolesForAppKey } = useGameRole(); // 使用全局 hook 检查角色
-  const { isDesktop } = useResponsive();
-  
-  // PC端使用新的banner图，移动端使用原有banner图
-  const banners = useMemo(() => {
-    return isDesktop 
-      ? [toukaWebHomeBanner1, toukaWebHomeBanner2]
-      : [crocoBannerImg, banBamBannerImg];
-  }, [isDesktop]);
-  
-  // 创建无限循环数组：[最后一张, 第一张, 第二张, ..., 第一张]
+  const { hasRolesForAppKey } = useGameRole();
+  const { isMobile } = useResponsive();
+
+  const hasMultipleGames = games.length > 1;
+
+  const banners = useMemo(
+    () =>
+      games.map((game) =>
+        isMobile ? (game.mobileCarouselBannerImage ?? game.bannerImage) : game.bannerImage
+      ),
+    [isMobile]
+  );
+
+  // 多游戏：无限循环 [克隆末张, …真实列表, 克隆首张]；单游戏：仅一张，不轮播
   const infiniteBanners = useMemo(() => {
     if (banners.length === 0) return [];
+    if (!hasMultipleGames) return [banners[0]];
     return [banners[banners.length - 1], ...banners, banners[0]];
-  }, [banners]);
-  
-  // 当前显示的索引（初始为1，即第一张真实图片）
-  const [currentIndex, setCurrentIndex] = useState(1);
+  }, [banners, hasMultipleGames]);
+
+  const initialBannerIndex = hasMultipleGames ? 1 : 0;
+  const [currentIndex, setCurrentIndex] = useState(initialBannerIndex);
 
   // 端别或套图切换时重置索引（仅依赖 length 无法覆盖「仍是 2 张图但 PC/移动图不同」的情况）
   useEffect(() => {
@@ -92,18 +105,56 @@ export const Home: React.FC = () => {
         clearInterval(autoPlayTimerRef.current);
         autoPlayTimerRef.current = null;
       }
-      setCurrentIndex(1);
-      currentIndexRef.current = 1;
+      setCurrentIndex(initialBannerIndex);
+      currentIndexRef.current = initialBannerIndex;
     }
-  }, [isDesktop, banners.length]);
-  
+  }, [banners, initialBannerIndex]);
+
   // 是否启用过渡动画
   const [enableTransition, setEnableTransition] = useState(true);
   
   // 触摸相关
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+  const bannerViewportRef = useRef<HTMLDivElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
+  const [bannerSlideWidth, setBannerSlideWidth] = useState(0);
+
+  // 以视口像素位移，避免 translateX(%) 相对轨道总宽计算产生亚像素缝隙
+  useEffect(() => {
+    const viewport = bannerViewportRef.current;
+    if (!viewport) return;
+    let frameId: number | null = null;
+
+    const measure = () => {
+      const width = Math.round(viewport.getBoundingClientRect().width);
+      setBannerSlideWidth((prev) => (prev === width ? prev : width));
+    };
+
+    const scheduleMeasure = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        measure();
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(scheduleMeasure);
+    observer.observe(viewport);
+    window.addEventListener('resize', scheduleMeasure);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      observer.disconnect();
+      window.removeEventListener('resize', scheduleMeasure);
+    };
+  }, [banners]);
   
   // 自动轮播相关
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -120,6 +171,25 @@ export const Home: React.FC = () => {
   /** 无角色提示弹窗：记录用户点击的游戏，用于刷新角色列表后判断是否进入商店 */
   const [pendingNoRoleGameId, setPendingNoRoleGameId] = useState<string | null>(null);
   const [noRoleRefreshLoading, setNoRoleRefreshLoading] = useState(false);
+  const [noRoleRefreshInlineErrorI18nKey, setNoRoleRefreshInlineErrorI18nKey] = useState<string | null>(null);
+  // 从订单页/商品页跳回：无角色时展示与首页点击游戏一致的提示弹窗
+  useEffect(() => {
+    const gameId = (location.state as GameStoreNoRoleLocationState | null)?.showNoRoleForGameId;
+    if (!gameId || !user?.token) return;
+
+    const game = games.find((g) => g.id === gameId);
+    navigate('.', { replace: true, state: null });
+
+    if (!game) return;
+
+    storage.set(STORAGE_KEYS.CURRENT_GAME_APP_KEY, game.app_key);
+
+    // 由商品页/订单页明确带回的无角色状态，直接展示弹窗（勿依赖可能过期的本地角色缓存）
+    setPendingNoRoleGameId(gameId);
+    setAlertMessageI18nKey('home.noRoleAccount');
+    setNoRoleRefreshInlineErrorI18nKey(null);
+    setShowAlertModal(true);
+  }, [location.state, user?.token, navigate]);
 
   // 同步 currentIndex 到 ref
   useEffect(() => {
@@ -132,17 +202,18 @@ export const Home: React.FC = () => {
     if (n === 0) return;
     if (currentIndex < 0 || currentIndex >= n) {
       setEnableTransition(false);
-      setCurrentIndex(1);
-      currentIndexRef.current = 1;
+      setCurrentIndex(initialBannerIndex);
+      currentIndexRef.current = initialBannerIndex;
     }
-  }, [currentIndex, infiniteBanners.length]);
+  }, [currentIndex, infiniteBanners.length, initialBannerIndex]);
 
-  // 将内部索引转换为真实索引（用于圆点显示）
+  // 将内部索引转换为真实索引（用于圆点 / 缩略图高亮）
   const getRealIndex = (index: number): number => {
     if (banners.length === 0) return 0;
-    if (index === 0) return banners.length - 1; // 克隆的最后一张
-    if (index === infiniteBanners.length - 1) return 0; // 克隆的第一张
-    return index - 1; // 真实图片
+    if (!hasMultipleGames) return 0;
+    if (index === 0) return banners.length - 1;
+    if (index === infiniteBanners.length - 1) return 0;
+    return index - 1;
   };
 
   const realIndex = getRealIndex(currentIndex);
@@ -150,7 +221,7 @@ export const Home: React.FC = () => {
   // 处理边界跳转：当滑动到克隆图片时，无动画跳转到对应的真实图片
   useEffect(() => {
     const banner = bannerRef.current;
-    if (!banner || banners.length === 0) return;
+    if (!banner || banners.length === 0 || !hasMultipleGames) return;
 
     const handleTransitionEnd = (e: TransitionEvent) => {
       // 只处理 transform 的 transition 结束
@@ -174,7 +245,7 @@ export const Home: React.FC = () => {
     return () => {
       banner.removeEventListener('transitionend', handleTransitionEnd);
     };
-  }, [currentIndex, banners.length, infiniteBanners.length]);
+  }, [currentIndex, banners.length, infiniteBanners.length, hasMultipleGames]);
 
   // 当禁用过渡后，立即重新启用（用于下次滑动）
   useEffect(() => {
@@ -190,49 +261,55 @@ export const Home: React.FC = () => {
 
   // 滑动处理
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!hasMultipleGames) return;
     touchStartX.current = e.touches[0].clientX;
-    // 暂停自动轮播
     pauseAutoPlay();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (!hasMultipleGames) return;
     touchEndX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = () => {
+    if (!hasMultipleGames) return;
     const diff = touchStartX.current - touchEndX.current;
     const minSwipeDistance = 50;
 
     if (Math.abs(diff) > minSwipeDistance) {
       const n = infiniteBannersLengthRef.current;
       if (diff > 0) {
-        setCurrentIndex((prev) => (n <= 1 ? prev : Math.min(prev + 1, n - 1)));
+        setCurrentIndex((prev) => Math.min(prev + 1, n - 1));
       } else {
-        setCurrentIndex((prev) => (n <= 1 ? prev : Math.max(prev - 1, 0)));
+        setCurrentIndex((prev) => Math.max(prev - 1, 0));
       }
     }
-    
-    // 恢复自动轮播
+
     resumeAutoPlay();
   };
 
   // 点击圆点切换
   const handleDotClick = (index: number) => {
-    setCurrentIndex(index + 1); // +1 因为前面有克隆图片
-    // 重置自动轮播
+    setCurrentIndex(index + 1);
     resetAutoPlay();
   };
 
-  // 自动切换到下一张
-  const goToNext = useCallback(() => {
+  const handlePrevBanner = () => {
+    if (!hasMultipleGames) return;
+    pauseAutoPlay();
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    resumeAutoPlay();
+  };
+
+  const handleNextBanner = () => {
+    if (!hasMultipleGames) return;
+    pauseAutoPlay();
     setCurrentIndex((prev) => {
-      // 确保有足够的banner才切换
-      if (infiniteBanners.length <= 1) return prev;
-      const next = prev + 1;
-      // 如果超过了最后一张，回到第一张（但实际上应该由边界处理逻辑处理）
-      return next;
+      const n = infiniteBannersLengthRef.current;
+      return Math.min(prev + 1, n - 1);
     });
-  }, [infiniteBanners.length]);
+    resumeAutoPlay();
+  };
 
   // 重置自动轮播
   const resetAutoPlay = useCallback(() => {
@@ -242,8 +319,7 @@ export const Home: React.FC = () => {
       autoPlayTimerRef.current = null;
     }
     
-    // 如果未暂停且有banner内容，重新启动自动轮播
-    if (!isPausedRef.current && banners.length > 0 && infiniteBannersLengthRef.current > 1) {
+    if (!isPausedRef.current && banners.length > 0 && hasMultipleGames) {
       autoPlayTimerRef.current = setInterval(() => {
         const n = infiniteBannersLengthRef.current;
         if (n <= 1) return;
@@ -254,7 +330,7 @@ export const Home: React.FC = () => {
         });
       }, 5000); // 每5秒切换一次
     }
-  }, [banners.length, infiniteBanners.length]);
+  }, [banners.length, hasMultipleGames]);
 
   // 暂停自动轮播
   const pauseAutoPlay = useCallback(() => {
@@ -274,7 +350,7 @@ export const Home: React.FC = () => {
   // 初始化自动轮播（当 banners 准备好时）
   useEffect(() => {
     // 确保 banners 有内容才启动自动轮播
-    if (banners.length > 0 && infiniteBannersLengthRef.current > 1) {
+    if (banners.length > 0 && hasMultipleGames) {
       // 延迟一小段时间确保DOM已经渲染
       const timer = setTimeout(() => {
     resetAutoPlay();
@@ -296,16 +372,16 @@ export const Home: React.FC = () => {
         autoPlayTimerRef.current = null;
       }
     };
-  }, [banners.length, infiniteBanners.length, resetAutoPlay]); // 依赖 banners 和 infiniteBanners
+  }, [banners.length, hasMultipleGames, resetAutoPlay]);
 
   // 当 currentIndex 变化时，如果未暂停则重置自动轮播计时器（避免手动操作后立即自动切换）
   useEffect(() => {
-    // 跳过边界跳转时的重置（索引为0或infiniteBanners.length-1时）
+    if (!hasMultipleGames) return;
     if (currentIndex === 0 || currentIndex === infiniteBannersLengthRef.current - 1) {
       return;
     }
-    
-    if (!isPausedRef.current && banners.length > 0 && infiniteBannersLengthRef.current > 1) {
+
+    if (!isPausedRef.current && banners.length > 0) {
       // 延迟重置，避免在边界跳转时立即重置
       const timer = setTimeout(() => {
       resetAutoPlay();
@@ -315,7 +391,7 @@ export const Home: React.FC = () => {
         clearTimeout(timer);
       };
     }
-  }, [currentIndex, banners.length, infiniteBanners.length, resetAutoPlay]);
+  }, [currentIndex, banners.length, hasMultipleGames, resetAutoPlay]);
 
   // 获取所有游戏的 app_key
   const getAllAppKeys = (): string[] => {
@@ -371,7 +447,7 @@ export const Home: React.FC = () => {
           gameRoleStore.setError(res.error || '获取游戏角色列表失败');
       }
       } catch (error) {
-        console.error('获取游戏角色列表失败:', error);
+        // console.error('获取游戏角色列表失败:', error);
         gameRoleStore.setError(error instanceof Error ? error.message : '获取游戏角色列表失败');
       } finally {
       loadingRef.current = false;
@@ -389,6 +465,7 @@ export const Home: React.FC = () => {
     const game = games.find((g) => g.id === gid);
     if (!game || !user?.token) return;
 
+    setNoRoleRefreshInlineErrorI18nKey(null);
     setNoRoleRefreshLoading(true);
     try {
       const appKeys = games.map((g) => g.app_key);
@@ -402,12 +479,15 @@ export const Home: React.FC = () => {
           setPendingNoRoleGameId(null);
           navigate(`/game/${gid}`);
         } else {
+          setNoRoleRefreshInlineErrorI18nKey('home.noRoleRefreshNotFound');
           messageStore.show(t('home.noRoleRefreshNotFound'));
         }
       } else {
+        setNoRoleRefreshInlineErrorI18nKey(null);
         messageStore.show(res.error || t('home.noRoleRefreshFailed'));
       }
     } catch {
+      setNoRoleRefreshInlineErrorI18nKey(null);
       messageStore.show(t('home.noRoleRefreshFailed'));
     } finally {
       setNoRoleRefreshLoading(false);
@@ -420,7 +500,7 @@ export const Home: React.FC = () => {
       // 查找对应的游戏
       const game = games.find((g) => g.id === gameId);
       if (!game) {
-        console.error('Game not found:', gameId);
+        // console.error('Game not found:', gameId);
         return;
       }
 
@@ -442,6 +522,7 @@ export const Home: React.FC = () => {
       if (!hasRoles) {
         setPendingNoRoleGameId(gameId);
         setAlertMessageI18nKey('home.noRoleAccount');
+        setNoRoleRefreshInlineErrorI18nKey(null);
         setShowAlertModal(true);
         return;
       }
@@ -451,83 +532,136 @@ export const Home: React.FC = () => {
     });
   };
 
+  const handleBannerClick = () => {
+    const game = games[realIndex];
+    if (game) {
+      handleGameClick(game.id);
+    }
+  };
+
 
   return (
     <div className={styles.home}>
+      <HomeBackgroundPattern />
       {/* 促销横幅 */}
       {banners.length > 0 && (
       <div className={styles.bannerSection}>
         <div
-          className={styles.banner}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseEnter={pauseAutoPlay}
-          onMouseLeave={resumeAutoPlay}
+          className={`${styles.bannerCarousel} ${
+            !hasMultipleGames ? styles.bannerCarouselSingle : ''
+          }`}
         >
+          {hasMultipleGames && (
+            <button
+              type="button"
+              className={`${styles.bannerArrow} ${styles.bannerArrowPrev}`}
+              onClick={handlePrevBanner}
+              aria-label="上一张"
+            >
+              <img src={bannerArrowImg} alt="" className={styles.bannerArrowIcon} />
+            </button>
+          )}
+
           <div
-            ref={bannerRef}
-            className={styles.bannerContent}
-            style={{
-              transform: `translateX(-${currentIndex * 100}%)`,
-              transition: enableTransition ? 'transform 0.3s ease' : 'none',
-            }}
+            className={styles.banner}
+            onTouchStart={hasMultipleGames ? handleTouchStart : undefined}
+            onTouchMove={hasMultipleGames ? handleTouchMove : undefined}
+            onTouchEnd={hasMultipleGames ? handleTouchEnd : undefined}
+            onMouseEnter={hasMultipleGames ? pauseAutoPlay : undefined}
+            onMouseLeave={hasMultipleGames ? resumeAutoPlay : undefined}
           >
-            {infiniteBanners.map((banner, index) => (
-              <img
-                key={index}
-                src={banner}
-                alt={`Banner ${index + 1}`}
-                className={styles.bannerImage}
+            <div ref={bannerViewportRef} className={styles.bannerViewport}>
+              <div
+                ref={bannerRef}
+                className={styles.bannerContent}
+                style={
+                  {
+                    '--banner-slide-width':
+                      bannerSlideWidth > 0 ? `${bannerSlideWidth}px` : '100%',
+                    transform:
+                      bannerSlideWidth > 0
+                        ? `translate3d(-${currentIndex * bannerSlideWidth}px, 0, 0)`
+                        : `translateX(-${currentIndex * 100}%)`,
+                    transition: enableTransition ? 'transform 0.3s ease' : 'none',
+                  } as React.CSSProperties
+                }
+              >
+                {infiniteBanners.map((banner, index) => (
+                  <img
+                    key={index}
+                    src={banner}
+                    alt={`Banner ${index + 1}`}
+                    className={styles.bannerImage}
+                    loading={index === currentIndex ? 'eager' : 'lazy'}
+                    decoding={index === currentIndex ? 'sync' : 'async'}
+                    fetchPriority={index === currentIndex ? 'high' : 'low'}
+                    onClick={handleBannerClick}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.bannerTips}>
+              <span className={styles.bannerTipsText}>
+                {t('home.purchaseEntryParts.prefix')}
+                <span className={styles.bannerTipsKeyword}>{t('home.purchaseEntryParts.keyword')}</span>
+                {t('home.purchaseEntryParts.suffix')}
+              </span>
+            </div>
+          </div>
+
+          {hasMultipleGames && (
+            <button
+              type="button"
+              className={`${styles.bannerArrow} ${styles.bannerArrowNext}`}
+              onClick={handleNextBanner}
+              aria-label="下一张"
+            >
+              <img src={bannerArrowImg} alt="" className={styles.bannerArrowIcon} />
+            </button>
+          )}
+        </div>
+
+        {hasMultipleGames && (
+          <div className={styles.bannerDots}>
+            {games.map((game, index) => (
+              <button
+                key={game.id}
+                type="button"
+                className={`${styles.bannerDot} ${realIndex === index ? styles.bannerDotActive : ''}`}
+                onClick={() => handleDotClick(index)}
+                aria-label={game.name}
               />
             ))}
           </div>
-        </div>
-        {/* 轮播指示点 */}
-        <div className={styles.bannerDots}>
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              className={`${styles.dot} ${realIndex === index ? styles.dotActive : ''}`}
-              onClick={() => handleDotClick(index)}
-              aria-label={`切换到第${index + 1}张`}
-            />
-          ))}
-        </div>
+        )}
+
+        {hasMultipleGames && (
+          <div className={styles.gameThumbList}>
+            {games.map((game, index) => (
+              <button
+                key={game.id}
+                type="button"
+                className={`${styles.gameThumb} ${realIndex === index ? styles.gameThumbActive : ''}`}
+                onClick={() => handleDotClick(index)}
+                aria-label={game.name}
+              >
+                <span className={styles.gameThumbFrame}>
+                  <img src={game.icon} alt={game.name} className={styles.gameThumbIcon} />
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       )}
 
-      {/* 游戏选择部分 */}
-      <div className={styles.gameSection}>
-        <h2 className={styles.sectionTitle}>
-          {isDesktop ? (
-            <>
-              {t('home.selectGameParts.prefix')}
-              <span className={styles.rechargeKeyword}>{t('home.selectGameParts.keyword')}</span>
-              {t('home.selectGameParts.suffix')}
-            </>
-          ) : (
-            t('home.selectGame')
-          )}
-        </h2>
-        <div className={styles.gameList}>
-          {games.map((game) => (
-            <div
-              key={game.id}
-              className={styles.gameCard}
-              onClick={() => handleGameClick(game.id)}
-            >
-              {game.image ? (
-                <img src={game.image} alt={game.name} className={styles.gameCardImage} />
-              ) : (
-                <div className={styles.gameCardPlaceholder}>
-                  <span>{game.name}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      <HomeMobileGameList
+        games={games}
+        onGameClick={handleGameClick}
+        title={t('home.selectGameMobileTitle')}
+        goLabel={t('home.mobileGameCardGo')}
+      />
 
       {/* 底部导航栏会在Layout中处理 */}
 
@@ -545,27 +679,36 @@ export const Home: React.FC = () => {
           setAlertMessageI18nKey(null);
           setPendingNoRoleGameId(null);
           setNoRoleRefreshLoading(false);
+          setNoRoleRefreshInlineErrorI18nKey(null);
         }}
         message={alertMessageI18nKey ? t(alertMessageI18nKey) : ''}
+        hideActions={alertMessageI18nKey === 'home.noRoleAccount'}
         extraBelowMessage={
           alertMessageI18nKey === 'home.noRoleAccount' && pendingNoRoleGameId ? (
-            <p className={alertModalStyles.refreshLine}>
-              <span>{t('home.noRoleRefreshPrefix')}</span>
-              <button
-                type="button"
-                className={alertModalStyles.refreshLink}
-                onClick={handleNoRoleRefreshRoles}
-                disabled={noRoleRefreshLoading}
-                aria-busy={noRoleRefreshLoading}
-                aria-label={noRoleRefreshLoading ? t('home.noRoleRefreshing') : t('home.noRoleRefreshAction')}
-              >
-                {noRoleRefreshLoading ? (
-                  <span className={alertModalStyles.refreshSpinner} aria-hidden />
-                ) : (
-                  t('home.noRoleRefreshAction')
-                )}
-              </button>
-            </p>
+            <>
+              <p className={alertModalStyles.refreshLine}>
+                <span>{t('home.noRoleRefreshPrefix')}</span>
+                <button
+                  type="button"
+                  className={alertModalStyles.refreshLink}
+                  onClick={handleNoRoleRefreshRoles}
+                  disabled={noRoleRefreshLoading}
+                  aria-busy={noRoleRefreshLoading}
+                  aria-label={noRoleRefreshLoading ? t('home.noRoleRefreshing') : t('home.noRoleRefreshAction')}
+                >
+                  {noRoleRefreshLoading ? (
+                    <span className={alertModalStyles.refreshSpinner} aria-hidden />
+                  ) : (
+                    t('home.noRoleRefreshAction')
+                  )}
+                </button>
+              </p>
+              {noRoleRefreshInlineErrorI18nKey && (
+                <p className={alertModalStyles.refreshError}>
+                  {t(noRoleRefreshInlineErrorI18nKey)}
+                </p>
+              )}
+            </>
           ) : null
         }
       />

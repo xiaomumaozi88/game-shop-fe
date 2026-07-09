@@ -1,43 +1,66 @@
 @import '@/styles/variables.less';
 @import '@/styles/mixins.less';
 
+@logout-modal-bg: #fffdf4;
+@logout-modal-text: #5e5447;
+@logout-modal-orange: #ff8100;
+@logout-modal-orange-dark: #e67400;
+
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px); // 背景模糊效果
+  inset: 0;
   z-index: @z-index-modal;
   .flex-center();
-  padding: @spacing-md;
+  padding: @spacing-xl @spacing-md;
+  .modalOverlayBackdrop();
 
-  .mobile({
-    padding: @spacing-md;
-  });
+  .touchLandscapeModalOverlay(0.75rem, 1rem);
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: @spacing-sm @spacing-md;
+
+    &::after {
+      display: none;
+    }
+  }
 }
 
 .modal {
   position: relative;
-  background: @white;
-  border-radius: @border-radius-lg;
-  max-width: 25rem; // 400px
   width: 100%;
-  padding: @spacing-lg @spacing-lg @spacing-xl;
-  box-shadow: @box-shadow-lg;
+  max-width: 22.5rem;
+  box-sizing: border-box;
+  padding: 2.25rem 2rem 2rem;
+  background: @logout-modal-bg;
+  border-radius: 2rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
   animation: slideUp 0.3s ease;
+  overflow: visible;
+  text-align: center;
+  font-family: @font-family-sans;
 
   .mobile({
     max-width: 90%;
-    padding: @spacing-md @spacing-lg;
+    padding: 2rem 1.5rem 1.75rem;
+    border-radius: 1.75rem;
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    width: min(22.5rem, 82vw);
+    max-width: min(22.5rem, 82vw);
+    padding: 2rem 1.5rem 1.75rem;
+    border-radius: 1.75rem;
+    margin: auto;
+  }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(1.25rem); // 20px
+    transform: translateY(1.25rem);
   }
   to {
     opacity: 1;
@@ -45,164 +68,168 @@
   }
 }
 
+.closeButton {
+  .button-reset();
+  position: absolute;
+  top: -0.75rem;
+  right: -1.25rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .mobile({
+    top: -0.625rem;
+    right: -0.875rem;
+    width: 3rem;
+    height: 3rem;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    top: -0.625rem;
+    right: -0.875rem;
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+.closeButtonImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
 .title {
+  margin: 0 0 @spacing-md;
   font-size: @font-size-xxl;
   font-weight: bold;
-  color: #000;
-  text-align: center;
-  margin: 0 0 @spacing-md 0;
-  line-height: 1.4;
+  color: @logout-modal-text;
+  line-height: 1.3;
 
   .mobile({
-    font-size: @font-size-xxl;
+    font-size: @font-size-xl;
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    font-size: @font-size-xl;
+    line-height: 1.3;
+  }
 }
 
-.message {
+.description {
+  margin: 0 0 @spacing-lg;
   font-size: @font-size-md;
-  color: @text-color;
-  text-align: center;
-  margin: 0 0 @spacing-sm 0;
-  line-height: 1.6;
   font-weight: bold;
+  color: @logout-modal-text;
+  line-height: 1.5;
 
   .mobile({
-    font-size: @font-size-md;
+    font-size: @font-size-sm;
   });
-}
 
-.checkboxContainer {
-  display: flex;
-  justify-content: center;
-  margin: @spacing-lg 0 @spacing-xl 0;
-
-  .mobile({
-    margin: @spacing-md 0 @spacing-md 0;
-  });
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    font-size: @font-size-sm;
+    line-height: 1.5;
+  }
 }
 
 .checkboxLabel {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: @spacing-sm;
+  margin-bottom: @spacing-xl;
   cursor: pointer;
   user-select: none;
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    margin-bottom: @spacing-md;
+  }
 }
 
 .checkbox {
-  width: 1rem; // 16px
-  height: 1rem; // 16px
-  cursor: pointer;
+  width: 1.125rem;
+  height: 1.125rem;
   flex-shrink: 0;
   appearance: none;
   -webkit-appearance: none;
-  -moz-appearance: none;
-  border: 1px solid #d0d0d0; // 浅灰色外圈
-  border-radius: 50%; // 圆形（radio button）
+  border: 1px solid #d8c4a0;
+  border-radius: 0.25rem;
   background: @white;
   position: relative;
   transition: all 0.2s ease;
-  box-shadow: 0 0 2px rgba(208, 208, 208, 0.3); // 轻微模糊边缘效果
+  cursor: pointer;
 
   &:checked {
-    border-color: #d0d0d0; // 保持浅灰色外圈
-    background: @white; // 保持白色背景
+    border-color: @logout-modal-orange;
+    background: @logout-modal-orange;
 
     &::after {
       content: '';
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 0.75rem; // 12px
-      height: 0.75rem; // 12px
-      border-radius: 50%;
-      background: #5B5B5B; // 深灰色内圈
+      top: 0.125rem;
+      left: 0.3125rem;
+      width: 0.25rem;
+      height: 0.5rem;
+      border: solid @white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
     }
-  }
-
-  &:hover {
-    border-color: #b0b0b0;
-    box-shadow: 0 0 3px rgba(208, 208, 208, 0.5);
   }
 }
 
 .checkboxText {
   font-size: @font-size-sm;
-  color: @text-color-secondary;
-  font-weight: bolder;
-
-  .mobile({
-    font-size: @font-size-xs;
-  });
+  color: #c3a07a;
+  font-weight: bold;
+  line-height: 1.4;
 }
 
 .actions {
   display: flex;
   gap: @spacing-md;
   justify-content: space-between;
+  min-width: 0;
 
   .mobile({
-    gap: @spacing-lg;
+    gap: @spacing-sm;
     width: 100%;
     margin: 0 auto;
   });
 }
 
-.confirmButton {
-  .button-reset();
-  flex: 1;
-  // 框高比 72:25
-  aspect-ratio: 72 / 25;
-  min-height: 1.5625rem; // 25px
-  background: #626CDA; // 紫色背景
-  border: none;
-  border-radius: 999px; // 药丸形状
-  color: @white; // 白色文字
-  font-size: @font-size-md;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  .touch-friendly();
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: darken(#626CDA, 10%);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  .mobile({
-    font-size: @font-size-sm;
-  });
-}
-
+.confirmButton,
 .cancelButton {
   .button-reset();
   flex: 1;
-  // 框高比 72:25
+  min-width: 0;
   aspect-ratio: 72 / 25;
-  min-height: 1.5625rem; // 25px
-  background: @white; // 白色背景
-  border: 1px solid #d0d0d0; // 灰色边框
-  border-radius: 999px; // 药丸形状
-  color: @text-color-secondary; // 深灰色文字
+  min-height: 1.5625rem;
+  border-radius: 999px;
+  font-family: @font-family-sans;
   font-size: @font-size-md;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
   .touch-friendly();
-  font-weight: normal;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  &:hover {
-    background: @background-color;
-  }
 
   &:active {
     transform: scale(0.98);
@@ -210,6 +237,34 @@
 
   .mobile({
     font-size: @font-size-sm;
+    min-width: 0;
+    min-height: 2.75rem;
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    min-height: 2.75rem;
+    font-size: @font-size-sm;
+  }
 }
 
+.confirmButton {
+  background: @logout-modal-orange;
+  color: @white;
+  border: none;
+  font-weight: 500;
+
+  &:hover {
+    background: @logout-modal-orange-dark;
+  }
+}
+
+.cancelButton {
+  background: @white;
+  color: @logout-modal-text;
+  border: 1px solid #fbd9b9;
+  font-weight: normal;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.85);
+  }
+}

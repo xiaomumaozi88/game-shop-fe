@@ -389,7 +389,7 @@ export const trackStoreIapShow = (product: Product) => {
  * - iap: iap（商品列表详情返回的iap字段）
  * - price: 分成前价格
  * - currency: 货币单位
- * - payment_type: 支付方式（使用 PAYMENT_TYPES 常量值）
+ * - payment_type: 支付方式（stripe_store | stripe_h5store | airwallex_store | airwallex_h5store 等）
  */
 export const trackStoreIapClick = (
   product: Product,

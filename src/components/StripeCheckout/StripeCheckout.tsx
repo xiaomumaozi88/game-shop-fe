@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   EmbeddedCheckoutProvider,
@@ -90,11 +91,11 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
         productName,
       });
 
-      console.log('Checkout session result:', result);
+      // console.log('Checkout session result:', result);
 
       if (!result.success || !result.data) {
         const errorMessage = result.error || 'Failed to create checkout session';
-        console.error('Checkout session creation failed:', errorMessage);
+        // console.error('Checkout session creation failed:', errorMessage);
         setError(errorMessage);
         
         // 上报支付初始化失败
@@ -108,7 +109,7 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
 
       if (!result.data.clientSecret) {
         const errorMessage = 'No client secret returned from server';
-        console.error(errorMessage);
+        // console.error(errorMessage);
         setError(errorMessage);
         
         // 上报支付初始化失败
@@ -141,11 +142,13 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
     }
   }, [isOpen]);
 
+  useScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   if (!stripePromise) {
     return (
-      <div className={styles.overlay} onClick={handleClose}>
+      <div className={styles.overlay} data-scroll-lock-overlay onClick={handleClose}>
         <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
           <div className={styles.dragIndicator} />
           <button
@@ -166,7 +169,7 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
   // 如果出现错误，显示错误信息
   if (error) {
     return (
-      <div className={styles.overlay} onClick={handleClose}>
+      <div className={styles.overlay} data-scroll-lock-overlay onClick={handleClose}>
         <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
           <div className={styles.dragIndicator} />
           <button
@@ -203,7 +206,7 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
   const options = { fetchClientSecret };
 
   return (
-    <div className={styles.overlay} onClick={handleClose}>
+    <div className={styles.overlay} data-scroll-lock-overlay onClick={handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* 拖拽指示器 */}
         <div className={styles.dragIndicator} />

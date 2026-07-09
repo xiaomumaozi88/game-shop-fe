@@ -1,0 +1,136 @@
+@import '@/styles/variables.less';
+
+// 钻石 / 礼包 / Touka 币：同断点内名称、价格字号一致
+@products-card-name-color: #fff17a;
+@products-card-name-stroke: #000;
+// 钻石 / Touka 币名称描边（较礼包更粗）
+@products-card-name-stroke-width-mobile: 0.1rem;
+@products-card-name-stroke-width-tablet: 0.125rem;
+@products-card-name-stroke-width-desktop: 0.15625rem;
+@products-card-name-font-size-mobile: @font-size-xxs;
+@products-card-name-font-size-tablet: @font-size-lg;
+@products-card-name-font-size-desktop: @font-size-xl;
+@products-voucher-title-row-font-size-desktop: @font-size-xxl;
+
+// 钻石 / Touka 币：价格略大于名称，整体小于礼包等同屏价格
+@products-diamond-voucher-price-font-size-mobile: @font-size-xs;
+@products-diamond-voucher-price-font-size-tablet: 1.1875rem;
+@products-diamond-voucher-price-font-size-desktop: 1.375rem;
+
+@products-card-price-font-size-mobile: @font-size-md;
+@products-card-price-font-size-tablet: @font-size-lg;
+@products-card-price-font-size-desktop: @font-size-xxl;
+
+@banner-top-width: 1920;
+@banner-top-height: 800;
+@banner-top-wide-1714-width: 1714;
+@banner-top-wide-1714-height: 268;
+@banner-top-wide-2544-width: 2544;
+@banner-top-wide-2544-height: 400;
+@banner-bottom-default-width: 1920;
+@banner-bottom-default-height: 260;
+@banner-bottom-wide-width: 2544;
+@banner-bottom-wide-height: 400;
+
+@banner-top-height-vw: (100vw * @banner-top-height / @banner-top-width);
+// 宽屏顶图仅主图区域高度（不含底部装饰条）
+@banner-top-height-vw-wide-1714: (
+  100vw * @banner-top-wide-1714-height / @banner-top-wide-1714-width
+);
+@banner-top-height-vw-wide-2544: (
+  100vw * @banner-top-wide-2544-height / @banner-top-wide-2544-width
+);
+// 主图与装饰条叠盖量（装饰条压入主图底部）
+@banner-top-main-strip-overlap-vw: (100vw * 48 / @banner-top-width);
+@banner-bottom-height-vw-default: (100vw * @banner-bottom-default-height / @banner-bottom-default-width);
+// 移动端装饰条：视觉高度仅用于 productsPageBgTopBottom；布局高度参与 spacer
+@banner-bottom-height-mobile-visual-factor: 1.35;
+@banner-bottom-height-vw-mobile-visual: (
+  @banner-bottom-height-vw-default * @banner-bottom-height-mobile-visual-factor
+);
+@banner-bottom-height-vw-mobile-layout: @banner-bottom-height-vw-default;
+@banner-bottom-strip-spacer-adjust-mobile-vw: calc(
+  @banner-bottom-height-vw-mobile-visual - @banner-bottom-height-vw-mobile-layout
+);
+@banner-bottom-height-vw-desktop-narrow: 13vw; // 1024~1713（如 1600px）
+@banner-bottom-height-vw-desktop-visual: 21vw; // ≥1714 宽屏
+@banner-bottom-height-vw-layout: (
+  @banner-bottom-height-vw-default * 1.28
+);
+// 装饰条盒子 25vw 但图按宽等比仅约 13.5vw，spacer 需扣掉盒内留白
+@banner-bottom-strip-spacer-adjust-vw: calc(
+  @banner-bottom-height-vw-desktop-visual - @banner-bottom-height-vw-default
+);
+// 宽屏 banner 总高 = 主图 + 装饰条布局高度 − 叠盖
+@banner-top-height-vw-wide-1714-total: calc(
+  @banner-top-height-vw-wide-1714 + @banner-bottom-height-vw-layout -
+    @banner-top-main-strip-overlap-vw
+);
+@banner-top-height-vw-wide-2544-total: calc(
+  @banner-top-height-vw-wide-2544 + @banner-bottom-height-vw-layout -
+    @banner-top-main-strip-overlap-vw
+);
+@banner-bottom-height-vw-wide: calc(
+  100vw * @banner-bottom-wide-height / @banner-bottom-wide-width - 6%
+);
+
+@banner-total-height-vw: @banner-top-height-vw;
+@banner-top-main-shift-up-vw: (100vw * 48 / @banner-top-width);
+// PC 端 Banner 上半可见高度（相对设计稿等比缩放后再裁矮，主图 bottom 对齐保留下半）
+@banner-top-height-desktop-factor: 0.68;
+@banner-top-height-vw-desktop: (@banner-top-height-vw * @banner-top-height-desktop-factor);
+@banner-bg-bottom-overlap-vw-mobile: (100vw * 44 / @banner-top-width);
+@banner-bg-bottom-overlap-vw-desktop: (100vw * 96 / @banner-top-width);
+@banner-top-height-tablet-factor: 1.35;
+@banner-top-height-vw-tablet: (@banner-top-height-vw * @banner-top-height-tablet-factor);
+// 移动端 banner 总高 = 主图 + 底栏 − 叠盖（避免主图与底栏被裁成两条并排）
+@banner-top-height-vw-mobile-total: calc(
+  @banner-top-height-vw + @banner-bottom-height-vw-mobile-layout -
+    @banner-top-main-strip-overlap-vw
+);
+
+@product-list-bg-top-pull-factor-narrow: 0.2;
+@product-list-bg-top-pull-factor-wide: 0.25;
+@banner-top-pull-vw-narrow: (
+  @banner-top-height-vw * @product-list-bg-top-pull-factor-narrow
+);
+@banner-top-pull-vw-wide: (@banner-top-height-vw * @product-list-bg-top-pull-factor-wide);
+@product-list-bg-top-desktop-offset: @layout-header-height-desktop;
+
+// 正文区（productsPageBody）顶部 = 水印区（productsPageBgBottom）上沿
+// = productsPageBgTopBottom 下缘 − 叠盖量（与 spacer / 背景共用变量）
+@products-page-content-start-mobile: calc(
+  @banner-top-height-vw-mobile-total - @banner-bg-bottom-overlap-vw-mobile -
+    @banner-bottom-strip-spacer-adjust-mobile-vw
+);
+
+@products-page-content-start-tablet: calc(
+  @banner-top-height-vw-tablet - @banner-bg-bottom-overlap-vw-mobile
+);
+
+@products-page-content-start-desktop-narrow: calc(
+  @product-list-bg-top-desktop-offset + @banner-top-height-vw-desktop -
+    @banner-bg-bottom-overlap-vw-desktop
+);
+
+@products-page-content-start-desktop-wide: calc(
+  @product-list-bg-top-desktop-offset + @banner-top-height-vw-desktop -
+    @banner-bg-bottom-overlap-vw-desktop
+);
+
+@products-page-content-start-desktop-wide-1714: calc(
+  @product-list-bg-top-desktop-offset + @banner-top-height-vw-wide-1714-total -
+    @banner-bg-bottom-overlap-vw-desktop - @banner-bottom-strip-spacer-adjust-vw
+);
+
+@products-page-content-start-desktop-wide-2544: calc(
+  @product-list-bg-top-desktop-offset + @banner-top-height-vw-wide-2544-total -
+    @banner-bg-bottom-overlap-vw-desktop - @banner-bottom-strip-spacer-adjust-vw
+);
+
+// PC：正文区与 categoryNav 共用；用户面板右缘与之对齐
+@products-page-max-width: 100rem;
+@products-page-padding-x-desktop: 2rem;
+@products-panel-right-desktop: calc(
+  (100vw - min(100vw, @products-page-max-width)) / 2 - 0.9rem
+);

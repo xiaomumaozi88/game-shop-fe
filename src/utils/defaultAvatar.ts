@@ -1,7 +1,7 @@
 import { STORAGE_KEYS } from './constants';
-import bamDefaultAvatar from '@/assets/imgs/bam-default-avatar.png';
-import oopsDefaultAvatar from '@/assets/imgs/opps-default-avatar.png';
-import legacyDefaultAvatar from '@/assets/imgs/default_avatar.png';
+import bamDefaultAvatar from '@/assets/img2/bam-default-avatar.png';
+import oopsDefaultAvatar from '@/assets/img2/opps-default-avatar.png';
+import legacyDefaultAvatar from '@/assets/img2/default_avatar.png';
 
 const BAM_APP_KEY = 'f6594168ce3a9cc57ab7ed74426e25e1';
 const OOPS_APP_KEY = '45a56d38bbdd60353438aa25d1ccff20';

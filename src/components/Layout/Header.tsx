@@ -1,13 +1,21 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useCart } from '@/hooks/useCart';
 import { useUser } from '@/hooks/useUser';
 import { useGameRole } from '@/hooks/useGameRole';
 import { useLanguage } from '@/hooks/useLanguage';
+import { shouldShowMobileHomeNav } from '@/i18n';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
+import { useFitText, useFitTextGroup } from '@/hooks/useFitText';
+import { useResponsive } from '@/hooks/useResponsive';
+import { useProductsUserPanelVisibility } from '@/hooks/useProductsUserPanelVisibility';
 import { storage, STORAGE_KEYS, resolveOrdersListPath, isGameStoreProductsPath, getDefaultAvatarByAppKey } from '@/utils';
+import { logoutUser } from '@/utils/auth';
+import { messageStore } from '@/store/messageStore';
 import { userDetailApi, gameRoleApi } from '@/utils/api';
 import { gameRoleStore } from '@/store/gameRoleStore';
+import { productsUserPanelStore } from '@/store/productsUserPanelStore';
 import { thinkingData } from '@/utils/thinkingData';
 import { trackStoreSdkLoginOnce, trackStoreRoleSelect } from '@/utils/analytics';
 
@@ -22,14 +30,27 @@ import { SupportModal } from '../SupportModal';
 import { LogoutModal } from '../LogoutModal';
 import { ServerSelectModal } from '../ServerSelectModal';
 import { LoginModal } from '../LoginModal';
-import exitIcon from '@/assets/imgs/touka_home_ic_exit.png';
-import logoImg from '@/assets/imgs/touka_home_logo.png';
+import exitIcon from '@/assets/img2/touka_home_ic_exit.png';
+import logoIconImg from '@/assets/img2/login_modal_logo.png';
+import logoTextImg from '@/assets/img2/login_modal_logotext.png';
 import styles from './Header.module.less';
+
+const HEADER_LOGO_SUBTITLE_MIN_FONT_SIZE: Record<'mobile' | 'tablet' | 'desktop', number> = {
+  mobile: 7,
+  tablet: 9,
+  desktop: 14,
+};
+
+const HEADER_MOBILE_NAV_MIN_FONT_SIZE: Record<'mobile' | 'tablet' | 'desktop', number> = {
+  mobile: 7,
+  tablet: 9,
+  desktop: 10,
+};
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser, clear, saveGameRoleSelection, getGameRoleSelection } = useUser();
+  const { user, setUser, saveGameRoleSelection, getGameRoleSelection } = useUser();
   const { getAllRoles, getRolesByAppKey, roles } = useGameRole(); // 获取所有角色列表和按游戏获取角色
   
   // 从 localStorage 读取当前游戏的 appKey，使用 state 确保响应式更新
@@ -50,7 +71,6 @@ export const Header: React.FC = () => {
       if (newAppKey && user && user.token) {
         const selection = getGameRoleSelection(newAppKey);
         if (selection?.ss_app_id && selection?.ss_url && !thinkingData.isInitialized()) {
-          console.log('🟢 Header 从保存的配置初始化数数SDK', { appKey: newAppKey, ss_app_id: selection.ss_app_id });
           const initSuccess = thinkingData.initForGame(newAppKey, {
             appId: selection.ss_app_id,
             serverUrl: selection.ss_url,
@@ -70,7 +90,6 @@ export const Header: React.FC = () => {
                 platform: user.platform || '',
               });
             }
-            console.log('🟢 Header 数数SDK初始化成功（从保存的配置）');
           }
         }
       }
@@ -164,8 +183,13 @@ export const Header: React.FC = () => {
     if (!platform) return '';
     const lower = platform.toLowerCase();
     if (lower === 'ios') return 'iOS';
-    if (lower === 'android') return '安卓';
     return platform;
+  };
+
+  const formatServerDisplay = (channel: string | undefined, platform: string | undefined): string => {
+    if (!channel) return '';
+    const platformLabel = getPlatformLabel(platform);
+    return platformLabel ? `${channel}-${platformLabel}` : channel;
   };
 
   // 根据 game_user_id 获取"昵称-平台"展示（只查找当前游戏的角色）
@@ -188,8 +212,8 @@ export const Header: React.FC = () => {
     // 只查找当前游戏的角色
     const currentGameRoles = getRolesByAppKey(currentAppKey);
     if (currentGameRoles.length === 0) {
-      // 如果角色列表还未加载，返回 user.gameServer（可能是旧的格式）
-      return user?.gameServer || '';
+      // 如果角色列表还未加载，使用用户信息兜底拼接展示
+      return formatServerDisplay(user?.gameServer, user?.platform);
     }
     
     let role;
@@ -201,7 +225,7 @@ export const Header: React.FC = () => {
     
     // 如果通过 game_user_id 找到了角色，直接使用它的 game_server_channel
     if (role) {
-      return `${role.game_server_channel}-${role.platform}`;
+      return formatServerDisplay(role.game_server_channel, role.platform);
     }
     
     // 如果没有 game_user_id 或找不到匹配的角色，尝试通过 user.gameServer 查找
@@ -213,15 +237,37 @@ export const Header: React.FC = () => {
       // 如果没找到，可能 user.gameServer 是旧的服务器ID格式，尝试通过其他方式查找
       // 由于我们无法直接通过服务器ID查找，如果上面都没找到，返回原始值
       if (role) {
-        return `${role.game_server_channel}-${role.platform}`;
+        return formatServerDisplay(role.game_server_channel, role.platform);
       }
     }
     
-    // 如果都没找到，返回 user.gameServer（可能是旧的格式或等待角色列表加载）
-    return user?.gameServer || '';
+    // 如果都没找到，使用用户信息兜底拼接展示
+    return formatServerDisplay(user?.gameServer, user?.platform);
   }, [user?.gameServer, user?.characterName, currentAppKey, roles]);
 
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const { breakpoint, isTouchLandscape } = useResponsive();
+  const productsUserPanelVisible = useProductsUserPanelVisibility();
+
+  const showMobileHomeNav = shouldShowMobileHomeNav(locale);
+  const logoSubtitleText = t('header.title');
+  const gameListNavText = t('menu.gameList');
+  const ordersNavText = t('menu.myOrders');
+  const logoSubtitleRef = useRef<HTMLSpanElement>(null);
+  const gameListNavTextRef = useRef<HTMLSpanElement>(null);
+  const ordersNavTextRef = useRef<HTMLSpanElement>(null);
+  const mobileNavTextRefs = useMemo(() => [gameListNavTextRef, ordersNavTextRef], []);
+
+  useFitText(logoSubtitleRef, logoSubtitleText, {
+    minFontSize: HEADER_LOGO_SUBTITLE_MIN_FONT_SIZE[breakpoint],
+    step: 0.25,
+    allowWrapAtMin: true,
+    wrapClassName: styles.logoSubtitleWrapped,
+  });
+
+  useFitTextGroup(mobileNavTextRefs, [gameListNavText, ordersNavText], {
+    minFontSize: HEADER_MOBILE_NAV_MIN_FONT_SIZE[breakpoint],
+  });
   
   // 根据 appKey 获取游戏名称（使用本地化）
   const getGameNameByAppKey = (appKey: string | undefined): string => {
@@ -245,14 +291,37 @@ export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [serverSelectModalOpen, setServerSelectModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  
+  const userDropdownTriggerRef = useRef<HTMLButtonElement>(null);
+  const [useMobileDropdownPortal, setUseMobileDropdownPortal] = useState(false);
+  const [portalMenuStyle, setPortalMenuStyle] = useState<React.CSSProperties | null>(null);
+
   // 判断是否在商品页面（订单页 /game/:id/history 等不算商品页）
   const isProductsPage = isGameStoreProductsPath(location.pathname);
+  const isHistoryPage = location.pathname.includes('/history');
   // 判断是否为home页面
   const isHomePage = location.pathname === '/';
+  const isMobileInlineNavPage = isHomePage || isProductsPage || isHistoryPage;
+  const isMobileHomeNoInlineNav = isMobileInlineNavPage && !showMobileHomeNav;
+  const isHomeGuestMobile = isHomePage && !user;
+  const isHomeAuthedMobile = isHomePage && !!user;
+  const isHistoryAuthedMobile = isHistoryPage && !!user;
+  const useInlineNavProductsSizing = showMobileHomeNav && isMobileInlineNavPage;
+  const useProductsMobileUserDropdown =
+    isProductsPage ||
+    (showMobileHomeNav && (isHomeAuthedMobile || isHistoryAuthedMobile));
+  const shouldUseProductsCompactPanelToggle =
+    isProductsPage && (breakpoint === 'mobile' || breakpoint === 'tablet' || isTouchLandscape);
+  const isHomeMobileDark = isHomePage || isHistoryPage;
+  const normalizedPathname = (location.pathname.replace(/\/+$/, '') || '/');
+  const isGameListNavActive = normalizedPathname === '/';
+  const isOrdersNavActive =
+    normalizedPathname === '/history' || /^\/game\/[^/]+\/history$/.test(normalizedPathname);
+  const hasActiveMobileHomeNavItem = isGameListNavActive || isOrdersNavActive;
+  const shouldHideMenuButton = isHomePage || ((isProductsPage || isHistoryPage) && !!user);
 
   const handleLoginClick = () => {
     // TODO: 实现登录逻辑
@@ -265,39 +334,123 @@ export const Header: React.FC = () => {
   const handleExitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (user) {
+      if (logoutLoading) return;
       // 检查是否需要显示提醒
       const dontRemind = localStorage.getItem('logout_dont_remind') === 'true';
       if (dontRemind) {
-        handleLogout();
+        void handleLogout();
       } else {
         setLogoutModalOpen(true);
       }
     }
   };
 
-  const handleLogout = () => {
-    // TODO: 调用接口清除登录
-    // 目前先清除本地状态
-    clear();
-    setUserDropdownOpen(false);
+  const handleLogout = async (): Promise<boolean> => {
+    if (logoutLoading) return false;
+
+    setLogoutLoading(true);
+    try {
+      const result = await logoutUser();
+      if (!result.success) {
+        messageStore.show(result.error || t('logout.failed'));
+        return false;
+      }
+
+      setMobileMenuOpen(false);
+      setUserDropdownOpen(false);
+      navigate('/', { replace: true });
+      return true;
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   const handleUserDropdownToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (shouldUseProductsCompactPanelToggle) {
+      productsUserPanelStore.toggle();
+      setUserDropdownOpen(false);
+      return;
+    }
     setUserDropdownOpen(!userDropdownOpen);
   };
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setUserDropdownOpen(false);
+    if (logoutLoading) return;
     // 检查是否需要显示提醒
     const dontRemind = localStorage.getItem('logout_dont_remind') === 'true';
     if (dontRemind) {
-      handleLogout();
+      void handleLogout();
     } else {
       setLogoutModalOpen(true);
     }
   };
+
+  // 手机端顶栏 overflow:hidden 会裁切菜单；挂到 body 避免被 banner 区域挡住
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const syncPortal = () => setUseMobileDropdownPortal(mq.matches && isMobileInlineNavPage);
+    syncPortal();
+    mq.addEventListener('change', syncPortal);
+    return () => mq.removeEventListener('change', syncPortal);
+  }, [isMobileInlineNavPage]);
+
+  useEffect(() => {
+    if (shouldUseProductsCompactPanelToggle && userDropdownOpen) {
+      setUserDropdownOpen(false);
+    }
+  }, [shouldUseProductsCompactPanelToggle, userDropdownOpen]);
+
+  useLayoutEffect(() => {
+    if (!userDropdownOpen || !useMobileDropdownPortal || !userDropdownTriggerRef.current) {
+      setPortalMenuStyle(null);
+      return;
+    }
+    let frameId: number | null = null;
+
+    const updateMenuPosition = () => {
+      const trigger = userDropdownTriggerRef.current!;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      setPortalMenuStyle({
+        position: 'fixed',
+        top: rect.bottom,
+        left: rect.left,
+        width,
+        minWidth: width,
+        maxWidth: width,
+        boxSizing: 'border-box',
+        zIndex: 2000,
+      });
+    };
+
+    const scheduleMenuPositionUpdate = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        updateMenuPosition();
+      });
+    };
+
+    updateMenuPosition();
+    const resizeObserver = new ResizeObserver(scheduleMenuPositionUpdate);
+    resizeObserver.observe(userDropdownTriggerRef.current);
+    window.addEventListener('resize', scheduleMenuPositionUpdate);
+    window.addEventListener('scroll', scheduleMenuPositionUpdate, true);
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', scheduleMenuPositionUpdate);
+      window.removeEventListener('scroll', scheduleMenuPositionUpdate, true);
+    };
+  }, [userDropdownOpen, useMobileDropdownPortal]);
 
   // 点击外部关闭下拉菜单
   useEffect(() => {
@@ -312,28 +465,134 @@ export const Header: React.FC = () => {
     }
   }, [userDropdownOpen]);
 
+  const renderUserDropdownMenu = () => (
+    <>
+      <div className={styles.userDropdownDivider} />
+      <button type="button" className={styles.userDropdownItem} onClick={handleLogoutClick}>
+        {t('header.logout')}
+      </button>
+    </>
+  );
+
+  const renderUserDropdownMenuLayer = () => {
+    if (!userDropdownOpen) return null;
+
+    const isPortaledMenu = useMobileDropdownPortal;
+    const menuClassName = [
+      styles.userDropdownMenu,
+      isPortaledMenu ? styles.userDropdownMenuPortal : styles.userDropdownMenuDocked,
+    ].join(' ');
+
+    const menuNode = (
+      <div
+        className={menuClassName}
+        style={
+          isPortaledMenu
+            ? {
+                ...portalMenuStyle,
+                visibility: portalMenuStyle ? 'visible' : 'hidden',
+              }
+            : undefined
+        }
+        onClick={(e) => e.stopPropagation()}
+      >
+        {renderUserDropdownMenu()}
+      </div>
+    );
+
+    if (isPortaledMenu) {
+      return createPortal(menuNode, document.body);
+    }
+
+    return menuNode;
+  };
+
 
   return (
     <>
-      <header className={styles.header}>
-        <div className={styles.container}>
+      <header
+        className={`${styles.header} ${
+          isHomeMobileDark ? styles.headerHomeMobileDark : ''
+        } ${isMobileInlineNavPage && !isHomeMobileDark ? styles.headerHomeMobile : ''} ${
+          isHomeGuestMobile ? styles.headerHomeGuestMobile : ''
+        } ${isMobileInlineNavPage && showMobileHomeNav ? styles.headerWithMobileHomeNav : ''} ${
+          isMobileHomeNoInlineNav ? styles.headerHomeMobileNoInlineNav : ''
+        }`}
+      >
+        <div
+          className={`${styles.container} ${isMobileInlineNavPage ? styles.containerHomeMobile : ''} ${
+            isHomeMobileDark && !useInlineNavProductsSizing ? styles.containerHomeMobileDark : ''
+          } ${isMobileHomeNoInlineNav ? styles.containerHomeMobileNoInlineNav : ''}`}
+        >
           <div className={styles.logoSection}>
             <Link to="/" className={styles.logo}>
-              <img src={logoImg} alt="Touka Games" className={styles.logoImg} />
+              <img src={logoIconImg} alt="" className={styles.logoIcon} aria-hidden />
+              <span className={styles.logoTextGroup}>
+                <img src={logoTextImg} alt="TOUKA" className={styles.logoTextImg} />
+                {isMobileInlineNavPage && (
+                  <span className={styles.logoSubtitleWrap}>
+                    <span ref={logoSubtitleRef} className={styles.logoSubtitle}>
+                      {logoSubtitleText}
+                    </span>
+                  </span>
+                )}
+              </span>
             </Link>
-            <h1 className={styles.title}>{t('header.title')}</h1>
           </div>
+
+          {isMobileInlineNavPage && showMobileHomeNav && (
+            <nav
+              className={`${styles.mobileHomeNav} ${
+                hasActiveMobileHomeNavItem ? '' : styles.mobileHomeNavNoActive
+              }`}
+              aria-label={t('menu.gameList')}
+            >
+              <Link
+                to="/"
+                className={`${styles.mobileHomeNavItem} ${
+                  isGameListNavActive ? styles.mobileHomeNavItemActive : ''
+                }`}
+              >
+                <span ref={gameListNavTextRef} className={styles.mobileHomeNavItemText}>
+                  {gameListNavText}
+                </span>
+              </Link>
+              <span className={styles.mobileHomeNavDivider} aria-hidden />
+              <button
+                type="button"
+                className={`${styles.mobileHomeNavItem} ${
+                  isOrdersNavActive ? styles.mobileHomeNavItemActive : ''
+                }`}
+                onClick={() => {
+                  requireLogin(() => {
+                    navigate(resolveOrdersListPath(location.pathname));
+                  });
+                }}
+              >
+                <span ref={ordersNavTextRef} className={styles.mobileHomeNavItemText}>
+                  {ordersNavText}
+                </span>
+              </button>
+            </nav>
+          )}
 
           {/* PC端导航 */}
           <nav className={styles.desktopNav}>
             <Link
               to="/"
-              className={`${styles.desktopNavItem} ${location.pathname === '/' || isGameStoreProductsPath(location.pathname) ? styles.desktopNavItemActive : ''}`}
+              className={`${styles.desktopNavItem} ${styles.desktopNavItemPlatform}`}
+            >
+              {t('header.title')}
+            </Link>
+            <Link
+              to="/"
+              className={`${styles.desktopNavItem} ${styles.desktopNavItemTab} ${location.pathname === '/' || isGameStoreProductsPath(location.pathname) ? styles.desktopNavItemActive : ''}`}
             >
               {t('menu.gameList')}
             </Link>
+            <span className={styles.desktopNavDivider} aria-hidden />
             <button
-              className={`${styles.desktopNavItem} ${location.pathname.includes('/history') ? styles.desktopNavItemActive : ''}`}
+              className={`${styles.desktopNavItem} ${styles.desktopNavItemTab} ${location.pathname.includes('/history') ? styles.desktopNavItemActive : ''}`}
               onClick={() => {
                 requireLogin(() => {
                   navigate(resolveOrdersListPath(location.pathname));
@@ -348,40 +607,46 @@ export const Header: React.FC = () => {
             {/* PC端登录按钮或用户下拉菜单 */}
             {!user ? (
               <button
-                className={styles.loginButton}
+                className={`${styles.loginButton} ${isHomeGuestMobile ? styles.loginButtonMobileHome : ''}`}
                 onClick={handleLoginClick}
               >
                 {t('login.submit')}
               </button>
             ) : (
-              <div className={styles.userDropdown}>
+              <div
+                className={`${styles.userDropdown} ${
+                  useProductsMobileUserDropdown ? styles.userDropdownProductsMobile : ''
+                } ${
+                  (isHomeAuthedMobile || isHistoryAuthedMobile) && !useProductsMobileUserDropdown
+                    ? styles.userDropdownHomeMobile
+                    : ''
+                } ${userDropdownOpen ? styles.userDropdownOpen : ''}`}
+              >
                 <button
+                  ref={userDropdownTriggerRef}
+                  type="button"
                   className={styles.userDropdownTrigger}
                   onClick={handleUserDropdownToggle}
                 >
                   <span className={styles.userEmail}>
                     {user.email || user.gameAccount || user.username}
                   </span>
-                  <ChevronDownIcon 
-                    className={styles.chevronIcon}
-                    color="#585858"
+                  <ChevronDownIcon
+                    className={`${styles.chevronIcon} ${
+                      (shouldUseProductsCompactPanelToggle ? productsUserPanelVisible : userDropdownOpen)
+                        ? styles.chevronIconOpen
+                        : ''
+                    }`}
+                    color="#9c8466"
                   />
                 </button>
-                {userDropdownOpen && (
-                  <div className={styles.userDropdownMenu}>
-                    <div className={styles.userDropdownDivider}></div>
-                    <button
-                      className={styles.userDropdownItem}
-                      onClick={handleLogoutClick}
-                    >
-                      {t('header.logout')}
-                    </button>
-                  </div>
-                )}
+                {renderUserDropdownMenuLayer()}
               </div>
             )}
             <button
-              className={styles.menuButton}
+              className={`${styles.menuButton} ${
+                shouldHideMenuButton ? styles.menuButtonHomeHidden : ''
+              }`}
               onClick={() => {
                 if (mobileMenuOpen) {
                   // 关闭菜单时不需要登录检查
@@ -402,7 +667,13 @@ export const Header: React.FC = () => {
       </header>
 
       {/* 登录状态横条 - 紧跟Header下方 */}
-      <div className={`${styles.loginBar} ${!isProductsPage ? styles.loginBarHiddenOnDesktop : ''}`}>
+      <div
+        className={`${styles.loginBar} ${!isProductsPage ? styles.loginBarHiddenOnDesktop : ''} ${
+          isProductsPage ? styles.loginBarProductsMobileOnly : ''
+        } ${isHomePage || isHistoryPage ? styles.loginBarHomeMobileHidden : ''} ${
+          isProductsPage ? styles.loginBarProductsMobileHidden : ''
+        }`}
+      >
         {user ? (
           <div className={styles.loginContent}>
             <div className={styles.userInfo} onClick={handleLoginClick}>
@@ -677,4 +948,3 @@ export const Header: React.FC = () => {
     </>
   );
 };
-

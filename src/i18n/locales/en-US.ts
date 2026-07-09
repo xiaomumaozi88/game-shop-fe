@@ -25,7 +25,7 @@ export const enUS = {
     "1000002": "Captcha id or code is empty",
     "1000003": "Email invalid",
     "1000004": "Captcha code invalid",
-    "1000005": "Email code already sent, please wait 5 minutes and try again",
+    "1000005": "Email code already sent, please wait 1 minute and try again",
     "1000006": "Email code send limit, please try again tomorrow",
     "1000007": "Email could not be empty",
     "1000008": "Code could not be empty",
@@ -36,23 +36,27 @@ export const enUS = {
     "1000013": "The product has been taken offline",
     "1000014": "Payment method not enabled",
     "1000015": "Your account does not support purchasing products, please contact customer service",
-    "1000016": "Failed to create an order, please try again"
+    "1000016": "Failed to create an order, please try again",
+    "1000017": "Order cannot be cancelled",
+    "1000018": "The single purchase quantity limit has been reached",
+    "1000019": "The verification code has expired. Please request a new one"
   },
   "footer": {
     "language": "Chinese (Simplified)",
     "privacyPolicy": "Privacy Policy",
+    "refundPolicy": "Refund Policy",
     "termsOfService": "Terms of Service",
     "userSupport": "User Support",
     "downloadNow": "Download Now!"
   },
   "header": {
     "characterName": "Character Name",
-    "gameServer": "Game Region",
+    "gameServer": "Game Server",
     "selectGameServer": "Select game region",
     "greeting": "Hello",
     "loginPrompt": "Please click to log in",
     "switchServer": "Switch",
-    "title": "Game Recharge Platform",
+    "title": "Game Top-Up Center",
     "logout": "Log out"
   },
   "games": {
@@ -61,6 +65,7 @@ export const enUS = {
   },
   "history": {
     "backToGameZone": "Back to game zone",
+    "allGames": "All games",
     "empty": "No Orders",
     "filter": {
       "all": "All",
@@ -74,8 +79,8 @@ export const enUS = {
     "pendingAutoCancelSuffix": "automatically",
     "cancelOrder": "Cancel Order",
     "payOrder": "Pay",
-    "cancelOrderConfirmTitle": "Are you sure you want to cancel this order?",
-    "cancelOrderConfirmPrimary": "Confirm cancel",
+    "cancelOrderConfirmTitle": "Confirm order cancellation?",
+    "cancelOrderConfirmPrimary": "Confirm",
     "cancelOrderDismiss": "Not now",
     "cancelOrderSuccess": "Order cancelled",
     "cancelOrderFailed": "Could not cancel the order. Please try again.",
@@ -83,8 +88,10 @@ export const enUS = {
     "createOrderFailed": "Failed to create order",
     "payConfigError": "Payment configuration error, please contact support",
     "payRetryFailed": "Failed to retry payment, please try again",
+    "previousPage": "Previous",
+    "nextPage": "Next",
     "status": {
-      "cancelled": "Canceled",
+      "cancelled": "Closed",
       "completed": "Transaction Completed",
       "paid": "Paid",
       "pending": "Pending Payment",
@@ -92,10 +99,17 @@ export const enUS = {
     }
   },
   "home": {
-    "selectGame": "Select the game you want to recharge",
+    "selectGame": "Select the game you want to top up",
+    "selectGameMobileTitle": "Select a game",
+    "mobileGameCardGo": "Go",
     "selectGameParts": {
       "prefix": "Select the game you want to ",
       "keyword": "recharge",
+      "suffix": ""
+    },
+    "purchaseEntryParts": {
+      "prefix": "Go to ",
+      "keyword": "Purchase",
       "suffix": ""
     },
     "noRoleAccount": "You don't have a character in this game yet. Please create one in the game before purchasing.",
@@ -108,7 +122,7 @@ export const enUS = {
   "login": {
     "agreeTerms": {
       "and": "and",
-      "prefix": "I have read and agree to the",
+      "prefix": "I have read and agree to",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     },
@@ -118,7 +132,7 @@ export const enUS = {
     "captchaPlaceholder": "Verification Code",
     "invalidCaptcha": "Please enter a 4-digit verification code",
     "email": "Email",
-    "emailNotBound": "Search unsuccessful, please enter the email bound in the game~",
+    "emailNotBound": "We couldn't find your account. Please enter the email linked to your game account~",
     "emailPlaceholder": "Please enter your email",
     "keepLogin": "Keep me logged in for 15 days",
     "loading": "Logging in...",
@@ -135,10 +149,11 @@ export const enUS = {
   "logout": {
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "dontRemind": "Don’t remind me next time",
-    "messageLine1": "After cancellation, all devices within the last 30 days",
-    "messageLine2": "The login status will expire.",
-    "title": "Friendly reminder"
+    "dontRemind": "Don't remind me next time",
+    "failed": "Failed to log out. Please try again later.",
+    "messageLine1": "After logging out, the login status on all devices used in the last 30 days",
+    "messageLine2": "will expire.",
+    "title": "Notice"
   },
   "menu": {
     "contactSupport": "Contact Customer Service",
@@ -147,6 +162,7 @@ export const enUS = {
   },
   "paymentSuccess": {
     "account": "Account:",
+    "celebrationTitle": "Purchase Successful",
     "confirm": "Confirm",
     "getPaymentInfoFailed": "Failed to retrieve payment information",
     "loading": "Loading...",
@@ -158,8 +174,8 @@ export const enUS = {
     "purchaseContent": "Purchase Content:",
     "quantity": "Purchase Quantity:",
     "serverAndCharacter": "Region/Character:",
-    "title": "Thank you for your purchase",
-    "total": "All:",
+    "title": "Thank you",
+    "total": "Total:",
     "unionPay": "UnionPay",
     "amountPaid": "Amount paid:",
     "closeModal": "Close"
@@ -168,32 +184,41 @@ export const enUS = {
     "confirm": "Confirm",
     "purchaseDetails": "Purchase Details",
     "quantity": "Quantity:",
-    "total": "All:",
+    "total": "Total:",
     "unitPrice": "Unit Price:"
   },
   "products": {
-    "giftPacks": "Gift Package",
+    "giftPacks": "Gift Packs",
     "diamond": "Diamond",
-    "products": "Item",
+    "products": "Products",
     "vouchers": "Voucher",
+    "toukaCoin": "Touka Coin",
+    "toukaCoinBonusTip": "Shop at TOUKA Store and get an extra 10% bonus!",
+    "superValue": "Great Value",
     "limitShort": "Limit",
-    "remainingShort": "Left",
-    "howToUseVouchers": "How to use vouchers?",
+    "remainingShort": "Time left",
+    "giftPackLimitType": {
+      "lifetime": "Lifetime Deal",
+      "weekly": "Weekly Deal",
+      "monthly": "Monthly Deal"
+    },
+    "howToUseVouchers": "How to use Touka Coin?",
     "voucherGuide": {
-      "title": "How to use vouchers?",
-      "step1": "1.Please check your in-game mailbox for the purchased vouchers.",
-      "step2": "2.You can view the number of your vouchers at the top of the game store tab. When your number of vouchers meets the required amount to purchase a package, vouchers will be prioritized for the purchase.",
+      "title": "How to use Touka Coin?",
+      "step1": "1. Please check your in-game mailbox to claim the Touka Coin you purchased.",
+      "step2": "2. You can check your Touka Coin balance at the top of the in-game store tab. When you have enough Touka Coin to purchase a gift pack, Touka Coin will be used first for the purchase.",
       "backToProducts": "Back to Product List"
-    }
+    },
+    "luxuryVouchers": "Deluxe Vouchers"
   },
   "purchaseConfirm": {
     "card": "Credit/Debit Card",
     "confirm": "Confirm",
-    "dontAskAgain": "Don’t ask again within 30 days",
-    "gameServer": "Game Region",
+    "dontAskAgain": "Don't ask again within 30 days",
+    "gameServer": "Game Server",
     "paymentMethods": "Supported Payment Methods",
     "paypal": "PayPal",
-    "title": "Are you sure you want to purchase through this account?",
+    "title": "Are you sure you want to make this purchase with this account?",
     "unionPay": "UnionPay Card"
   },
   "serverSelect": {
@@ -202,13 +227,16 @@ export const enUS = {
     "confirm": "Confirm",
     "noResults": "No results found",
     "serverPlaceholder": "Please enter the server name to search",
-    "title": "Select Game Region"
+    "title": "Select Game Server"
+  },
+  "orientation": {
+    "bestExperience": "Please switch to portrait mode for the best experience"
   },
   "support": {
     "cancel": "Cancel",
     "copied": "Copied",
     "copy": "One-click copy",
-    "description": "Please provide your details to the official email for feedback",
+    "description": "Please send your detailed information to the official support email.",
     "title": "Customer Support"
   },
   "verification": {
@@ -217,7 +245,7 @@ export const enUS = {
     "incorrectCode": "Verification code is incorrect",
     "invalidCode": "Please enter a 6-digit verification code",
     "noCode": "Did not receive the verification code?",
-    "sentTo": "The verification code has been sent to",
+    "sentTo": "Verification code sent to",
     "submit": "Submit",
     "submitting": "Submitting..."
   }

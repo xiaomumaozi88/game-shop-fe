@@ -1,5 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useScrollLock } from '@/hooks/useScrollLock';
+import loginModalClose from '@/assets/img2/login_modal_close.png';
 import styles from './AlertModal.module.less';
 
 interface AlertModalProps {
@@ -19,6 +21,8 @@ interface AlertModalProps {
   actionsLocked?: boolean;
   /** 交换双按钮视觉层级：dismiss 为主按钮，confirm 为次按钮 */
   swapDualButtonStyles?: boolean;
+  /** 隐藏底部操作区（如无角色弹窗仅通过关闭与刷新操作） */
+  hideActions?: boolean;
 }
 
 export const AlertModal: React.FC<AlertModalProps> = ({
@@ -33,8 +37,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   onPrimary,
   actionsLocked,
   swapDualButtonStyles,
+  hideActions,
 }) => {
   const { t } = useLanguage();
+
+  useScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -65,11 +72,32 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   const dualActions = Boolean(dismissText && onDismiss);
 
   return (
-    <div className={styles.overlay} onClick={handleBackdropClick}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {title && <h2 className={styles.title}>{title}</h2>}
+    <div className={styles.overlay} data-scroll-lock-overlay onClick={handleBackdropClick}>
+      <div
+        className={`${styles.modal}${dualActions ? ` ${styles.modalDualActions}` : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'alert-modal-title' : undefined}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={onClose}
+          disabled={actionsLocked}
+          aria-label="关闭"
+        >
+          <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
+        </button>
+
+        {title && (
+          <h2 id="alert-modal-title" className={styles.title}>
+            {title}
+          </h2>
+        )}
         {message ? <p className={styles.message}>{message}</p> : null}
         {extraBelowMessage ? <div className={styles.extraBelow}>{extraBelowMessage}</div> : null}
+        {!hideActions && (
         <div className={dualActions ? styles.actionsRow : styles.actions}>
           {dualActions ? (
             <>
@@ -101,6 +129,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             </button>
           )}
         </div>
+        )}
       </div>
     </div>
   );

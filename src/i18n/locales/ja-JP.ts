@@ -5,7 +5,7 @@ export const jaJP = {
     "title": "アカウントの作成方法は？"
   },
   "bottomNav": {
-    "home": "ホームページ",
+    "home": "ホーム",
     "myOrders": "マイ注文"
   },
   "common": {
@@ -13,9 +13,38 @@ export const jaJP = {
     "noData": "データなし",
     "server": "サーバー"
   },
+  "auth": {
+    "tokenExpired": "ログインの有効期限が切れました"
+  },
+  "errors": {
+    "900400": "内部パラメータエラー",
+    "900401": "ログイン認証に失敗しました",
+    "900402": "ログインの有効期限が切れました",
+    "1000000": "システムエラーです。後でもう一度お試しください",
+    "1000001": "システムパラメータエラーです。後でもう一度お試しください",
+    "1000002": "画像認証IDまたはコードを入力してください",
+    "1000003": "メールアドレスが無効です",
+    "1000004": "画像認証コードが無効です",
+    "1000005": "認証コードは送信済みです。1分後にもう一度お試しください",
+    "1000006": "認証コードの送信上限に達しました。明日もう一度お試しください",
+    "1000007": "メールアドレスを入力してください",
+    "1000008": "認証コードを入力してください",
+    "1000009": "認証コードが無効です",
+    "1000010": "ログイントークンの取得に失敗しました",
+    "1000011": "商品は無効です。他の商品を選択してください",
+    "1000012": "商品の購入上限を超えています。他の商品を選択してください",
+    "1000013": "商品は販売終了しました",
+    "1000014": "支払い方法が有効ではありません",
+    "1000015": "このアカウントでは商品を購入できません。カスタマーサポートにお問い合わせください",
+    "1000016": "注文の作成に失敗しました。もう一度お試しください",
+    "1000017": "この注文はキャンセルできません",
+    "1000018": "1回の購入数量上限に達しました",
+    "1000019": "認証コードの有効期限が切れました。再取得してください"
+  },
   "footer": {
     "language": "中国語（簡体字）",
     "privacyPolicy": "プライバシーポリシー",
+    "refundPolicy": "返金ポリシー",
     "termsOfService": "利用規約",
     "userSupport": "ユーザーサポート",
     "downloadNow": "今すぐダウンロード！"
@@ -27,7 +56,7 @@ export const jaJP = {
     "greeting": "こんにちは",
     "loginPrompt": "ログインしてください",
     "switchServer": "切り替え",
-    "title": "ゲームチャージプラットフォーム",
+    "title": "ゲームチャージセンター",
     "logout": "ログアウト"
   },
   "games": {
@@ -36,6 +65,7 @@ export const jaJP = {
   },
   "history": {
     "backToGameZone": "ゲームストアに戻る",
+    "allGames": "すべてのゲーム",
     "empty": "注文なし",
     "filter": {
       "all": "すべて",
@@ -49,8 +79,13 @@ export const jaJP = {
     "pendingAutoCancelSuffix": "後に自動キャンセルされます",
     "cancelOrder": "注文をキャンセル",
     "payOrder": "支払う",
+    "cancelOrderConfirmTitle": "注文をキャンセルしますか？",
+    "cancelOrderConfirmPrimary": "キャンセルを確定",
+    "cancelOrderDismiss": "今はしない",
+    "previousPage": "前のページ",
+    "nextPage": "次のページ",
     "status": {
-      "cancelled": "キャンセル済み",
+      "cancelled": "クローズ済み",
       "completed": "取引完了",
       "paid": "支払い済み",
       "pending": "未払い",
@@ -59,10 +94,17 @@ export const jaJP = {
   },
   "home": {
     "selectGame": "チャージするゲームを選択してください",
+    "selectGameMobileTitle": "チャージゲームを選択",
+    "mobileGameCardGo": "進む",
     "selectGameParts": {
       "prefix": "",
       "keyword": "チャージ",
       "suffix": "するゲームを選択してください"
+    },
+    "purchaseEntryParts": {
+      "prefix": "",
+      "keyword": "購入",
+      "suffix": "へ"
     },
     "noRoleAccount": "このゲームにはまだキャラクターがありません。購入前にゲーム内でキャラクターを作成してください。",
     "noRoleRefreshPrefix": "アカウントは作成済みですか？タップして",
@@ -100,9 +142,9 @@ export const jaJP = {
     "cancel": "取消",
     "confirm": "確認",
     "dontRemind": "次回から表示しない",
-    "messageLine1": "ログアウト後、過去30日間内のすべてのデバイスの",
+    "messageLine1": "ログアウト後、過去30日以内にログインしたすべてのデバイスの",
     "messageLine2": "ログイン状態が無効になります。",
-    "title": "ご注意ください"
+    "title": "ご案内"
   },
   "menu": {
     "contactSupport": "カスタマーサービス",
@@ -111,6 +153,7 @@ export const jaJP = {
   },
   "paymentSuccess": {
     "account": "アカウント：",
+    "celebrationTitle": "購入成功",
     "confirm": "確定",
     "getPaymentInfoFailed": "支払い情報の取得に失敗しました",
     "loading": "読み込み中...",
@@ -121,9 +164,9 @@ export const jaJP = {
     "price": "価格：",
     "purchaseContent": "購入内容：",
     "quantity": "購入数量：",
-    "serverAndCharacter": "サーバー／キャラクター：",
-    "title": "ご購入ありがとうございます",
-    "total": "すべて：",
+    "serverAndCharacter": "サーバー/キャラ：",
+    "title": "ご購入ありがとう",
+    "total": "合計：",
     "unionPay": "UnionPay",
     "amountPaid": "お支払い金額：",
     "closeModal": "閉じる"
@@ -132,7 +175,7 @@ export const jaJP = {
     "confirm": "確定",
     "purchaseDetails": "購入詳細",
     "quantity": "数量：",
-    "total": "すべて：",
+    "total": "合計：",
     "unitPrice": "単価："
   },
   "products": {
@@ -140,15 +183,24 @@ export const jaJP = {
     "diamond": "ダイヤ",
     "products": "商品",
     "vouchers": "バウチャー",
+    "toukaCoin": "Toukaコイン",
+    "toukaCoinBonusTip": "TOUKA Storeで購入すると、追加10%のボーナスがもらえます！",
+    "superValue": "お得",
     "limitShort": "制限",
-    "remainingShort": "残り",
-    "howToUseVouchers": "代金券の使い方",
+    "remainingShort": "残り時間",
+    "giftPackLimitType": {
+      "lifetime": "永久特価",
+      "weekly": "週間特価",
+      "monthly": "月間特価"
+    },
+    "howToUseVouchers": "Toukaコインの使い方",
     "voucherGuide": {
-      "title": "代金券の使い方",
-      "step1": "1.ゲーム内のメールボックスで購入した代金券を確認してください。",
-      "step2": "2.ゲームショップのタブの上部で代金券の枚数を確認できます。代金券の枚数が購入したいパッケージに必要な枚数に達すると、代金券が優先的に使用されます。",
+      "title": "Toukaコインの使い方",
+      "step1": "1. ゲーム内メールで購入したToukaコインをお受け取りください。",
+      "step2": "2. ゲーム内ショップタブの上部で、所持しているToukaコイン残高を確認できます。ギフトパックの購入に必要な数量に達すると、Toukaコインが優先的に使用されます。",
       "backToProducts": "商品リストに戻る"
-    }
+    },
+    "luxuryVouchers": "高級バウチャー"
   },
   "purchaseConfirm": {
     "card": "クレジットカード／デビットカード",
@@ -157,7 +209,7 @@ export const jaJP = {
     "gameServer": "ゲームサーバー",
     "paymentMethods": "対応支払い方法",
     "paypal": "PayPal",
-    "title": "このアカウントでの購入を確定しますか",
+    "title": "このアカウントで購入してもよろしいですか？",
     "unionPay": "銀聯カード"
   },
   "serverSelect": {
@@ -166,14 +218,16 @@ export const jaJP = {
     "confirm": "確定",
     "noResults": "結果がありません",
     "serverPlaceholder": "サーバー名を入力して検索してください",
-    "title": "ゲーム地域を選択",
     "title": "ゲームサーバーを選択"
+  },
+  "orientation": {
+    "bestExperience": "最適な体験のため、縦向きでご利用ください"
   },
   "support": {
     "cancel": "キャンセル",
     "copied": "コピー済み",
     "copy": "ワンクリックでコピー",
-    "description": "公式メールで詳細をフィードバックしてください",
+    "description": "詳細情報を公式サポートメールまでお送りください。",
     "title": "カスタマーサポート"
   },
   "verification": {

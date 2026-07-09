@@ -1,5 +1,5 @@
 import React from 'react';
-import csIconImg from '@/assets/imgs/touka_home_ic_cs.png';
+import csIconImg from '@/assets/img2/touka_home_ic_cs.png';
 
 export const MessageIcon: React.FC<{ size?: number }> = ({ size = 20 }) => {
   return (

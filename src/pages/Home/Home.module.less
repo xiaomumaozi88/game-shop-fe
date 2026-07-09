@@ -2,248 +2,779 @@
 @import '@/styles/mixins.less';
 
 .home {
-  background: @background-color; // 浅灰色背景
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
+  background-color: #efefef;
+
+  .bannerSection {
+    position: relative;
+    z-index: 1;
+  }
+
   .mobile({
-    min-height: 100vh;
+    flex: 1 1 auto;
+    align-self: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    background-color: #efefef;
+    box-sizing: border-box;
   });
-  .desktop({
-    // height: 50vh;
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+    justify-content: flex-start;
+  }
+
+  .tablet-up({
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+  });
+
+  // ≤1728 宽 PC：略下移整体，避免轮播区视觉上贴顶
+  .homeCompactPc({
+    padding-top: 0.75rem;
+    padding-bottom: 1rem;
+  });
+
+  .homeCompactPcShort({
+    padding-top: 1.5rem;
+    padding-bottom: 1.25rem;
   });
 }
 
 // 促销横幅部分
 .bannerSection {
-  width: 100%;
-  margin-bottom: @spacing-lg;
-
+  width: 92%;
+  max-width: 100rem;
+  margin: 0 auto;
+  padding: 0;
 
   .mobile({
-    margin-bottom: @spacing-md;
+    width: 100%;
+    padding: 0;
   });
-  .desktop({
-    // border: 1px solid #e76f51;
-    padding-top: 5rem;
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+
+  .homeCompactPc({
+    width: 92%;
+    max-width: 88rem;
+    margin-top: 0.5rem;
+  });
+
+  .homeCompactPcShort({
+    width: 92%;
+    max-width: 70rem;
+    margin-top: 0.75rem;
+  });
+
+  .homeWidePc({
+    width: 94%;
+    max-width: 115rem;
   });
 }
 
-.banner {
-  width: 100%;
-  height: 12.5rem; // 200px
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  position: relative;
-  overflow: hidden;
-  touch-action: pan-y; // 允许垂直滚动，但优化水平滑动
-
-  .desktop({
-    height: auto;
-    aspect-ratio: 2400 / 300; // 8:1 宽高比
-    background: transparent;
-  });
+.bannerCarousel {
+  display: flex;
+  align-items: center;
+  gap: @spacing-md;
 
   .mobile({
-    height: 11.25rem; // 180px
-    touch-action: pan-x pan-y; // 移动端允许水平和垂直滑动
+    display: block;
+    gap: 0;
+  });
+
+  .homeWidePc({
+    gap: @spacing-xl;
+  });
+}
+
+.bannerCarouselSingle {
+  gap: 0;
+}
+
+.bannerArrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+
+  .mobile({
+    display: none;
+  });
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .desktop({
+    width: 4.5rem;
+    height: 4.5rem;
+  });
+
+  .homeCompactPc({
+    width: 4.5rem;
+    height: 4.5rem;
+  });
+
+  .homeWidePc({
+    width: 5rem;
+    height: 5rem;
+  });
+}
+
+.bannerArrowIcon {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+.bannerArrowNext .bannerArrowIcon {
+  transform: scaleX(-1);
+}
+
+.banner {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: visible;
+  touch-action: pan-y;
+
+  .mobile({
+    touch-action: pan-x pan-y;
+  });
+}
+
+.bannerViewport {
+  width: 100%;
+  aspect-ratio: 1474 / 700;
+  overflow: hidden;
+  isolation: isolate;
+
+  .mobile({
+    aspect-ratio: 16 / 8;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    aspect-ratio: 1474 / 700;
+  }
+
+  .homeCompactPc({
+    width: 100%;
+    max-height: clamp(22rem, 50vh, 34rem);
+    margin-left: auto;
+    margin-right: auto;
+  });
+
+  .homeCompactPcShort({
+    max-height: clamp(21rem, 55vh, 32rem);
+  });
+
+  // 宽屏不设 max-height，随 bannerSection 宽度按设计比例放大
+  .homeWidePc({
+    max-height: none;
   });
 }
 
 .bannerContent {
   display: flex;
-  width: 100%;
   height: 100%;
-  transition: transform 0.3s ease;
   will-change: transform;
-
-  .desktop({
-    height: auto;
-  });
+  backface-visibility: hidden;
 }
 
 .bannerImage {
-  flex-shrink: 0;
-  width: 100%;
+  flex: 0 0 var(--banner-slide-width, 100%);
+  width: var(--banner-slide-width, 100%);
   height: 100%;
+  min-width: var(--banner-slide-width, 100%);
   object-fit: cover;
   display: block;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+// 与 home-entry-purchase-title-bg.png 设计比例一致（404×120）
+@banner-tips-aspect-w: 404;
+@banner-tips-aspect-h: 120;
+@banner-tips-bg: '../../assets/img2/home-entry-purchase-title-bg.png';
+@banner-tips-bg-left: '../../assets/img2/home-entry-purchase-title-bg-left.png';
+@banner-tips-bg-middle: '../../assets/img2/home-entry-purchase-title-bg-middle.png';
+@banner-tips-bg-right: '../../assets/img2/home-entry-purchase-title-bg-right.png';
+@banner-tips-img-width: 404;
+@banner-tips-img-height: 120;
+// 左侧 32%、右侧 20% 为固定装饰区，中间区域只做横向拉伸，避免长文案压到两侧图案。
+@banner-tips-slice-left: 129;
+@banner-tips-slice-right: 81;
+@banner-tips-seam-overlap: 3px;
+
+.bannerTipsBorderImage(
+  @height,
+  @min-width,
+  @left-cap-width,
+  @right-cap-width,
+  @padding-y: 0.5rem,
+  @padding-x: 0.75rem
+) {
+  --banner-tips-left-cap: @left-cap-width;
+  --banner-tips-right-cap: @right-cap-width;
+
+  width: auto;
+  min-width: @min-width;
+  height: @height;
+  padding: @padding-y calc(var(--banner-tips-right-cap) + @padding-x) @padding-y
+    calc(var(--banner-tips-left-cap) + @padding-x);
+  border: 0;
+  background-image: url(@banner-tips-bg-middle);
+  background-repeat: no-repeat;
+  background-position: calc(var(--banner-tips-left-cap) - @banner-tips-seam-overlap) 0;
+  background-size: calc(
+      100% - var(--banner-tips-left-cap) - var(--banner-tips-right-cap) +
+        @banner-tips-seam-overlap + @banner-tips-seam-overlap
+    )
+    100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  &::before {
+    left: 0;
+    width: calc(var(--banner-tips-left-cap) + @banner-tips-seam-overlap);
+    background-image: url(@banner-tips-bg-left);
+    background-position: left center;
+  }
+
+  &::after {
+    right: 0;
+    width: calc(var(--banner-tips-right-cap) + @banner-tips-seam-overlap);
+    background-image: url(@banner-tips-bg-right);
+    background-position: right center;
+  }
+}
+
+.bannerTips {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  pointer-events: none;
+
+  .mobile({
+    display: none;
+  });
+
+  .tablet({
+    left: 50%;
+    bottom: 3rem;
+    @tips-width: clamp(15rem, 38vw, 19rem);
+    @tips-height: clamp(4.456rem, 11.287vw, 5.644rem);
+    @tips-left-cap-width: clamp(4.8rem, 12.16vw, 6.08rem);
+    @tips-right-cap-width: clamp(3rem, 7.6vw, 3.8rem);
+    .bannerTipsBorderImage(@tips-height, @tips-width, @tips-left-cap-width, @tips-right-cap-width, 1.5rem, 0.75rem);
+    transform: translateX(-50%);
+  });
 
   .desktop({
-    object-fit: contain; // PC端显示完整图片
-    height: auto;
+    left: 50%;
+    bottom: 4rem;
+    @tips-height: (20rem * @banner-tips-aspect-h / @banner-tips-aspect-w);
+    @tips-left-cap-width: (20rem * @banner-tips-slice-left / @banner-tips-img-width);
+    @tips-right-cap-width: (20rem * @banner-tips-slice-right / @banner-tips-img-width);
+    .bannerTipsBorderImage(@tips-height, 20rem, @tips-left-cap-width, @tips-right-cap-width);
+    transform: translateX(-50%);
+  });
+
+  .homeCompactPc({
+    left: 50%;
+    bottom: 4.25rem;
+    @tips-height: (19.5rem * @banner-tips-aspect-h / @banner-tips-aspect-w);
+    @tips-left-cap-width: (19.5rem * @banner-tips-slice-left / @banner-tips-img-width);
+    @tips-right-cap-width: (19.5rem * @banner-tips-slice-right / @banner-tips-img-width);
+    .bannerTipsBorderImage(@tips-height, 19.5rem, @tips-left-cap-width, @tips-right-cap-width);
+    transform: translateX(-50%);
+  });
+
+  .homeCompactPcShort({
+    left: 50%;
+    bottom: 4.75rem;
+    @tips-height: (19rem * @banner-tips-aspect-h / @banner-tips-aspect-w);
+    @tips-left-cap-width: (19rem * @banner-tips-slice-left / @banner-tips-img-width);
+    @tips-right-cap-width: (19rem * @banner-tips-slice-right / @banner-tips-img-width);
+    .bannerTipsBorderImage(@tips-height, 19rem, @tips-left-cap-width, @tips-right-cap-width, 1.5rem, 0.75rem);
+    transform: translateX(-50%);
+  });
+
+  .homeWidePc({
+    left: 50%;
+    bottom: 11.5rem;
+    @tips-height: (22rem * @banner-tips-aspect-h / @banner-tips-aspect-w);
+    @tips-left-cap-width: (22rem * @banner-tips-slice-left / @banner-tips-img-width);
+    @tips-right-cap-width: (22rem * @banner-tips-slice-right / @banner-tips-img-width);
+    .bannerTipsBorderImage(@tips-height, 22rem, @tips-left-cap-width, @tips-right-cap-width, 1.75rem, 0.75rem);
+    transform: translateX(-50%);
+  });
+}
+
+.bannerTipsText {
+  position: relative;
+  z-index: 1;
+  font-weight: bold;
+  color: @white;
+  white-space: nowrap;
+  line-height: 1.2;
+
+  .tablet({
+    font-size: @font-size-xxl;
+  });
+
+  .desktop({
+    font-size: @font-size-xxl;
+  });
+
+  .homeCompactPc({
+    font-size: 1.8rem;
+  });
+
+  .homeWidePc({
+    font-size: @font-size-xxxl;
+  });
+}
+
+.bannerTipsKeyword {
+  color: #4ffff9;
+}
+
+.gameThumbList {
+  display: flex;
+  justify-content: left;
+  gap: @spacing-md;
+  padding: @spacing-xs 0;
+
+  .desktop({
+    gap: @spacing-xl;
+    padding-left: 9rem;
+  });
+
+  .homeCompactPc({
+    gap: @spacing-xl;
+    padding-left: 8.5rem;
+  });
+
+  .homeCompactPcShort({
+    padding-left: 8rem;
+  });
+
+  .homeWidePc({
+    gap: @spacing-xl;
+    padding-left: 10rem;
+  });
+
+  .tablet({
+    padding-left: 5rem;
+  });
+  .mobile({
+    display: none;
   });
 }
 
 .bannerDots {
-  .flex-center();
-  gap: @spacing-sm;
-  padding: @spacing-sm 0;
-  background: @background-color; // 浅灰色背景，与主内容区域一致
+  display: none;
+
+  .mobile({
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.375rem;
+    padding: @spacing-sm 0 @spacing-md;
+  });
 }
 
-.dot {
-  width: 0.75rem; // 12px
-  height: 0.75rem; // 12px
+.bannerDot {
+  .button-reset();
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
-  border: none;
-  background: #d0d0d0; // 灰色
+  background: #c8c8c8;
   cursor: pointer;
-  padding: 0;
-  transition: background-color 0.3s ease;
-  flex-shrink: 0;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 
-  &:hover {
-    background: #a0a0a0;
-  }
-
-  &.dotActive {
-    background: @primary-color; // 蓝色（激活状态）
-    // 保持圆形，不改变大小和形状
+  &:active {
+    transform: scale(0.92);
   }
 }
 
-// 游戏选择部分
-.gameSection {
-  padding: 0 @spacing-md @spacing-xl;
+.bannerDotActive {
+  background: #3d8cff;
+}
+
+.mobileGameSection {
+  display: none;
 
   .mobile({
-    padding: 0 @spacing-sm @spacing-lg;
+    display: block;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: @spacing-md @spacing-md @spacing-xl;
+    box-sizing: border-box;
   });
-  .tablet({
-    min-height: 70vh;
-  });
-  .desktop({
-    padding: 0 5%;
-  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    flex: 0 0 auto;
+    padding-top: @spacing-sm;
+  }
 }
 
-.sectionTitle {
-  font-size: @font-size-lg;
-  font-weight: bold;
-  color: @text-color;
-  margin: 0 0 @spacing-md 0;
-  text-align: center;
+.mobileGameSectionTitle {
   position: relative;
-  display: inline-block;
-  width: 100%;
-
-  .rechargeKeyword {
-    .desktop({
-      color: #6e69c9;
-    });
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -@spacing-xs;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 3.75rem; // 60px
-    height: 0.1875rem; // 3px
-    background: #90abc5;
-    border-radius: 0.125rem; // 2px
-  }
-
-  .mobile({
-    font-size: @font-size-md;
-    margin-bottom: @spacing-sm;
-
-    &::after {
-      width: 3.125rem; // 50px
-      height: 0.125rem; // 2px
-      bottom: -0.25rem; // -4px
-    }
-  });
-  .desktop({
-    text-align: left;
-    font-size: @font-size-xxl;
-    &::after {
-      display: none;
-    }
-  });
+  z-index: 1;
+  margin: 0;
+  text-align: center;
+  font-size: @font-size-lg;
+  font-weight: 700;
+  color: @text-color;
+  line-height: 1.3;
 }
 
-.gameList {
+.mobileGameSectionAccent {
+  position: relative;
+  z-index: 1;
+  width: 2.75rem;
+  height: 0.3125rem;
+  margin: @spacing-sm auto @spacing-lg;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9b6bff 0%, #4ba8e8 100%);
+}
+
+.mobileGameList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: @spacing-md;
-
-  .mobile({
-    gap: @spacing-md;
-  });
-  .desktop({
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: @spacing-xxl;
-  });
 }
 
-.gameCard {
-  width: 100%;
-  border-radius: @border-radius-lg;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+@mobile-game-list-banner-width: 935;
+@mobile-game-list-banner-height: 377;
+
+.mobileGameCard {
   position: relative;
-  overflow: hidden;
-  animation: fadeInUp 0.5s ease both;
-
-  &:active {
-    transform: translateY(0);
-  }
-  
-  .desktop({
-    width: 33.33%;
-    
-    &:hover {
-      // hover时，变大， 效果平滑
-      transform: translateY(-2px);
-      scale: 1.05;
-      transition: transform 0.3s ease, scale 0.3s ease;
-    }
-  });
-}
-
-.gameCardImage {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
-  border-radius: @border-radius-lg;
-  object-fit: cover;
+  aspect-ratio: @mobile-game-list-banner-width / @mobile-game-list-banner-height;
+  border: none;
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
-.gameCardPlaceholder {
+.mobileGameCardArt {
+  display: block;
   width: 100%;
-  min-height: 7.5rem; // 120px
-  background: linear-gradient(135deg, #f4a261 0%, #e76f51 100%);
-  border-radius: @border-radius-lg;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: @spacing-md;
-  color: @white;
-  font-size: @font-size-lg;
-  font-weight: bold;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}
 
-  .mobile({
-    min-height: 6.25rem; // 100px
-    padding: @spacing-sm;
-    font-size: @font-size-md;
+.mobileGameCardGo {
+  position: absolute;
+  left: 5.25%;
+  bottom: 6.5%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.21875rem;
+  pointer-events: none;
+}
+
+.mobileGameCardGoText {
+  display: inline-grid;
+  grid-template: 'text';
+  color: transparent;
+  font-size: clamp(0.875rem, 4.45vw, 1.1875rem);
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 0.08em 0.12em;
+  margin: -0.08em -0.12em;
+  align-items: center;
+  justify-items: center;
+  transform: translateY(-0.035em);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  -webkit-text-fill-color: transparent;
+
+  &::before,
+  &::after {
+    content: attr(data-text);
+    grid-area: text;
+  }
+
+  &::before {
+    color: #111;
+    -webkit-text-fill-color: #111;
+    -webkit-text-stroke: 0.14em #111;
+    paint-order: stroke fill;
+    text-shadow: 0 0 0.045em rgba(17, 17, 17, 0.65);
+  }
+
+  &::after {
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+    -webkit-text-stroke: 0;
+  }
+}
+
+.mobileGameCardGoIcon {
+  width: clamp(0.6875rem, 3.15vw, 0.875rem);
+  height: auto;
+  flex-shrink: 0;
+  display: block;
+}
+
+@game-thumb-highlight: #fb7901;
+
+.gameThumb {
+  flex-shrink: 0;
+  padding: 0.875rem 0 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .homeCompactPc({
+    padding-top: 0.75rem;
   });
 }
 
-// 游戏列表动画阶梯延迟
-.gameList > .gameCard:nth-child(1) { animation-delay: 0s; }
-.gameList > .gameCard:nth-child(2) { animation-delay: 0.05s; }
-.gameList > .gameCard:nth-child(3) { animation-delay: 0.1s; }
-.gameList > .gameCard:nth-child(4) { animation-delay: 0.15s; }
-.gameList > .gameCard:nth-child(5) { animation-delay: 0.2s; }
-.gameList > .gameCard:nth-child(6) { animation-delay: 0.25s; }
+.gameThumbFrame {
+  display: block;
+  line-height: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+.gameThumbActive {
+  .gameThumbFrame {
+    position: relative;
+    box-sizing: border-box;
+    padding: 0.25rem;
+    border: 0.4375rem solid @game-thumb-highlight;
+    border-radius: 1.5rem;
+    background: @white;
+    overflow: visible;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -0.1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.875rem solid transparent;
+      border-right: 0.875rem solid transparent;
+      border-bottom: 1.0625rem solid @game-thumb-highlight;
+    }
+
+    .desktop({
+      padding: 0.3125rem;
+      border-width: 0.5rem;
+      border-radius: 1.7rem;
+
+      &::before {
+        top: -1.5rem;
+        border-left-width: 1rem;
+        border-right-width: 1rem;
+        border-bottom-width: 1.3rem;
+      }
+    });
+
+    .homeCompactPc({
+      padding: 0.3125rem;
+      border-width: 0.5rem;
+      border-radius: 1.7rem;
+
+      &::before {
+        top: -1.5rem;
+        border-left-width: 1rem;
+        border-right-width: 1rem;
+        border-bottom-width: 1.3rem;
+      }
+    });
+
+    .homeWidePc({
+      padding: 0.375rem;
+      border-width: 0.5625rem;
+      border-radius: 1.85rem;
+
+      &::before {
+        top: -1.625rem;
+        border-left-width: 1.125rem;
+        border-right-width: 1.125rem;
+        border-bottom-width: 1.4rem;
+      }
+    });
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+
+.gameThumbIcon {
+  width: 4.25rem;
+  height: 4.25rem;
+  object-fit: cover;
+  border-radius: 0.875rem;
+  display: block;
+
+  .desktop({
+    width: 5.25rem;
+    height: 5.25rem;
+    border-radius: 1.0625rem;
+  });
+
+  .homeCompactPc({
+    width: 5.25rem;
+    height: 5.25rem;
+    border-radius: 1.0625rem;
+  });
+
+  .homeCompactPcShort({
+    width: 5rem;
+    height: 5rem;
+    border-radius: 1rem;
+  });
+
+  .homeWidePc({
+    width: 5.75rem;
+    height: 5.75rem;
+    border-radius: 1.125rem;
+  });
+}
+
+// 手机横屏时 CSS 宽度会落入 tablet/desktop 断点，放在末尾确保首页按可滚动移动布局展示。
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  .home {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: auto;
+    justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .bannerSection {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .bannerCarousel {
+    display: block;
+    gap: 0;
+  }
+
+  .bannerArrow,
+  .bannerTips,
+  .gameThumbList {
+    display: none;
+  }
+
+  .bannerViewport {
+    aspect-ratio: 16 / 8;
+    max-height: none;
+  }
+
+  .bannerDots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.375rem;
+    padding: @spacing-sm 0 @spacing-md;
+  }
+
+  .mobileGameSection {
+    display: block;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: @spacing-sm @spacing-md @spacing-xl;
+    box-sizing: border-box;
   }
 }

@@ -1,4 +1,4 @@
-import { Locale, translations, defaultLocale } from '@/i18n';
+import { Locale, defaultLocale, selectableLocales } from '@/i18n';
 
 // 直接定义storage，避免循环依赖
 const storage = {
@@ -14,7 +14,7 @@ const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Storage set error:', error);
+      // console.error('Storage set error:', error);
     }
   },
 };
@@ -27,13 +27,12 @@ class LanguageStore {
 
   private loadLanguage(): Locale {
     const saved = storage.get<Locale>(LANGUAGE_STORAGE_KEY, null);
-    const availableLocales = Object.keys(translations) as Locale[];
-    if (saved && availableLocales.includes(saved)) {
+    if (saved && selectableLocales.includes(saved)) {
       return saved;
     }
     // 检测浏览器语言
     const browserLang = (navigator.language || (navigator as any).userLanguage || '').toLowerCase();
-    const match = availableLocales.find((loc) => browserLang.startsWith(loc.split('-')[0].toLowerCase()));
+    const match = selectableLocales.find((loc) => browserLang.startsWith(loc.split('-')[0].toLowerCase()));
     return match || defaultLocale;
   }
 
@@ -60,4 +59,3 @@ class LanguageStore {
 }
 
 export const languageStore = new LanguageStore();
-

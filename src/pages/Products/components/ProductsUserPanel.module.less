@@ -1,0 +1,485 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+@import '../productsPageLayoutVars.less';
+
+@panel-bg-width: 392;
+@panel-bg-height: 384;
+@panel-card-width: 16.5rem;
+@panel-card-width-mobile: 10.5rem;
+@panel-card-width-tablet: 14rem;
+@panel-card-height: (@panel-card-width * @panel-bg-height / @panel-bg-width);
+@panel-card-height-mobile: (@panel-card-width-mobile * @panel-bg-height / @panel-bg-width);
+@panel-card-height-tablet: (@panel-card-width-tablet * @panel-bg-height / @panel-bg-width);
+@panel-card-wrap-extra-height: 1rem;
+@panel-card-wrap-extra-height-mobile: 0.875rem;
+@panel-card-wrap-extra-height-tablet: 1rem;
+@panel-brown: #5e5447;
+@panel-blue: #4a8fd4;
+@panel-role-name: #7d83dd;
+@products-content-max-width: 48rem;
+@products-panel-width: 16.5rem;
+@products-layout-max-width: (@products-content-max-width + @products-panel-width);
+
+.panel {
+  display: none;
+  position: absolute;
+  z-index: 5;
+  width: @panel-card-width;
+  pointer-events: auto;
+  transform-origin: top right;
+
+  .desktop({
+    display: block;
+    top: auto;
+    bottom: -20.5rem;
+    right: @products-panel-right-desktop;
+    left: auto;
+    margin-right: 0;
+    z-index: 1;
+    animation: productsPanelFadeInUp 0.5s ease both;
+  });
+
+  .mobile({
+    display: block;
+    position: fixed;
+    top: @products-panel-top-mobile;
+    right: @products-panel-right-mobile;
+    bottom: auto;
+    left: auto;
+    width: @panel-card-width-mobile;
+    margin-right: 0;
+    z-index: @z-index-dropdown + 1;
+    scale: @products-panel-mobile-scale;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+      opacity 0.24s ease,
+      transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+  });
+
+  @media (max-width: 429px) {
+    scale: 0.8;
+  }
+
+  .tablet({
+    display: block;
+    position: fixed;
+    top: @products-panel-top-tablet;
+    right: @products-panel-right-tablet;
+    bottom: auto;
+    left: auto;
+    width: @panel-card-width-tablet;
+    margin-right: 0;
+    z-index: @z-index-dropdown + 1;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+      opacity 0.24s ease,
+      transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    display: block;
+    position: absolute;
+    top: @products-panel-top-tablet;
+    right: @products-panel-right-tablet;
+    bottom: auto;
+    left: auto;
+    width: @panel-card-width-tablet;
+    margin-right: 0;
+    z-index: 4;
+    transform-origin: top right;
+    scale: 1;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    animation: none;
+    transition:
+      opacity 0.24s ease,
+      transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+  }
+}
+
+.panelVisible {
+  .mobile({
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  });
+
+  .tablet({
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+}
+
+.panelHidden {
+  .mobile({
+    opacity: 0;
+    transform: translate(0.625rem, -0.625rem) scale(0.72);
+    pointer-events: none;
+  });
+
+  .tablet({
+    opacity: 0;
+    transform: translate(0.625rem, -0.625rem) scale(0.72);
+    pointer-events: none;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    opacity: 0;
+    transform: translate(0.625rem, -0.625rem) scale(0.72);
+    pointer-events: none;
+  }
+}
+
+.panelCard {
+  position: relative;
+  width: 100%;
+  min-height: (@panel-card-height + @panel-card-wrap-extra-height);
+
+  .mobile({
+    min-height: (@panel-card-height-mobile + @panel-card-wrap-extra-height-mobile);
+  });
+
+  .tablet({
+    min-height: (@panel-card-height-tablet + @panel-card-wrap-extra-height-tablet);
+  });
+}
+
+.panelCardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  user-select: none;
+  pointer-events: none;
+}
+
+.panelCardInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.75rem 1.25rem 1.125rem;
+  box-sizing: border-box;
+  text-align: center;
+  justify-content: center;
+  min-height: inherit;
+
+  .mobile({
+    padding: 1.875rem 0.725rem 0.825rem;
+  });
+
+  .tablet({
+    padding: 1rem 0.875rem 0.75rem;
+  });
+}
+
+.avatarWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+
+  .mobile({
+    margin-bottom: 0.25rem;
+    padding-top: 0.5rem;
+  });
+
+  .tablet({
+    margin-bottom: 0.375rem;
+    padding-top: 0.375rem;
+  });
+}
+
+.gameIcon {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 0.75rem;
+  object-fit: contain;
+  display: block;
+
+  .mobile({
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+  });
+
+  .tablet({
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 0.625rem;
+  });
+}
+
+.gameName {
+  margin: 0 0 0.375rem;
+  font-family: @font-family-display;
+  font-size: @font-size-xl;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+
+  .mobile({
+    font-size: @font-size-sm;
+    margin-bottom: 0.125rem;
+    line-height: 1.25;
+    letter-spacing: 0.06em;
+  });
+
+  .tablet({
+    font-size: @font-size-md;
+    margin-bottom: 0.125rem;
+    line-height: 1.25;
+    letter-spacing: 0.07em;
+  });
+}
+
+.greetingRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+
+  .mobile({
+    margin-bottom: 0.25rem;
+    padding: 0 0.375rem;
+  });
+
+  .tablet({
+    margin-bottom: 0.375rem;
+    padding: 0 0.5rem;
+  });
+}
+
+.greetingGroup {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.greetingText {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: @font-family-sans;
+  font-size: @font-size-xs;
+  color: @panel-brown;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+
+  .mobile({
+    font-size: 0.4625rem;
+  });
+
+  .tablet({
+    font-size: 0.625rem;
+  });
+}
+
+.logoutButton {
+  .button-reset();
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-left: 0.0625rem;
+  cursor: pointer;
+  opacity: 0.85;
+  line-height: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.logoutIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+
+  .mobile({
+    width: 0.875rem;
+    height: 0.875rem;
+  });
+
+  .tablet({
+    width: 1rem;
+    height: 1rem;
+  });
+}
+
+.roleRow {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+
+  .mobile({
+    padding: 0 0.175rem;
+    gap: 0.25rem;
+  });
+
+  .tablet({
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+  });
+}
+
+.roleRowTextGroup {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 1.5rem);
+  column-gap: 0.5em;
+  row-gap: 0.125rem;
+  overflow: hidden;
+}
+
+.panelTightLocale {
+  .panelCardInner {
+    .mobile({
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    });
+
+    .tablet({
+      padding-left: 0.875rem;
+      padding-right: 0.875rem;
+    });
+  }
+
+  .greetingText {
+    font-size: 0.625rem;
+
+    .mobile({
+      font-size: 0.5rem;
+    });
+
+    .tablet({
+      font-size: 0.4625rem;
+    });
+  }
+}
+
+.roleName {
+  .button-reset();
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.productsUserPanelRoleRowText() {
+  font-family: @font-family-sans;
+  font-size: @font-size-sm;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  .mobile({
+    font-size: 0.5625rem;
+  });
+
+  .tablet({
+    font-size: 0.625rem;
+  });
+}
+
+.roleNameText {
+  display: block;
+  max-width: 100%;
+  .productsUserPanelRoleRowText();
+  font-weight: 700;
+  color: @panel-role-name;
+}
+
+.serverTextWrap {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.serverText {
+  display: block;
+  max-width: 100%;
+  .productsUserPanelRoleRowText();
+  font-weight: 500;
+  color: @panel-brown;
+}
+
+.switchButton {
+  .button-reset();
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem;
+  cursor: pointer;
+  color: @panel-brown;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .tablet({
+    padding: 0.0625rem;
+
+    svg {
+      width: 0.75rem;
+      height: 0.75rem;
+    }
+  });
+}
+
+@keyframes productsPanelFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

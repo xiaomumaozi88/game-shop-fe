@@ -1,5 +1,5 @@
 import React from 'react';
-import closeIconImg from '@/assets/imgs/touka_home_ic_close.png';
+import closeIconImg from '@/assets/img2/touka_home_ic_close.png';
 
 export const CloseIcon: React.FC<{ size?: number }> = ({ size = 24 }) => {
   return (

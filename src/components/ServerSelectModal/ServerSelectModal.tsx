@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { useGameRole } from '@/hooks/useGameRole';
 import { storage, STORAGE_KEYS } from '@/utils';
-import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
-import closeIconImg from '@/assets/imgs/touka_home_ic_close1.png';
+import { ChevronDownIcon } from '../Icons/ChevronDownIcon';
+import loginModalClose from '@/assets/img2/login_modal_close.png';
 import styles from './ServerSelectModal.module.less';
 
 interface ServerSelectModalProps {
@@ -29,12 +30,33 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
   const [showServerList, setShowServerList] = useState(false);
   const [showCharacterList, setShowCharacterList] = useState(false);
   const [selectedServer, setSelectedServer] = useState(currentServer || '');
+  const [selectedServerPlatform, setSelectedServerPlatform] = useState('');
   const [selectedCharacter, setSelectedCharacter] = useState(currentCharacter || '');
+  const [isServerInputFocused, setIsServerInputFocused] = useState(false);
+  const serverInputRef = useRef<HTMLInputElement>(null);
   const serverListRef = useRef<HTMLDivElement>(null);
   const characterListRef = useRef<HTMLDivElement>(null);
+  const suppressServerBlurCloseRef = useRef(false);
   const [gameUserId, setGameUserId] = useState('');
   const initializedRef = useRef(false); // 用于标记是否已初始化
   const [hasUserTyped, setHasUserTyped] = useState(false); // 用于区分用户输入与回填
+  const [serverListScrollReady, setServerListScrollReady] = useState(false);
+  const [characterListScrollReady, setCharacterListScrollReady] = useState(false);
+
+  const DROPDOWN_SCROLL_ITEM_THRESHOLD = 4;
+
+  const getPlatformLabel = (platform: string | undefined): string => {
+    if (!platform) return '';
+    const lower = platform.toLowerCase();
+    if (lower === 'ios') return 'iOS';
+    return platform;
+  };
+
+  const formatServerLabel = (channel: string | undefined, platform: string | undefined): string => {
+    if (!channel) return '';
+    const platformLabel = getPlatformLabel(platform);
+    return platformLabel ? `${channel}-${platformLabel}` : channel;
+  };
 
   // 如果没有传入 appKey，尝试从 localStorage 读取
   // 使用 state 存储 effectiveAppKey，以便在游戏切换时能够检测变化
@@ -54,6 +76,7 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
       setEffectiveAppKey(newEffectiveAppKey);
       // 重置选择状态，因为切换游戏后，之前的选择不适用
       setSelectedServer('');
+      setSelectedServerPlatform('');
       setSelectedCharacter('');
       setGameUserId('');
       setSearchText('');
@@ -74,7 +97,7 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
       serverMap.set(key, {
         channel: role.game_server_channel,
         platform: role.platform,
-        label: `${role.game_server_channel}-${role.platform}`,
+        label: formatServerLabel(role.game_server_channel, role.platform),
       });
     }
   });
@@ -110,9 +133,11 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
   const characterList = selectedServer
     ? gameRoles
         .filter((role) => {
-          // selectedServer 现在是 channel（区服ID）
-          // 需要检查是否匹配当前选中的 channel
-          return role.game_server_channel === selectedServer;
+          // selectedServer 现在是 channel（区服ID），同一个 channel 可能同时存在 iOS / Android
+          return (
+            role.game_server_channel === selectedServer &&
+            (!selectedServerPlatform || role.platform === selectedServerPlatform)
+          );
         })
         .map((role) => ({
           label: role.nick_name,
@@ -129,12 +154,25 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
   const handleServerSelect = (serverItem: { channel: string; platform: string; label: string }) => {
     const serverChannel = serverItem.channel;
     // 如果选择了新的区服，清空角色选择
-    if (serverChannel !== selectedServer) {
+    if (serverChannel !== selectedServer || serverItem.platform !== selectedServerPlatform) {
       setSelectedCharacter('');
+      setGameUserId('');
     }
     setSelectedServer(serverChannel);
-    setSearchText(serverItem.label); // 显示为 "{channel}-{platform}"，例如 "2-ios"
+    setSelectedServerPlatform(serverItem.platform);
+    setSearchText(serverItem.label); // 显示为 "{channel}-{platform}"，例如 "GL_58-iOS"
     setShowServerList(false);
+  };
+
+  const blurServerInputWithoutClosingList = () => {
+    if (document.activeElement !== serverInputRef.current) return;
+
+    suppressServerBlurCloseRef.current = true;
+    setIsServerInputFocused(false);
+    serverInputRef.current?.blur();
+    window.setTimeout(() => {
+      suppressServerBlurCloseRef.current = false;
+    }, 200);
   };
 
   const handleCharacterSelect = (characterId: string) => {
@@ -161,14 +199,14 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
     if (gameUserId) {
       role = gameRoles.find((r) => r.game_user_id === gameUserId);
       if (role) {
-        return `${role.game_server_channel}-${role.platform}`;
+        return formatServerLabel(role.game_server_channel, role.platform);
       }
     }
     
     // 如果通过 game_user_id 找不到，尝试通过 channel 查找
     role = gameRoles.find((r) => r.game_server_channel === channel);
     if (role) {
-      return `${role.game_server_channel}-${role.platform}`;
+      return formatServerLabel(role.game_server_channel, role.platform);
     }
     
     // 如果都没找到，返回原始 channel（可能是旧的格式或等待角色列表加载）
@@ -183,6 +221,7 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
       setHasUserTyped(false);
       setShowServerList(false);
       setShowCharacterList(false);
+      setIsServerInputFocused(false);
       return;
     }
 
@@ -205,6 +244,7 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
           if (role) {
             // 使用角色数据中的 game_server_channel 作为 selectedServer
             setSelectedServer(role.game_server_channel);
+            setSelectedServerPlatform(role.platform);
             setSelectedCharacter(currentCharacter);
             setGameUserId(currentCharacter);
             // 使用正确的 game_server_channel 显示
@@ -216,6 +256,8 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
         // 如果没有角色信息，尝试通过 currentServer 查找
         // 注意：currentServer 可能是旧的服务器ID格式，可能找不到匹配的角色
         setSelectedServer(currentServer);
+        const role = gameRoles.find((r) => r.game_server_channel === currentServer);
+        setSelectedServerPlatform(role?.platform || '');
         setSearchText(getServerLabel(currentServer));
         setHasUserTyped(false);
       }
@@ -224,6 +266,9 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
 
   // 处理服务器输入框失去焦点
   const handleServerBlur = (e: React.FocusEvent) => {
+    setIsServerInputFocused(false);
+    if (suppressServerBlurCloseRef.current) return;
+
     // 检查焦点是否移动到下拉列表或相关元素
     const relatedTarget = e.relatedTarget as HTMLElement;
     if (
@@ -266,42 +311,42 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
     }
     
     // 检查是否选择了角色（如果角色列表不为空，则必须选择角色）
-    const gameRoles = appKey ? getRolesByAppKey(appKey) : [];
-    const hasCharacters = gameRoles.some((role) => role.game_server_channel === selectedServer);
+    const modalGameRoles = effectiveAppKey ? getRolesByAppKey(effectiveAppKey) : [];
+    const hasCharacters = modalGameRoles.some(
+      (role) =>
+        role.game_server_channel === selectedServer &&
+        (!selectedServerPlatform || role.platform === selectedServerPlatform)
+    );
     
     if (hasCharacters && !selectedCharacter) {
       // 如果有角色但未选择，提示用户选择角色
-      console.warn('请先选择角色');
+      // console.warn('请先选择角色');
       return;
     }
     
     // 获取选中角色的头像信息
     let selectedRoleAvatar: string | undefined;
     if (selectedCharacter) {
-      const selectedRole = gameRoles.find((role) => role.game_user_id === selectedCharacter);
+      const selectedRole = modalGameRoles.find((role) => role.game_user_id === selectedCharacter);
       if (selectedRole?.user_avatar) {
         selectedRoleAvatar = selectedRole.user_avatar;
       }
     }
     
-    // selectedServer 现在是 game_server_channel（区服ID）
-    const serverChannel = parseInt(selectedServer);
-    
-    // 立即关闭弹窗
-    onClose();
-    
     // 调用 onConfirm（可能是异步的，但不等待其完成），传入头像信息
     try {
-const result = onConfirm(selectedServer, selectedCharacter || '', gameUserId, selectedRoleAvatar);
+      const result = onConfirm(selectedServer, selectedCharacter || '', gameUserId, selectedRoleAvatar);
 
       // 不等待 Promise 完成，让父组件处理异步逻辑
       if (result instanceof Promise) {
         result.catch((error) => {
-          console.error('onConfirm 执行出错:', error);
+          // console.error('onConfirm 执行出错:', error);
         });
       }
     } catch (error) {
-      console.error('调用 onConfirm 时出错:', error);
+      // console.error('调用 onConfirm 时出错:', error);
+    } finally {
+      onClose();
     }
   };
 
@@ -312,88 +357,185 @@ const result = onConfirm(selectedServer, selectedCharacter || '', gameUserId, se
 
     return serverItem.label.includes(searchText) || 
            serverItem.channel.includes(searchText) ||
-           serverItem.platform.toLowerCase().includes(searchText.toLowerCase());
+           getPlatformLabel(serverItem.platform).toLowerCase().includes(searchText.toLowerCase());
   });
 
+  useEffect(() => {
+    if (!selectedServer) {
+      setShowCharacterList(false);
+    }
+  }, [selectedServer]);
+
+  useEffect(() => {
+    if (!showServerList) {
+      setServerListScrollReady(false);
+    }
+  }, [showServerList]);
+
+  useEffect(() => {
+    if (!showCharacterList) {
+      setCharacterListScrollReady(false);
+    }
+  }, [showCharacterList]);
+
+  const handleServerDropdownTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== 'grid-template-rows' || event.target !== event.currentTarget) {
+      return;
+    }
+    if (showServerList) {
+      setServerListScrollReady(true);
+    }
+  };
+
+  const handleCharacterDropdownTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== 'grid-template-rows' || event.target !== event.currentTarget) {
+      return;
+    }
+    if (showCharacterList) {
+      setCharacterListScrollReady(true);
+    }
+  };
+
   // 条件渲染必须在所有 hooks 之后
+  useScrollLock(isOpen);
+
   if (!isOpen) return null;
 
+  const canSelectCharacter = Boolean(selectedServer);
+  const serverOptionCount = filteredServers.length > 0 ? filteredServers.length : 1;
+  const serverListCapped = showServerList && serverOptionCount >= DROPDOWN_SCROLL_ITEM_THRESHOLD;
+  const serverListScrollable = serverListCapped && serverListScrollReady;
+  const characterListCapped = showCharacterList && characterList.length >= DROPDOWN_SCROLL_ITEM_THRESHOLD;
+  const characterListScrollable = characterListCapped && characterListScrollReady;
+  const serverPlaceholderText = t('serverSelect.serverPlaceholder');
+  const showServerPlaceholder = !searchText && !isServerInputFocused;
+
   return (
-    <div className={styles.overlay} onClick={handleBackdropClick}>
+    <div className={styles.overlay} data-scroll-lock-overlay onClick={handleBackdropClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.closeButton} onClick={onClose} aria-label="关闭" type="button">
+          <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
+        </button>
+
         <h2 className={styles.title}>{t('serverSelect.title')}</h2>
 
         {/* 服务器选择 */}
         <div className={styles.inputGroup}>
-          <div className={`${styles.inputWrapper} ${showServerList ? styles.inputWrapperOpen : ''}`}>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder={t('serverSelect.serverPlaceholder')}
-              title={t('serverSelect.serverPlaceholder')}
-              value={searchText}
-              onChange={(e) => {
-                setSearchText(e.target.value);
-                setHasUserTyped(true);
-                setShowServerList(true);
-                // 如果清空了搜索文本，清空区服和角色选择
-                if (!e.target.value) {
-                  setSelectedServer('');
-                  setSelectedCharacter('');
-                } else {
-                  // 如果有输入，但还没选择，保持下拉列表显示
-                  setShowServerList(true);
-                }
-              }}
-              onFocus={() => {
-                setHasUserTyped(false); // 打开时显示完整列表
-                setShowServerList(true);
-              }}
-              onBlur={handleServerBlur}
-            />
-            <button
-              className={styles.dropdownButton}
-              onClick={() => setShowServerList(!showServerList)}
+          <div
+            className={`${styles.selectControl} ${showServerList ? styles.selectControlOpen : ''} ${
+              isServerInputFocused ? styles.selectControlKeyboardActive : ''
+            }`}
+          >
+            <div
+              className={`${styles.inputWrapper} ${
+                showServerPlaceholder ? styles.inputWrapperWithServerPlaceholder : ''
+              }`}
             >
-              <ChevronUpIcon
-                className={`${styles.chevron} ${showServerList ? styles.chevronUp : styles.chevronDown}`}
-                color="#666666"
-              />
-            </button>
-          </div>
-          {showServerList && (
-            <div className={styles.dropdownList} ref={serverListRef}>
-              {filteredServers.length > 0 ? (
-                filteredServers.map((serverItem, index) => (
-                  <div
-                    key={`${serverItem.channel}_${serverItem.platform}`}
-                    className={`${styles.dropdownItem} ${
-                      selectedServer === serverItem.channel ? styles.dropdownItemSelected : ''
-                    }`}
-                    onClick={() => handleServerSelect(serverItem)}
-                    onMouseDown={(e) => e.preventDefault()} // 防止触发 blur
-                  >
-                    {serverItem.label}
-                  </div>
-                ))
-              ) : (
-                <div className={styles.dropdownItemEmpty}>
-                  {t('serverSelect.noResults')}
+              {showServerPlaceholder && (
+                <div className={styles.serverPlaceholder} aria-hidden="true">
+                  {serverPlaceholderText}
                 </div>
               )}
+              <input
+                type="text"
+                className={styles.input}
+                aria-label={serverPlaceholderText}
+                title={serverPlaceholderText}
+                value={searchText}
+                ref={serverInputRef}
+                inputMode="text"
+                autoComplete="off"
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setHasUserTyped(true);
+                  setShowServerList(true);
+                  if (!e.target.value) {
+                    setSelectedServer('');
+                    setSelectedServerPlatform('');
+                    setSelectedCharacter('');
+                  } else {
+                    setShowServerList(true);
+                  }
+                }}
+                onFocus={() => {
+                  setIsServerInputFocused(true);
+                  setHasUserTyped(false);
+                  setShowCharacterList(false);
+                  setShowServerList(true);
+                }}
+                onBlur={handleServerBlur}
+              />
+              <button
+                type="button"
+                className={styles.dropdownButton}
+                onClick={() => {
+                  blurServerInputWithoutClosingList();
+                  setShowCharacterList(false);
+                  setShowServerList(!showServerList);
+                }}
+              >
+                <ChevronDownIcon
+                  className={`${styles.chevron} ${showServerList ? styles.chevronOpen : ''}`}
+                  color="#ff9a3d"
+                />
+              </button>
             </div>
-          )}
+            <div
+              className={styles.dropdownCollapse}
+              aria-hidden={!showServerList}
+              onTransitionEnd={handleServerDropdownTransitionEnd}
+            >
+              <div
+                className={`${styles.dropdownList} ${serverListCapped ? styles.dropdownListCapped : ''} ${
+                  serverListScrollable ? styles.dropdownListScrollable : ''
+                }`}
+                ref={serverListRef}
+                onPointerDown={blurServerInputWithoutClosingList}
+                onTouchStart={blurServerInputWithoutClosingList}
+              >
+                {filteredServers.length > 0 ? (
+                  filteredServers.map((serverItem) => (
+                    <div
+                      key={`${serverItem.channel}_${serverItem.platform}`}
+                      className={`${styles.dropdownItem} ${
+                        selectedServer === serverItem.channel && selectedServerPlatform === serverItem.platform
+                          ? styles.dropdownItemSelected
+                          : ''
+                      }`}
+                      onClick={() => handleServerSelect(serverItem)}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {serverItem.label}
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.dropdownItemEmpty}>{t('serverSelect.noResults')}</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 角色选择 - 只有选择了区服才显示 */}
-        {selectedServer && (
-          <div className={styles.inputGroup}>
-            <div className={`${styles.inputWrapper} ${showCharacterList ? styles.inputWrapperOpen : ''}`}>
+        {/* 角色选择 */}
+        <div className={styles.inputGroup}>
+          <div
+            className={`${styles.selectControl} ${showCharacterList ? styles.selectControlOpen : ''} ${
+              !canSelectCharacter ? styles.selectControlDisabled : ''
+            }`}
+          >
+            <div className={styles.inputWrapper}>
               <div
-                className={styles.characterInput}
-                onClick={() => setShowCharacterList(!showCharacterList)}
+                className={`${styles.characterInput} ${!canSelectCharacter ? styles.characterInputDisabled : ''}`}
+                onClick={() => {
+                  if (canSelectCharacter) {
+                    setShowServerList(false);
+                    setShowCharacterList(!showCharacterList);
+                  }
+                }}
                 onBlur={handleCharacterBlur}
-                tabIndex={0}
+                tabIndex={canSelectCharacter ? 0 : -1}
+                role="button"
+                aria-disabled={!canSelectCharacter}
               >
                 {selectedCharacter ? (
                   <div className={styles.characterName}>{getSelectedCharacterName()}</div>
@@ -404,17 +546,33 @@ const result = onConfirm(selectedServer, selectedCharacter || '', gameUserId, se
                 )}
               </div>
               <button
+                type="button"
                 className={styles.dropdownButton}
-                onClick={() => setShowCharacterList(!showCharacterList)}
+                disabled={!canSelectCharacter}
+                onClick={() => {
+                  if (canSelectCharacter) {
+                    setShowServerList(false);
+                    setShowCharacterList(!showCharacterList);
+                  }
+                }}
               >
-                <ChevronUpIcon
-                  className={`${styles.chevron} ${showCharacterList ? styles.chevronUp : styles.chevronDown}`}
-                  color="#666666"
+                <ChevronDownIcon
+                  className={`${styles.chevron} ${showCharacterList ? styles.chevronOpen : ''}`}
+                  color="#ff9a3d"
                 />
               </button>
             </div>
-            {showCharacterList && (
-              <div className={styles.dropdownList} ref={characterListRef}>
+            <div
+              className={styles.dropdownCollapse}
+              aria-hidden={!showCharacterList || !canSelectCharacter}
+              onTransitionEnd={handleCharacterDropdownTransitionEnd}
+            >
+              <div
+                className={`${styles.dropdownList} ${characterListCapped ? styles.dropdownListCapped : ''} ${
+                  characterListScrollable ? styles.dropdownListScrollable : ''
+                }`}
+                ref={characterListRef}
+              >
                 {characterList.length > 0 ? (
                   characterList.map((character) => (
                     <div
@@ -423,32 +581,24 @@ const result = onConfirm(selectedServer, selectedCharacter || '', gameUserId, se
                         selectedCharacter === character.value ? styles.dropdownItemSelected : ''
                       }`}
                       onClick={() => handleCharacterSelect(character.value)}
-                      onMouseDown={(e) => e.preventDefault()} // 防止触发 blur
+                      onMouseDown={(e) => e.preventDefault()}
                     >
                       {character.label}
                     </div>
                   ))
                 ) : (
-                  <div className={styles.dropdownItemEmpty}>
-                    {t('serverSelect.noResults')}
-                  </div>
+                  <div className={styles.dropdownItemEmpty}>{t('serverSelect.noResults')}</div>
                 )}
               </div>
-            )}
+            </div>
           </div>
-        )}
+        </div>
 
         {/* 确定按钮 */}
-        <button className={styles.confirmButton} onClick={handleConfirm}>
+        <button type="button" className={styles.confirmButton} onClick={handleConfirm}>
           {t('serverSelect.confirm')}
-        </button>
-
-        {/* 关闭按钮 */}
-        <button className={styles.closeButton} onClick={onClose} aria-label="关闭">
-          <img src={closeIconImg} alt="关闭" className={styles.closeIcon} />
         </button>
       </div>
     </div>
   );
 };
-

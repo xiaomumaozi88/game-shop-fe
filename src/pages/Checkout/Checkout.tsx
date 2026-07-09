@@ -73,7 +73,7 @@ export const Checkout: React.FC = () => {
       // 跳转到订单确认页面
       navigate(`/order/${order.id}`);
     } catch (error) {
-      console.error('订单创建失败:', error);
+      // console.error('订单创建失败:', error);
       alert('订单创建失败，请重试');
     } finally {
       setLoading(false);

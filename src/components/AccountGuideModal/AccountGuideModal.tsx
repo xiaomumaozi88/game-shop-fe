@@ -1,7 +1,9 @@
 import React from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
-import { CloseIcon } from '../Icons/CloseIcon';
-import idIcon from '@/assets/imgs/touka_login_ID_YE.png';
+import { useScrollLock } from '@/hooks/useScrollLock';
+import logoIconImg from '@/assets/img2/login_modal_logo.png';
+import logoTextImg from '@/assets/img2/login_modal_logotext.png';
+import loginModalClose from '@/assets/img2/login_modal_close.png';
 import styles from './AccountGuideModal.module.less';
 
 interface AccountGuideModalProps {
@@ -19,6 +21,8 @@ export const AccountGuideModal: React.FC<AccountGuideModalProps> = ({
   const { t } = useLanguage();
   const isBindGuide = variant === 'bindGuide';
 
+  useScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -28,34 +32,37 @@ export const AccountGuideModal: React.FC<AccountGuideModalProps> = ({
   };
 
   return (
-    <div className={styles.overlay} onClick={handleBackdropClick}>
+    <div className={styles.overlay} data-scroll-lock-overlay onClick={handleBackdropClick}>
       <div
-        className={isBindGuide ? `${styles.modal} ${styles.modalBindGuide}` : styles.modal}
+        className={
+          isBindGuide
+            ? `${styles.modal} ${styles.modalBindGuide}`
+            : `${styles.modal} ${styles.modalDefault}`
+        }
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          type="button"
           className={styles.closeButton}
           onClick={onClose}
           aria-label={t('paymentSuccess.closeModal')}
         >
-          <CloseIcon size={24} />
+          <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
         </button>
 
-        {!isBindGuide && (
-          <>
-            <div className={styles.logoSection}>
-              <span className={styles.logoText}>TOUKA</span>
-              <img src={idIcon} alt="ID" className={styles.idBadge} />
-            </div>
+        {isBindGuide ? (
+          <p className={styles.contentBindGuide}>{t('login.bindGameGuideContent')}</p>
+        ) : (
+          <div className={styles.modalBody}>
+            <img src={logoIconImg} alt="" className={styles.logoIcon} aria-hidden />
+            <span className={styles.logoTextGroup}>
+              <img src={logoTextImg} alt="TOUKA" className={styles.logoTextImg} />
+            </span>
             <h2 className={styles.title}>{t('accountGuide.title')}</h2>
-          </>
+            <p className={styles.content}>{t('accountGuide.content')}</p>
+          </div>
         )}
-
-        <p className={isBindGuide ? styles.contentBindGuide : styles.content}>
-          {isBindGuide ? t('login.bindGameGuideContent') : t('accountGuide.content')}
-        </p>
       </div>
     </div>
   );
 };
-

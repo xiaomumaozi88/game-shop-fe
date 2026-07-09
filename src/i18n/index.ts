@@ -3,9 +3,17 @@ import { generatedTranslations, GeneratedLocale } from './locales';
 export type Locale = GeneratedLocale;
 export type Translations = (typeof generatedTranslations)[Locale];
 export const translations: Record<Locale, Translations> = generatedTranslations;
+export const selectableLocales = (Object.keys(generatedTranslations) as Locale[]).filter(
+  (locale) => locale !== 'ru-RU'
+);
 
 // 默认语言
 export const defaultLocale: Locale = 'zh-CN';
+
+/** 移动端顶栏 inline 导航：所有语言都展示，长文案由 Header 内自适应字号处理 */
+export function shouldShowMobileHomeNav(_locale: Locale): boolean {
+  return true;
+}
 
 // 获取翻译文本
 export const getTranslation = (locale: Locale, key: string): string => {
@@ -31,4 +39,3 @@ export const getTranslation = (locale: Locale, key: string): string => {
 
   return typeof value === 'string' ? value : key;
 };
-

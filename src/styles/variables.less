@@ -18,6 +18,10 @@
 @spacing-xl: 2rem; // 32px
 @spacing-xxl: 3rem; // 48px
 
+// 字体
+@font-family-sans: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+@font-family-display: 'JingNan BoBo Hei', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
 // 字体大小
 @font-size-xxs: 0.625rem; // 12px
 @font-size-xs: 0.75rem; // 12px
@@ -50,4 +54,26 @@
 @z-index-dropdown: 1000;
 @z-index-modal: 2000;
 @z-index-tooltip: 3000;
+
+// 布局
+@layout-header-height-mobile: 3.125rem; // 50px，与 Header 移动端 min-height 一致
+@layout-header-height-tablet: 5rem;
+@layout-header-height-desktop: 5rem;
+// 商品页用户卡：紧贴 Header 内 userDropdown 下方（触发器高度 + 间距与 Header.module.less 一致）
+@products-user-dropdown-trigger-height-mobile: 1.5rem;
+@products-user-dropdown-trigger-height-tablet: 1.75rem;
+@products-panel-gap-below-dropdown: 0.375rem;
+@products-panel-mobile-scale: 0.9;
+@products-panel-top-mobile: calc(
+  (
+    @layout-header-height-mobile / 2 + @products-user-dropdown-trigger-height-mobile / 2 +
+      @products-panel-gap-below-dropdown
+  ) * @products-panel-mobile-scale
+);
+@products-panel-top-tablet: calc(
+  @layout-header-height-tablet / 2 + @products-user-dropdown-trigger-height-tablet / 2 +
+    @products-panel-gap-below-dropdown
+);
+@products-panel-right-mobile: @spacing-sm;
+@products-panel-right-tablet: 1.25rem;
 

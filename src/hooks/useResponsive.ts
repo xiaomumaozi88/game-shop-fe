@@ -2,29 +2,59 @@ import { useEffect, useState } from 'react';
 
 export type Breakpoint = 'mobile' | 'tablet' | 'desktop';
 
+interface ResponsiveState {
+  breakpoint: Breakpoint;
+  isTouchLandscape: boolean;
+}
+
+const getResponsiveState = (): ResponsiveState => {
+  if (typeof window === 'undefined') {
+    return {
+      breakpoint: 'desktop',
+      isTouchLandscape: false,
+    };
+  }
+
+  const width = window.innerWidth;
+  const breakpoint: Breakpoint = width < 768 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop';
+  const isTouchLandscape = window.matchMedia(
+    '(hover: none) and (pointer: coarse) and (orientation: landscape)',
+  ).matches;
+
+  return {
+    breakpoint,
+    isTouchLandscape,
+  };
+};
+
 export const useResponsive = () => {
-  const [breakpoint, setBreakpoint] = useState<Breakpoint>(() => {
-    if (typeof window === 'undefined') return 'desktop';
-    const width = window.innerWidth;
-    if (width < 768) return 'mobile';
-    if (width < 1024) return 'tablet';
-    return 'desktop';
-  });
+  const [{ breakpoint, isTouchLandscape }, setResponsiveState] = useState<ResponsiveState>(
+    getResponsiveState,
+  );
 
   useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 768) {
-        setBreakpoint('mobile');
-      } else if (width < 1024) {
-        setBreakpoint('tablet');
-      } else {
-        setBreakpoint('desktop');
-      }
+    const touchLandscapeQuery = window.matchMedia(
+      '(hover: none) and (pointer: coarse) and (orientation: landscape)',
+    );
+    const syncResponsiveState = () => {
+      setResponsiveState(getResponsiveState());
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('resize', syncResponsiveState);
+    if (touchLandscapeQuery.addEventListener) {
+      touchLandscapeQuery.addEventListener('change', syncResponsiveState);
+    } else {
+      touchLandscapeQuery.addListener(syncResponsiveState);
+    }
+
+    return () => {
+      window.removeEventListener('resize', syncResponsiveState);
+      if (touchLandscapeQuery.removeEventListener) {
+        touchLandscapeQuery.removeEventListener('change', syncResponsiveState);
+      } else {
+        touchLandscapeQuery.removeListener(syncResponsiveState);
+      }
+    };
   }, []);
 
   return {
@@ -32,6 +62,6 @@ export const useResponsive = () => {
     isMobile: breakpoint === 'mobile',
     isTablet: breakpoint === 'tablet',
     isDesktop: breakpoint === 'desktop',
+    isTouchLandscape,
   };
 };
-

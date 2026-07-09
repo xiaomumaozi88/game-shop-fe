@@ -86,7 +86,7 @@ export const AirwallexCheckout: React.FC<AirwallexCheckoutProps> = ({
           locale: airwallexLocale,
         });
       } catch (err) {
-        console.error('Airwallex checkout initialization error:', err);
+        // console.error('Airwallex checkout initialization error:', err);
         setError(err instanceof Error ? err.message : 'Failed to initialize payment');
       } finally {
         setIsInitializing(false);

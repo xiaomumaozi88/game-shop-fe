@@ -72,7 +72,7 @@ const PaymentReturn: React.FC = () => {
                 localStorage.removeItem('pending_payment_product');
               }
             } catch (error) {
-              console.error('Error parsing pending product:', error);
+              // console.error('Error parsing pending product:', error);
             }
           }
         } else {
@@ -87,13 +87,13 @@ const PaymentReturn: React.FC = () => {
               trackStoreIapFail(pendingProduct, PAYMENT_TYPES.STRIPE_STORE, environment, `Server error: ${errorMessage}`);
               localStorage.removeItem('pending_payment_product');
             } catch (error) {
-              console.error('Error parsing pending product:', error);
+              // console.error('Error parsing pending product:', error);
             }
           }
         }
       })
       .catch((error) => {
-        console.error('Error fetching session status:', error);
+        // console.error('Error fetching session status:', error);
         setStatus('error');
         // 支付失败，上报失败事件
         const pendingProductStr = localStorage.getItem('pending_payment_product');
@@ -104,7 +104,7 @@ const PaymentReturn: React.FC = () => {
             trackStoreIapFail(pendingProduct, PAYMENT_TYPES.STRIPE_STORE, environment, error instanceof Error ? error.message : 'Unknown error');
             localStorage.removeItem('pending_payment_product');
           } catch (parseError) {
-            console.error('Error parsing pending product:', parseError);
+            // console.error('Error parsing pending product:', parseError);
           }
         }
       })

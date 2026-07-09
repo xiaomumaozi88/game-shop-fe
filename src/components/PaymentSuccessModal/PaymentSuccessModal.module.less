@@ -1,38 +1,86 @@
 @import '@/styles/variables.less';
 @import '@/styles/mixins.less';
 
+@payment-success-orange: #ff8100;
+@payment-success-orange-dark: #e67400;
+@payment-success-label: #b5a595;
+@payment-success-value: #333333;
+@payment-success-modal-width: 34rem;
+@payment-success-modal-width-mobile: 28rem;
+@payment-success-total-stroke: #8d5727;
+
+.paymentSuccessTotalStrokeText(@stroke-width: 0.13rem) {
+  @shadow-offset: (@stroke-width * 0.45);
+  @shadow-blur: (@stroke-width * 0.24);
+  -webkit-text-stroke: @stroke-width @payment-success-total-stroke;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  paint-order: stroke fill;
+  text-shadow:
+    0 0 @shadow-blur @payment-success-total-stroke,
+    @shadow-offset 0 @shadow-blur @payment-success-total-stroke,
+    (-@shadow-offset) 0 @shadow-blur @payment-success-total-stroke,
+    0 @shadow-offset @shadow-blur @payment-success-total-stroke,
+    0 (-@shadow-offset) @shadow-blur @payment-success-total-stroke,
+    @shadow-offset @shadow-offset @shadow-blur @payment-success-total-stroke,
+    (-@shadow-offset) @shadow-offset @shadow-blur @payment-success-total-stroke,
+    @shadow-offset (-@shadow-offset) @shadow-blur @payment-success-total-stroke,
+    (-@shadow-offset) (-@shadow-offset) @shadow-blur @payment-success-total-stroke;
+}
+
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  inset: 0;
   z-index: @z-index-modal + 20;
   .flex-center();
   padding: @spacing-md;
-  overflow-y: auto;
+  .modalOverlayBackdrop();
 
   .mobile({
-    padding: @spacing-md;
+    padding: @spacing-md 0;
   });
+
+  .touchLandscapeModalOverlay(0.5rem, 1rem);
 }
 
 .modal {
   position: relative;
-  background: @white; // 白色背景
-  border-radius: @border-radius-lg;
-  max-width: 25rem; // 400px
-  width: 100%;
+  width: @payment-success-modal-width;
+  max-width: 96vw;
   animation: slideUp 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+  overflow: visible;
+  font-family: @font-family-sans;
 
   .mobile({
-    max-width: 90%;
+    width: min(@payment-success-modal-width-mobile, 96vw);
   });
 
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    width: min(86vw, calc((var(--app-viewport-height, 100dvh) - 1rem) * 709 / 661));
+    max-width: 86vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.modalSizeSpacer {
+  display: block;
+  width: 100%;
+  height: auto;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.modalFrameImg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
 }
 
 @keyframes slideUp {
@@ -46,117 +94,183 @@
   }
 }
 
-.closeButton {
+.modalContent {
   position: absolute;
-  top: @spacing-sm;
-  right: @spacing-sm;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 10;
-  padding: 8px;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 13.5% 19% 14% 19%;
+
+  .mobile({
+    padding: 13.5% 19% 13% 19%;
+  });
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+  min-width: 0;
+  padding: 0.125rem 0.1875rem 0.0625rem;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.totalSummary {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-  color: #333333;
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+  gap: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-weight: 700;
+  color: #ffc027;
+  line-height: 1.32;
+  overflow: visible;
+  padding: 0.1875rem 0.25rem 0.1875rem 0.1875rem;
+  box-sizing: border-box;
+
+  .totalLabel,
+  .totalValue {
+    display: inline-block;
+    overflow: visible;
+    line-height: 1.2;
+    padding: 0.0625rem 0.05rem;
+    .paymentSuccessTotalStrokeText(0.125rem);
+    letter-spacing: 0.0275rem;
+
+    .mobile({
+      line-height: 1.24;
+      padding: 0.055rem 0.04rem;
+      .paymentSuccessTotalStrokeText(0.0825rem);
+      letter-spacing: 0.01rem;
+    });
   }
 }
 
-.title {
-  margin: 0 auto;
-  margin-top: @spacing-sm;
-  margin-bottom: @spacing-md;
-  font-size: @font-size-xxl;
-  font-weight: bold;
-  color: #999999;
-  text-align: center;
-  padding: 0 @spacing-md;
-  padding-bottom: @spacing-sm;
-  border-bottom: 1px solid #e5e5e5;
-  width: 90%;
+.totalLabel {
+  flex-shrink: 0;
+  font-size: 1.75rem;
+
+  .mobile({
+    font-size: @font-size-xl;
+  });
 }
 
-.content {
-  padding: 0 @spacing-lg @spacing-md @spacing-lg;
+.totalValue {
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+
+  .mobile({
+    font-size: @font-size-xl;
+  });
 }
 
-.totalPrice {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: @spacing-md;
+.thankYou {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffc027;
+  text-align: right;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  word-break: normal;
+  padding: 0.2rem 0;
+
+  .mobile({
+    font-size: 0.65rem;
+
+  });
+}
+
+.headerDivider {
+  flex-shrink: 0;
+  height: 2px;
+  margin-bottom: 0.625rem;
+  background: @payment-success-orange;
+  border-radius: 1px;
+  opacity: 0.9;
+
+  .mobile({
+    margin-bottom: 0.5rem;
+  });
 }
 
 .details {
   display: flex;
   flex-direction: column;
-  gap: @spacing-sm;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: @font-size-sm;
+  line-height: 1.4;
+  max-height: 60%;
+
+  .mobile({
+    gap: 0.15rem;
+    font-size: @font-size-xs;
+    line-height: 1.3;
+  });
 }
 
 .detailRow {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  font-size: @font-size-sm;
-  line-height: 1.5;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+
+  .mobile({
+    gap: 0.375rem;
+  });
 }
 
 .label {
-  color: #999999;
-  flex-shrink: 0;
-  margin-right: @spacing-md;
+  flex: 0 0 auto;
+  color: @payment-success-label;
   text-align: left;
+  white-space: nowrap;
 }
 
 .value {
-  flex: 1;
-  text-align: right; // 右对齐
-  word-break: break-word;
-  color: #000;
-}
-
-.totalLabel {
-  color: @text-color; // 黑色文字
-  font-size: @font-size-md;
-  font-weight: 500;
-}
-
-.totalValue {
-  color: #FFB128; // 橙色
-  font-size: @font-size-xxl;
-  font-weight: bold;
-}
-.confirmButtonContainer{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: @white; // 白色背景
-  padding: 0 @spacing-md @spacing-md @spacing-md;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #62584c;
+  text-align: right;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .confirmButton {
   .button-reset();
+  flex-shrink: 0;
   width: 100%;
-  padding: @spacing-md;
-  background: #FFB128; // 橙色按钮
+  margin-top: auto;
+  min-height: 3.5rem;
+  padding: 0 @spacing-md;
+  background: linear-gradient(180deg, #ff9a3d 0%, @payment-success-orange 100%);
   color: @white;
   border: none;
-  border-radius: 999px; // 药丸形状
-  font-size: @font-size-lg;
-  font-weight: bold;
+  border-radius: 999px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
   cursor: pointer;
-  transition: all 0.2s;
-  
-  .touch-friendly();
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  .mobile({
+    min-height: 2.875rem;
+    font-size: @font-size-lg;
+  });
 
   &:hover {
-    background: #FFA000;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(255, 177, 40, 0.3);
+    box-shadow: 0 0.25rem 0.375rem rgba(230, 116, 0, 0.4);
   }
 
   &:active {
@@ -166,9 +280,15 @@
 
 .loading,
 .error {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: @spacing-xl;
   text-align: center;
-  color: @text-color; // 黑色文字
+  color: @payment-success-value;
 
   p {
     margin: 0;
@@ -176,6 +296,242 @@
 }
 
 .error {
-  color: #ff6b6b;
+  color: #e7413e;
 }
 
+// 非中文语言：弹窗内文案整体缩小一档，避免长文案挤压布局
+.modalCompactLocale {
+  .modalContent {
+    padding-left: 20%;
+    padding-right: 20%;
+
+    .mobile({
+      padding-left: 19%;
+      padding-right: 19%;
+    });
+  }
+
+  .header {
+    padding: 0 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .totalLabel,
+  .totalValue {
+    font-size: 1.375rem;
+
+    .mobile({
+      font-size: @font-size-lg;
+    });
+  }
+
+  .thankYou {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+
+    .mobile({
+      font-size: 0.625rem;
+    });
+  }
+
+  .details {
+    font-size: 0.8rem;
+
+    .mobile({
+      font-size: 0.6875rem;
+    });
+  }
+
+  .confirmButton {
+    font-size: @font-size-lg;
+
+    .mobile({
+      min-height: 2.625rem;
+      font-size: @font-size-md;
+    });
+  }
+
+  .loading,
+  .error {
+    font-size: @font-size-sm;
+
+    .mobile({
+      font-size: @font-size-xs;
+    });
+  }
+}
+
+.celebrationOverlay {
+  .button-reset();
+  position: fixed;
+  inset: 0;
+  z-index: @z-index-modal + 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: @spacing-md;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  animation: celebrationFadeIn 0.25s ease both;
+
+  .mobile({
+    padding: @spacing-sm;
+  });
+}
+
+.celebrationStage {
+  position: relative;
+  max-width: 94vw;
+  pointer-events: none;
+}
+
+@celebration-bar-bg: '../../assets/img2/payment_success_celebration_bar.png';
+@celebration-bar-width: clamp(15rem, 58vw, 22rem);
+@celebration-bar-min-height: clamp(3.75rem, 15vw, 6.25rem);
+@celebration-bar-text-extra-x: 5rem;
+
+.celebrationBarFrame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max(
+    @celebration-bar-width,
+    calc(var(--celebration-title-width, 0px) + @celebration-bar-text-extra-x)
+  );
+  max-width: 94vw;
+  overflow: visible;
+
+  .mobile({
+    width: max(
+      clamp(12rem, 78vw, 18rem),
+      calc(var(--celebration-title-width, 0px) + 3.5rem)
+    );
+  });
+}
+
+.celebrationBarTrack {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  width: 100%;
+  min-height: @celebration-bar-min-height;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  background-image: url(@celebration-bar-bg);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 100%;
+
+  .mobile({
+    min-height: clamp(3.25rem, 18vw, 4.5rem);
+  });
+}
+
+.celebrationArtLeft {
+  position: absolute;
+  top: -4rem;
+  left: -4rem;
+  z-index: 1;
+  width: clamp(3rem, 14vw, 6.75rem);
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+
+  .mobile({
+    top: -2rem;
+    left: -2rem;
+  });
+}
+
+.celebrationArtBottom {
+  position: absolute;
+  right: -4rem;
+  bottom: -4rem;
+  z-index: 1;
+  width: clamp(2rem, 9vw, 4.25rem);
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+
+  .mobile({
+    right: -2rem;
+    bottom: -2rem;
+  });
+}
+
+.celebrationCluster {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.celebrationTitle {
+  flex-shrink: 0;
+  margin: 0;
+  font-family: @font-family-sans;
+  font-size: clamp(1.25rem, 4.5vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #ffe156;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.09rem #121212;
+  paint-order: stroke fill;
+  text-shadow:
+    0.08rem 0 0 #121212,
+    -0.08rem 0 0 #121212,
+    0 0.08rem 0 #121212,
+    0 -0.08rem 0 #121212,
+    0.1rem 0.1rem 0 #121212,
+    -0.1rem 0.1rem 0 #121212,
+    0.1rem -0.1rem 0 #121212,
+    -0.1rem -0.1rem 0 #121212;
+
+  .mobile({
+    font-size: clamp(1rem, 6vw, 1.75rem);
+    -webkit-text-stroke-width: 0.07rem;
+  });
+}
+
+.celebrationTitleCompact {
+  font-size: clamp(0.875rem, 3.25vw, 1.5rem);
+  -webkit-text-stroke-width: 0.07rem;
+
+  .mobile({
+    font-size: clamp(0.75rem, 5vw, 1.25rem);
+    -webkit-text-stroke-width: 0.06rem;
+  });
+}
+
+.celebrationExclamation {
+  position: absolute;
+  z-index: 3;
+  right: -3rem;
+  top: 0;
+  width: clamp(2.5rem, 11vw, 6rem);
+  height: auto;
+  object-fit: contain;
+  transform: translate(8%, -46%);
+  user-select: none;
+  pointer-events: none;
+
+  .mobile({
+    width: clamp(2rem, 14vw, 3.75rem);
+    transform: translate(-20%, -44%);
+  });
+}
+
+@keyframes celebrationFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

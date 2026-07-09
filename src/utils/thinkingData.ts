@@ -72,7 +72,7 @@ class ThinkingData {
     if (this.isGameInitialized(appKey)) {
       return true;
     } else {
-      console.warn(`appKey ${appKey} 未初始化，无法设置为当前游戏`);
+      // console.warn(`appKey ${appKey} 未初始化，无法设置为当前游戏`);
       return false;
     }
   }
@@ -83,7 +83,7 @@ class ThinkingData {
    */
   login(accountId: string) {
     if (!this.initialized) {
-      console.warn('ThinkingData SDK 未初始化，无法设置账号 ID');
+      // console.warn('ThinkingData SDK 未初始化，无法设置账号 ID');
       return;
     }
 
@@ -104,7 +104,7 @@ class ThinkingData {
     try {
       ta.logout();
     } catch (error) {
-      console.error('ThinkingData 登出失败:', error);
+      // console.error('ThinkingData 登出失败:', error);
     }
   }
 
@@ -114,15 +114,15 @@ class ThinkingData {
    */
   setSuperProperties(properties: Record<string, any>) {
     if (!this.initialized) {
-      console.warn('ThinkingData SDK 未初始化，无法设置公共事件属性');
+      // console.warn('ThinkingData SDK 未初始化，无法设置公共事件属性');
       return;
     }
 
     try {
       ta.setSuperProperties(properties);
-      console.log('ThinkingData 公共事件属性设置成功:', properties);
+      // console.log('ThinkingData 公共事件属性设置成功:', properties);
     } catch (error) {
-      console.error('ThinkingData 设置公共事件属性失败:', error);
+      // console.error('ThinkingData 设置公共事件属性失败:', error);
     }
   }
 
@@ -133,16 +133,16 @@ class ThinkingData {
    */
   track(eventName: string, properties?: Record<string, any>) {
     if (!this.initialized) {
-      console.warn(`⚠️ ThinkingData SDK 未初始化，无法发送事件 "${eventName}"。事件将在SDK初始化后自动上报。`);
+      // console.warn(`⚠️ ThinkingData SDK 未初始化，无法发送事件 "${eventName}"。事件将在SDK初始化后自动上报。`);
       return;
     }
 
     try {
       // 调试输出当次上报的事件名与参数
-      console.log('[ThinkingData track]', eventName, properties || {});
+      // console.log('[ThinkingData track]', eventName, properties || {});
       ta.track(eventName, properties || {});
     } catch (error) {
-      console.error('ThinkingData 发送事件失败:', error);
+      // console.error('ThinkingData 发送事件失败:', error);
     }
   }
 
@@ -152,15 +152,15 @@ class ThinkingData {
    */
   userSet(properties: Record<string, any>) {
     if (!this.initialized) {
-      console.warn('ThinkingData SDK 未初始化，无法设置用户属性');
+      // console.warn('ThinkingData SDK 未初始化，无法设置用户属性');
       return;
     }
 
     try {
       ta.userSet(properties);
-      console.log('ThinkingData 用户属性设置成功:', properties);
+      // console.log('ThinkingData 用户属性设置成功:', properties);
     } catch (error) {
-      console.error('ThinkingData 设置用户属性失败:', error);
+      // console.error('ThinkingData 设置用户属性失败:', error);
     }
   }
 
@@ -170,7 +170,7 @@ class ThinkingData {
   isInitialized(): boolean {
     const result = this.initialized;
     if (!result) {
-      console.warn(`⚠️ ThinkingData SDK 未初始化检查 - currentAppKey: ${this.currentAppKey}, initialized: ${this.initialized}`);
+      // console.warn(`⚠️ ThinkingData SDK 未初始化检查 - currentAppKey: ${this.currentAppKey}, initialized: ${this.initialized}`);
     }
     return result;
   }

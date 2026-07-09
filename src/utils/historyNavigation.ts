@@ -1,5 +1,7 @@
 import { STORAGE_KEYS } from './constants';
 
+const DEFAULT_GAME_STORE_GAME_ID = 'oopsie-croco';
+
 const APP_KEY_TO_GAME_ID: Record<string, string> = {
   'f6594168ce3a9cc57ab7ed74426e25e1': 'bam-bam-squad',
   '45a56d38bbdd60353438aa25d1ccff20': 'oopsie-croco',
@@ -17,8 +19,8 @@ function readStoredAppKey(): string | undefined {
 
 /** 根据 app_key 得到路由里的 gameId（用于订单页 URL） */
 export function getGameIdFromAppKey(appKey: string | null | undefined): string {
-  if (!appKey) return 'bam-bam-squad';
-  return APP_KEY_TO_GAME_ID[appKey] ?? 'bam-bam-squad';
+  if (!appKey) return DEFAULT_GAME_STORE_GAME_ID;
+  return APP_KEY_TO_GAME_ID[appKey] ?? DEFAULT_GAME_STORE_GAME_ID;
 }
 
 /**

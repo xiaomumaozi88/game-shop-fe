@@ -1,0 +1,78 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.row {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.0625rem;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.gemIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+  object-fit: contain;
+  flex-shrink: 0;
+
+  .mobile({
+    width: 0.8125rem;
+    height: 0.8125rem;
+  });
+}
+
+.gemText,
+.gemPlus {
+  font-family: @font-family-sans;
+  font-size: @font-size-md;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff883;
+  -webkit-text-stroke: 0.0625rem #121212;
+  paint-order: stroke fill;
+  text-shadow:
+    0.0625rem 0 0 #121212,
+    -0.0625rem 0 0 #121212,
+    0 0.0625rem 0 #121212,
+    0 -0.0625rem 0 #121212;
+  flex-shrink: 0;
+
+  .mobile({
+    font-size: @font-size-xs;
+    -webkit-text-stroke-width: 0.05rem;
+  });
+
+  .desktop({
+    font-size: @font-size-xl;
+  });
+}
+
+.gemPlus {
+  margin: 0 0.0625rem;
+}
+
+.rowModal {
+  .gemIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+
+    .mobile({
+      width: 1.125rem;
+      height: 1.125rem;
+    });
+  }
+
+  .gemText,
+  .gemPlus {
+    font-size: @font-size-xxl;
+    -webkit-text-stroke: 0.075rem #121212;
+
+    .mobile({
+      font-size: @font-size-lg;
+      -webkit-text-stroke-width: 0.0625rem;
+    });
+  }
+}

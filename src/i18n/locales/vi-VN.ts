@@ -13,9 +13,38 @@ export const viVN = {
     "noData": "Không có dữ liệu",
     "server": "Máy chủ"
   },
+  "auth": {
+    "tokenExpired": "Phiên đăng nhập đã hết hạn"
+  },
+  "errors": {
+    "900400": "Lỗi tham số nội bộ",
+    "900401": "Xác thực đăng nhập thất bại",
+    "900402": "Phiên đăng nhập đã hết hạn",
+    "1000000": "Lỗi hệ thống, vui lòng thử lại sau",
+    "1000001": "Lỗi tham số hệ thống, vui lòng thử lại sau",
+    "1000002": "ID captcha hoặc mã captcha không được để trống",
+    "1000003": "Email không hợp lệ",
+    "1000004": "Mã captcha không hợp lệ",
+    "1000005": "Mã email đã được gửi, vui lòng đợi 1 phút rồi thử lại",
+    "1000006": "Đã đạt giới hạn gửi mã email, vui lòng thử lại vào ngày mai",
+    "1000007": "Email không được để trống",
+    "1000008": "Mã không được để trống",
+    "1000009": "Mã không hợp lệ",
+    "1000010": "Không thể lấy token đăng nhập",
+    "1000011": "Sản phẩm chưa được kích hoạt, vui lòng chọn sản phẩm khác",
+    "1000012": "Sản phẩm đã vượt quá giới hạn mua, vui lòng chọn sản phẩm khác",
+    "1000013": "Sản phẩm đã ngừng bán",
+    "1000014": "Phương thức thanh toán chưa được bật",
+    "1000015": "Tài khoản của bạn không hỗ trợ mua sản phẩm, vui lòng liên hệ CSKH",
+    "1000016": "Tạo đơn hàng thất bại, vui lòng thử lại",
+    "1000017": "Không thể hủy đơn hàng này",
+    "1000018": "Đã đạt giới hạn số lượng cho một lần mua",
+    "1000019": "Mã xác nhận đã hết hạn, vui lòng lấy lại"
+  },
   "footer": {
     "language": "Tiếng Trung (Giản thể)",
     "privacyPolicy": "Chính sách bảo mật",
+    "refundPolicy": "Chính sách hoàn tiền",
     "termsOfService": "Điều khoản dịch vụ",
     "userSupport": "Hỗ trợ người dùng",
     "downloadNow": "Tải xuống ngay!"
@@ -27,7 +56,7 @@ export const viVN = {
     "greeting": "Xin chào",
     "loginPrompt": "Vui lòng nhấn đăng nhập",
     "switchServer": "Chuyển đổi",
-    "title": "Nền tảng nạp game",
+    "title": "Trung tâm nạp game",
     "logout": "Đăng xuất"
   },
   "games": {
@@ -36,6 +65,7 @@ export const viVN = {
   },
   "history": {
     "backToGameZone": "Quay lại cửa hàng game",
+    "allGames": "Tất cả game",
     "empty": "Chưa có đơn hàng",
     "filter": {
       "all": "Tất cả",
@@ -49,8 +79,13 @@ export const viVN = {
     "pendingAutoCancelSuffix": "nữa",
     "cancelOrder": "Hủy đơn hàng",
     "payOrder": "Thanh toán",
+    "cancelOrderConfirmTitle": "Xác nhận hủy đơn hàng?",
+    "cancelOrderConfirmPrimary": "Xác nhận hủy",
+    "cancelOrderDismiss": "Để sau",
+    "previousPage": "Trang trước",
+    "nextPage": "Trang sau",
     "status": {
-      "cancelled": "Đã hủy",
+      "cancelled": "Đã đóng",
       "completed": "Giao dịch hoàn thành",
       "paid": "Đã thanh toán",
       "pending": "Chờ thanh toán",
@@ -59,9 +94,16 @@ export const viVN = {
   },
   "home": {
     "selectGame": "Chọn trò chơi bạn muốn nạp tiền",
+    "selectGameMobileTitle": "Chọn game nạp tiền",
+    "mobileGameCardGo": "Đi",
     "selectGameParts": {
       "prefix": "Chọn trò chơi bạn muốn ",
       "keyword": "nạp tiền",
+      "suffix": ""
+    },
+    "purchaseEntryParts": {
+      "prefix": "Đi tới ",
+      "keyword": "mua hàng",
       "suffix": ""
     },
     "noRoleAccount": "Bạn chưa có nhân vật trong game này. Vui lòng tạo nhân vật trong game trước khi mua.",
@@ -84,7 +126,7 @@ export const viVN = {
     "captchaPlaceholder": "Mã xác nhận",
     "invalidCaptcha": "Vui lòng nhập mã xác nhận 4 chữ số",
     "email": "Email",
-    "emailNotBound": "Không tìm thấy, vui lòng nhập email đã liên kết trong game nhé~",
+    "emailNotBound": "Không tìm thấy tài khoản. Vui lòng nhập email đã liên kết với tài khoản trong game~",
     "emailPlaceholder": "Vui lòng nhập email của bạn",
     "keepLogin": "Giữ trạng thái đăng nhập trong 15 ngày",
     "loading": "Đang đăng nhập...",
@@ -100,9 +142,9 @@ export const viVN = {
     "cancel": "Hủy",
     "confirm": "Xác nhận",
     "dontRemind": "Lần sau không nhắc lại",
-    "messageLine1": "Sau khi đăng xuất, trong vòng 30 ngày gần đây tất cả các thiết bị sẽ",
-    "messageLine2": "Trạng thái đăng nhập sẽ hết hiệu lực.",
-    "title": "Lời nhắc thân thiện"
+    "messageLine1": "Sau khi đăng xuất, trạng thái đăng nhập trên tất cả thiết bị đã dùng trong 30 ngày gần đây",
+    "messageLine2": "sẽ hết hiệu lực.",
+    "title": "Lưu ý"
   },
   "menu": {
     "contactSupport": "Liên hệ dịch vụ khách hàng",
@@ -111,6 +153,7 @@ export const viVN = {
   },
   "paymentSuccess": {
     "account": "Tài khoản:",
+    "celebrationTitle": "Mua thành công",
     "confirm": "Xác nhận",
     "getPaymentInfoFailed": "Lấy thông tin thanh toán thất bại",
     "loading": "Đang tải...",
@@ -122,8 +165,8 @@ export const viVN = {
     "purchaseContent": "Nội dung mua:",
     "quantity": "Số lượng mua:",
     "serverAndCharacter": "Khu vực/nhân vật:",
-    "title": "Cảm ơn bạn đã mua hàng",
-    "total": "Tất cả:",
+    "title": "Cảm ơn đã mua hàng",
+    "total": "Tổng cộng:",
     "unionPay": "Ngân hàng UnionPay",
     "amountPaid": "Số tiền thanh toán:",
     "closeModal": "Đóng"
@@ -132,7 +175,7 @@ export const viVN = {
     "confirm": "Xác nhận",
     "purchaseDetails": "Chi tiết mua hàng",
     "quantity": "Số lượng:",
-    "total": "Tất cả:",
+    "total": "Tổng cộng:",
     "unitPrice": "Đơn giá:"
   },
   "products": {
@@ -140,24 +183,33 @@ export const viVN = {
     "diamond": "Kim cương",
     "products": "Sản phẩm",
     "vouchers": "Phiếu giảm giá",
+    "toukaCoin": "Touka Coin",
+    "toukaCoinBonusTip": "Mua sắm tại TOUKA Store và nhận thêm 10% phần thưởng!",
+    "superValue": "Siêu hời",
     "limitShort": "Giới hạn",
-    "remainingShort": "Còn",
-    "howToUseVouchers": "Cách sử dụng phiếu giảm giá?",
+    "remainingShort": "Còn lại",
+    "giftPackLimitType": {
+      "lifetime": "Trọn đời",
+      "weekly": "Theo tuần",
+      "monthly": "Theo tháng"
+    },
+    "howToUseVouchers": "Cách sử dụng Touka Coin?",
     "voucherGuide": {
-      "title": "Cách sử dụng phiếu giảm giá?",
-      "step1": "1.Vui lòng kiểm tra phiếu giảm giá bạn đã mua trong hộp thư nội bộ trò chơi.",
-      "step2": "2.Bạn có thể xem số lượng phiếu giảm giá của mình ở phía trên tab cửa hàng trong trò chơi. Khi số lượng phiếu giảm giá của bạn đạt đủ yêu cầu để mua gói quà, hệ thống sẽ ưu tiên sử dụng phiếu giảm giá để thanh toán.",
+      "title": "Cách sử dụng Touka Coin?",
+      "step1": "1. Vui lòng kiểm tra hộp thư trong game để nhận Touka Coin bạn đã mua.",
+      "step2": "2. Bạn có thể xem số dư Touka Coin ở phía trên tab cửa hàng trong game. Khi bạn có đủ Touka Coin để mua gói quà, hệ thống sẽ ưu tiên dùng Touka Coin để thanh toán.",
       "backToProducts": "Quay lại danh sách sản phẩm"
-    }
+    },
+    "luxuryVouchers": "Phiếu giảm giá cao cấp"
   },
   "purchaseConfirm": {
     "card": "Thẻ tín dụng/thẻ ghi nợ",
     "confirm": "Xác nhận",
     "dontAskAgain": "Không hỏi lại trong 30 ngày",
-    "gameServer": "Khu vực trò chơi",
+    "gameServer": "Máy chủ game",
     "paymentMethods": "Phương thức thanh toán được hỗ trợ",
     "paypal": "PayPal",
-    "title": "Bạn có chắc chắn mua hàng qua tài khoản này không",
+    "title": "Bạn có chắc chắn muốn mua hàng bằng tài khoản này không?",
     "unionPay": "Thẻ UnionPay"
   },
   "serverSelect": {
@@ -166,14 +218,16 @@ export const viVN = {
     "confirm": "Xác nhận",
     "noResults": "Chưa có kết quả",
     "serverPlaceholder": "Vui lòng nhập tên khu vực máy chủ để tìm kiếm",
-    "title": "Chọn khu vực máy chủ trò chơi",
-    "title": "Chọn khu vực trò chơi"
+    "title": "Chọn máy chủ game"
+  },
+  "orientation": {
+    "bestExperience": "Vui lòng chuyển sang chế độ dọc để có trải nghiệm tốt nhất"
   },
   "support": {
     "cancel": "Hủy",
     "copied": "Đã sao chép",
     "copy": "Sao chép một lần",
-    "description": "Vui lòng phản hồi thông tin chi tiết của bạn qua email chính thức",
+    "description": "Vui lòng gửi thông tin chi tiết của bạn đến email hỗ trợ chính thức.",
     "title": "Hỗ trợ khách hàng"
   },
   "verification": {

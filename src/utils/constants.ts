@@ -43,11 +43,55 @@ export const BREAKPOINTS = {
 // 图片占位符
 export const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x225?text=商品图片';
 
-// 支付类型
+// 支付类型（埋点 payment_type 字段）
 export const PAYMENT_TYPES = {
   APPLE: 'Apple', // 苹果原生支付
   GOOGLE: 'Google', // 谷歌原生支付
-  STRIPE_STORE: 'stripe_store', // 用户直接登录商城支付
-  STRIPE_H5: 'stripe_h5store', // 用户从游戏内跳转商城支付
+  STRIPE_STORE: 'stripe_store', // Stripe：用户直接登录商城支付
+  STRIPE_H5: 'stripe_h5store', // Stripe：用户从游戏内跳转商城支付
+  AIRWALLEX_STORE: 'airwallex_store', // Airwallex：用户直接登录商城支付
+  AIRWALLEX_H5STORE: 'airwallex_h5store', // Airwallex：用户从游戏内跳转商城支付
 } as const;
+
+/** URL 是否带游戏内跳转参数 */
+export function isGameRedirectEntry(): boolean {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.has('from_app') || params.has('game_redirect');
+}
+
+export function isAirwallexOrderPaymentData(data: {
+  billing_checkout_url?: string;
+  intent_id?: string;
+  client_secret?: string;
+}): boolean {
+  return Boolean(data.billing_checkout_url || (data.intent_id && data.client_secret));
+}
+
+/**
+ * 解析 Airwallex 埋点 payment_type
+ * 优先使用后端返回值，否则按是否游戏内跳转区分 store / h5store
+ */
+export function resolveAirwallexPaymentType(explicitType?: string): string {
+  const trimmed = explicitType?.trim();
+  if (trimmed) return trimmed;
+  return isGameRedirectEntry()
+    ? PAYMENT_TYPES.AIRWALLEX_H5STORE
+    : PAYMENT_TYPES.AIRWALLEX_STORE;
+}
+
+export function isAirwallexPaymentTypeValue(paymentType?: string): boolean {
+  const value = paymentType?.trim().toLowerCase() ?? '';
+  return value.startsWith('airwallex');
+}
+
+/** 订单埋点 payment_type：Airwallex 订单归一化为 airwallex_store / airwallex_h5store */
+export function resolveAnalyticsPaymentType(paymentType?: string): string | undefined {
+  const trimmed = paymentType?.trim();
+  if (!trimmed) return undefined;
+  if (isAirwallexPaymentTypeValue(trimmed)) {
+    return resolveAirwallexPaymentType(trimmed);
+  }
+  return trimmed;
+}
 

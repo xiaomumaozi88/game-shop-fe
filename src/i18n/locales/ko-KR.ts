@@ -5,7 +5,7 @@ export const koKR = {
     "title": "계정을 어떻게 생성하나요?"
   },
   "bottomNav": {
-    "home": "홈페이지",
+    "home": "홈",
     "myOrders": "내 주문"
   },
   "common": {
@@ -13,9 +13,38 @@ export const koKR = {
     "noData": "데이터 없음",
     "server": "서버"
   },
+  "auth": {
+    "tokenExpired": "로그인이 만료되었습니다"
+  },
+  "errors": {
+    "900400": "내부 매개변수 오류",
+    "900401": "로그인 인증에 실패했습니다",
+    "900402": "로그인이 만료되었습니다",
+    "1000000": "시스템 오류입니다. 나중에 다시 시도해 주세요",
+    "1000001": "시스템 매개변수 오류입니다. 나중에 다시 시도해 주세요",
+    "1000002": "캡차 ID 또는 코드를 입력해 주세요",
+    "1000003": "이메일 형식이 올바르지 않습니다",
+    "1000004": "캡차 코드가 올바르지 않습니다",
+    "1000005": "인증 코드가 이미 전송되었습니다. 1분 후 다시 시도해 주세요",
+    "1000006": "인증 코드 전송 한도에 도달했습니다. 내일 다시 시도해 주세요",
+    "1000007": "이메일을 입력해 주세요",
+    "1000008": "인증 코드를 입력해 주세요",
+    "1000009": "인증 코드가 올바르지 않습니다",
+    "1000010": "로그인 토큰을 가져오지 못했습니다",
+    "1000011": "상품이 비활성 상태입니다. 다른 상품을 선택해 주세요",
+    "1000012": "상품 구매 한도를 초과했습니다. 다른 상품을 선택해 주세요",
+    "1000013": "상품 판매가 종료되었습니다",
+    "1000014": "결제 수단이 활성화되어 있지 않습니다",
+    "1000015": "이 계정은 상품 구매를 지원하지 않습니다. 고객센터에 문의해 주세요",
+    "1000016": "주문 생성에 실패했습니다. 다시 시도해 주세요",
+    "1000017": "주문을 취소할 수 없습니다",
+    "1000018": "1회 구매 수량 한도에 도달했습니다",
+    "1000019": "인증 코드가 만료되었습니다. 다시 요청해 주세요"
+  },
   "footer": {
     "language": "중국어(간체)",
     "privacyPolicy": "개인정보 처리방침",
+    "refundPolicy": "환불 정책",
     "termsOfService": "서비스 약관",
     "userSupport": "사용자 지원",
     "downloadNow": "지금 다운로드!"
@@ -27,7 +56,7 @@ export const koKR = {
     "greeting": "안녕하세요",
     "loginPrompt": "로그인해 주세요",
     "switchServer": "전환",
-    "title": "게임 충전 플랫폼",
+    "title": "게임 충전 센터",
     "logout": "로그아웃"
   },
   "games": {
@@ -36,6 +65,7 @@ export const koKR = {
   },
   "history": {
     "backToGameZone": "게임 스토어로 돌아가기",
+    "allGames": "전체 게임",
     "empty": "주문 없음",
     "filter": {
       "all": "전체",
@@ -49,8 +79,13 @@ export const koKR = {
     "pendingAutoCancelSuffix": "후 자동으로 취소됩니다",
     "cancelOrder": "주문 취소",
     "payOrder": "결제",
+    "cancelOrderConfirmTitle": "주문을 취소할까요?",
+    "cancelOrderConfirmPrimary": "취소 확인",
+    "cancelOrderDismiss": "지금은 취소 안 함",
+    "previousPage": "이전 페이지",
+    "nextPage": "다음 페이지",
     "status": {
-      "cancelled": "취소됨",
+      "cancelled": "닫힘",
       "completed": "거래 완료",
       "paid": "결제 완료",
       "pending": "결제 대기",
@@ -59,10 +94,17 @@ export const koKR = {
   },
   "home": {
     "selectGame": "충전할 게임 선택",
+    "selectGameMobileTitle": "충전 게임 선택",
+    "mobileGameCardGo": "이동",
     "selectGameParts": {
       "prefix": "",
       "keyword": "충전",
       "suffix": "할 게임 선택"
+    },
+    "purchaseEntryParts": {
+      "prefix": "",
+      "keyword": "구매",
+      "suffix": "하러 가기"
     },
     "noRoleAccount": "이 게임에 아직 캐릭터가 없습니다. 구매 전 게임에서 캐릭터를 먼저 생성해 주세요.",
     "noRoleRefreshPrefix": "이미 계정을 만드셨나요? 눌러서 ",
@@ -84,7 +126,7 @@ export const koKR = {
     "captchaPlaceholder": "인증 코드",
     "invalidCaptcha": "4자리 인증 코드를 입력하세요",
     "email": "이메일",
-    "emailNotBound": "검색에 실패했습니다, 게임 내 연동한 이메일을 입력해 주세요~",
+    "emailNotBound": "계정을 찾을 수 없습니다. 게임에 연동된 이메일을 입력해 주세요~",
     "emailPlaceholder": "이메일 주소를 입력해 주세요",
     "keepLogin": "15일 동안 로그인 상태 유지",
     "loading": "로그인 중...",
@@ -100,9 +142,9 @@ export const koKR = {
     "cancel": "취소",
     "confirm": "확인",
     "dontRemind": "다음부터 알림 안 함",
-    "messageLine1": "로그아웃 후, 최근 30일 내 모든 기기의",
+    "messageLine1": "로그아웃 후, 최근 30일 이내에 로그인한 모든 기기의",
     "messageLine2": "로그인 상태가 만료됩니다.",
-    "title": "안내 말씀"
+    "title": "안내"
   },
   "menu": {
     "contactSupport": "고객 서비스 문의",
@@ -111,6 +153,7 @@ export const koKR = {
   },
   "paymentSuccess": {
     "account": "계정:",
+    "celebrationTitle": "구매 성공",
     "confirm": "확인",
     "getPaymentInfoFailed": "결제 정보 가져오기 실패",
     "loading": "로딩 중...",
@@ -123,7 +166,7 @@ export const koKR = {
     "quantity": "구매 수량:",
     "serverAndCharacter": "서버/캐릭터:",
     "title": "구매해 주셔서 감사합니다",
-    "total": "전체:",
+    "total": "총계:",
     "unionPay": "UnionPay",
     "amountPaid": "실제 결제 금액:",
     "closeModal": "닫기"
@@ -132,7 +175,7 @@ export const koKR = {
     "confirm": "확인",
     "purchaseDetails": "구매 내역",
     "quantity": "수량:",
-    "total": "전체:",
+    "total": "총계:",
     "unitPrice": "단가:"
   },
   "products": {
@@ -140,15 +183,24 @@ export const koKR = {
     "diamond": "다이아",
     "products": "상품",
     "vouchers": "바우처",
+    "toukaCoin": "Touka 코인",
+    "toukaCoinBonusTip": "TOUKA Store에서 구매 시 추가 10% 보상을 받으세요!",
+    "superValue": "초특가",
     "limitShort": "제한",
-    "remainingShort": "남은",
-    "howToUseVouchers": "대금권(바우처) 사용 방법",
+    "remainingShort": "남은 시간",
+    "giftPackLimitType": {
+      "lifetime": "평생 특가",
+      "weekly": "주간 특가",
+      "monthly": "월간 특가"
+    },
+    "howToUseVouchers": "Touka 코인 사용 방법",
     "voucherGuide": {
-      "title": "대금권(바우처) 사용 방법",
-      "step1": "1.게임 내 우편함에서 구매한 대금권을 확인하세요.",
-      "step2": "2.게임 상점 탭 상단에서 대금권 수량을 확인할 수 있습니다. 대금권 수량이 구매하려는 패키지에 필요한 수량에 도달하면, 대금권이 우선적으로 사용됩니다.",
+      "title": "Touka 코인 사용 방법",
+      "step1": "1. 구매한 Touka 코인은 게임 내 우편함에서 확인해 주세요.",
+      "step2": "2. 게임 내 상점 탭 상단에서 보유한 Touka 코인 잔액을 확인할 수 있습니다. 선물 패키지를 구매할 만큼 Touka 코인이 충분하면, 구매 시 Touka 코인이 우선 사용됩니다.",
       "backToProducts": "상품 목록으로 돌아가기"
-    }
+    },
+    "luxuryVouchers": "고급 바우처"
   },
   "purchaseConfirm": {
     "card": "신용카드/직불카드",
@@ -166,14 +218,16 @@ export const koKR = {
     "confirm": "확인",
     "noResults": "결과 없음",
     "serverPlaceholder": "서버 이름을 입력하여 검색하세요",
-    "title": "게임 지역 선택",
     "title": "게임 서버 선택"
+  },
+  "orientation": {
+    "bestExperience": "최상의 이용 경험을 위해 세로 화면으로 전환해 주세요"
   },
   "support": {
     "cancel": "취소",
     "copied": "복사 완료",
     "copy": "한 번에 복사",
-    "description": "자세한 정보는 공식 메일로 문의하세요",
+    "description": "자세한 정보는 공식 지원 이메일로 보내 주세요.",
     "title": "고객 지원"
   },
   "verification": {
@@ -182,7 +236,7 @@ export const koKR = {
     "incorrectCode": "인증 코드가 올바르지 않습니다",
     "invalidCode": "6자리 인증 코드를 입력하세요",
     "noCode": "인증 코드를 못 받으셨나요?",
-    "sentTo": "인증 코드가 발송되었습니다",
+    "sentTo": "인증 코드가 다음 주소로 발송되었습니다",
     "submit": "제출",
     "submitting": "제출 중..."
   }

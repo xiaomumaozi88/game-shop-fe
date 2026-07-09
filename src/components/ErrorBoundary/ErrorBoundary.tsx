@@ -12,6 +12,36 @@ interface State {
   error?: Error;
 }
 
+const CHUNK_RELOAD_STORAGE_KEY = 'game-shop-chunk-load-retried-at';
+const CHUNK_RELOAD_GUARD_MS = 60 * 1000;
+
+const isChunkLoadError = (error?: Error): boolean => {
+  const message = error?.message || '';
+  const name = error?.name || '';
+
+  return (
+    name === 'ChunkLoadError' ||
+    /Loading (CSS )?chunk \d+ failed/i.test(message) ||
+    /ChunkLoadError/i.test(message) ||
+    /Failed to fetch dynamically imported module/i.test(message) ||
+    /Importing a module script failed/i.test(message)
+  );
+};
+
+const canAutoReloadForChunkError = (): boolean => {
+  try {
+    const lastReloadAt = Number(sessionStorage.getItem(CHUNK_RELOAD_STORAGE_KEY) || '0');
+    const now = Date.now();
+    if (now - lastReloadAt < CHUNK_RELOAD_GUARD_MS) {
+      return false;
+    }
+    sessionStorage.setItem(CHUNK_RELOAD_STORAGE_KEY, String(now));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -23,7 +53,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    // console.error('Error caught by boundary:', error, errorInfo);
+    if (isChunkLoadError(error) && canAutoReloadForChunkError()) {
+      window.location.reload();
+    }
   }
 
   handleReset = () => {
@@ -31,18 +64,24 @@ export class ErrorBoundary extends Component<Props, State> {
     navigateTo('/');
   };
 
+  handleReload = () => {
+    window.location.reload();
+  };
+
   render() {
     if (this.state.hasError) {
+      const chunkLoadError = isChunkLoadError(this.state.error);
+
       return (
         <div className={styles.errorBoundary}>
           <div className={styles.content}>
-            <h1 className={styles.title}>出错了</h1>
+            <h1 className={styles.title}>{chunkLoadError ? '页面资源已更新' : '出错了'}</h1>
             <p className={styles.message}>
-              {this.state.error?.message || '发生了未知错误'}
+              {chunkLoadError ? '页面资源加载失败，请刷新页面重试。' : '发生了未知错误，请稍后重试。'}
             </p>
             <div className={styles.actions}>
-              <Button variant="primary" onClick={this.handleReset}>
-                返回首页
+              <Button variant="primary" onClick={chunkLoadError ? this.handleReload : this.handleReset}>
+                {chunkLoadError ? '刷新页面' : '返回首页'}
               </Button>
             </div>
           </div>
@@ -53,4 +92,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

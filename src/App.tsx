@@ -4,6 +4,8 @@ import { Layout } from '@/components/Layout';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Loading } from '@/components/Loading';
 import { Message } from '@/components/Message';
+// import { LandscapeOrientationOverlay } from '@/components/LandscapeOrientationOverlay/LandscapeOrientationOverlay';
+import { useDisablePageZoom } from '@/hooks/useDisablePageZoom';
 import '@/styles/index.less';
 
 // 懒加载页面组件
@@ -15,6 +17,8 @@ const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
 const History = lazy(() => import('@/pages/History'));
 
 const App: React.FC = () => {
+  useDisablePageZoom();
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
@@ -33,10 +37,11 @@ const App: React.FC = () => {
           </Suspense>
         </Layout>
         <Message />
+        {/* 横屏遮罩临时关闭，恢复时取消 import 和下方组件注释。 */}
+        {/* <LandscapeOrientationOverlay /> */}
       </BrowserRouter>
     </ErrorBoundary>
   );
 };
 
 export default App;
-

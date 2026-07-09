@@ -3,13 +3,90 @@
 
 .layout {
   min-height: 100vh;
+  min-height: 100dvh;
+  min-height: var(--app-viewport-height, 100dvh);
   display: flex;
   flex-direction: column;
   position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+}
+
+// 首页：默认一屏展示；浏览器缩放导致内容超高时由 layout 纵向滚动承载
+.layoutHome {
+  .mobile({
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: var(--app-viewport-height, 100dvh);
+    height: 100vh;
+    height: 100dvh;
+    height: var(--app-viewport-height, 100dvh);
+    max-height: var(--app-viewport-height, 100dvh);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    overscroll-behavior-x: none;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    height: auto;
+    max-height: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: var(--app-viewport-height, 100dvh);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .tablet-up({
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: var(--app-viewport-height, 100dvh);
+    height: 100vh;
+    height: 100dvh;
+    height: var(--app-viewport-height, 100dvh);
+    max-height: var(--app-viewport-height, 100dvh);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    overscroll-behavior-x: none;
+  });
 }
 
 .main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  .layoutHome & {
+    .mobile({
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      padding-top: @layout-header-height-mobile;
+      box-sizing: border-box;
+    });
+
+    @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+      flex: 0 0 auto;
+      min-height: auto;
+      overflow-x: hidden;
+      overflow-y: visible;
+    }
+
+    .tablet-up({
+      overflow-x: hidden;
+      overflow-y: hidden;
+      // Header 为 fixed，需在 main 内预留顶栏高度，banner 才能在可视区垂直居中
+      padding-top: @layout-header-height-desktop;
+      box-sizing: border-box;
+    });
+  }
   padding-bottom: 0; // 移除底部padding，让内容自然流动
 
   .mobile({
@@ -21,3 +98,23 @@
   });
 }
 
+// 手机横屏时 CSS 宽度常超过 768px，会命中 tablet-up；放在末尾做最终覆盖。
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  .layoutHome {
+    height: auto;
+    max-height: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: var(--app-viewport-height, 100dvh);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .layoutHome .main {
+    flex: 0 0 auto;
+    min-height: auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding-top: @layout-header-height-tablet;
+  }
+}

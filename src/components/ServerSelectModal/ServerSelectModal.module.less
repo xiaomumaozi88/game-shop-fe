@@ -1,43 +1,83 @@
 @import '@/styles/variables.less';
 @import '@/styles/mixins.less';
 
+@server-modal-bg: #fffdf4;
+@server-modal-text: #5e5447;
+@server-modal-orange: #ff8100;
+@server-modal-orange-dark: #e67400;
+@server-modal-input-bg: #fff1db;
+@server-modal-input-border: #fbd9b9;
+@server-modal-placeholder: #c9a574;
+@server-modal-chevron: #ff9a3d;
+@server-modal-scale: 1.15;
+@server-modal-base-width: 22.5rem;
+@server-select-radius: (1.5rem * @server-modal-scale);
+@server-select-pill-radius: ((3rem * @server-modal-scale) / 2);
+@server-select-transition: 0.32s cubic-bezier(0.33, 1, 0.68, 1);
+@server-dropdown-visible-count: 3;
+@server-dropdown-item-block-size: (
+  (0.625rem * 2 * @server-modal-scale) + (@font-size-md * @server-modal-scale * 1.35)
+);
+@server-dropdown-scroll-max-height: (@server-dropdown-item-block-size * @server-dropdown-visible-count);
+
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  inset: 0;
   z-index: @z-index-modal;
   .flex-center();
-  padding: @spacing-md;
+  padding: @spacing-xl @spacing-md;
+  .modalOverlayBackdrop();
 
-  .mobile({
-    padding: @spacing-md;
-  });
+  .touchLandscapeModalOverlay(0.75rem, 1rem);
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: @spacing-sm @spacing-md;
+
+    &::after {
+      display: none;
+    }
+  }
 }
 
 .modal {
   position: relative;
-  background: @white;
-  border-radius: @border-radius-lg;
-  max-width: min(100%, 32rem); // 约 512px，长 placeholder / 多语言更易完整显示
   width: 100%;
-  padding: @spacing-xxl @spacing-lg @spacing-xl;
-  box-shadow: @box-shadow-lg;
+  max-width: (@server-modal-base-width * @server-modal-scale);
+  box-sizing: border-box;
+  padding: (2.25rem * @server-modal-scale) (2rem * @server-modal-scale) (2rem * @server-modal-scale);
+  background: @server-modal-bg;
+  border-radius: (2rem * @server-modal-scale);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
   animation: slideUp 0.3s ease;
+  overflow: visible;
+  font-family: @font-family-sans;
+  max-height: none;
 
   .mobile({
     max-width: 90%;
-    padding: @spacing-xl @spacing-md;
+    padding: (2rem * @server-modal-scale) (1.5rem * @server-modal-scale) (1.75rem * @server-modal-scale);
+    border-radius: (1.75rem * @server-modal-scale);
   });
+
+  .touchLandscapeModalBox(1.5rem);
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    width: min((@server-modal-base-width * @server-modal-scale), 82vw);
+    max-width: min((@server-modal-base-width * @server-modal-scale), 82vw);
+    max-height: none;
+    padding: (2rem * @server-modal-scale) (1.5rem * @server-modal-scale) (1.75rem * @server-modal-scale);
+    border-radius: (1.75rem * @server-modal-scale);
+    margin: auto;
+  }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(1.25rem); // 20px
+    transform: translateY(1.25rem);
   }
   to {
     opacity: 1;
@@ -45,238 +85,460 @@
   }
 }
 
-.title {
-  font-size: @font-size-xxl;
-  font-weight: bold;
-  color: #000;
-  text-align: center;
-  margin: 0 0 @spacing-md 0;
-  line-height: 1.4;
+.closeButton {
+  .button-reset();
+  position: absolute;
+  top: (-0.75rem * @server-modal-scale);
+  right: (-1.25rem * @server-modal-scale);
+  width: (3.5rem * @server-modal-scale);
+  height: (3.5rem * @server-modal-scale);
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 
   .mobile({
-    font-size: @font-size-xxl;
+    top: (-0.625rem * @server-modal-scale);
+    right: (-0.875rem * @server-modal-scale);
+    width: (3rem * @server-modal-scale);
+    height: (3rem * @server-modal-scale);
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    top: (-0.625rem * @server-modal-scale);
+    right: (-0.875rem * @server-modal-scale);
+    width: (3rem * @server-modal-scale);
+    height: (3rem * @server-modal-scale);
+  }
+}
+
+.closeButtonImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.title {
+  margin: 0 0 (@spacing-xl * @server-modal-scale);
+  font-size: (@font-size-xxl * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-text;
+  text-align: center;
+  line-height: 1.3;
+
+  .mobile({
+    font-size: (@font-size-xl * @server-modal-scale);
+    margin-bottom: (@spacing-lg * @server-modal-scale);
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    margin-bottom: @spacing-sm;
+    font-size: @font-size-lg;
+    line-height: 1.2;
+  }
 }
 
 .inputGroup {
-  margin-bottom: @spacing-lg;
+  margin-bottom: (@spacing-md * @server-modal-scale);
   position: relative;
+  z-index: 1;
 
-  .mobile({
-    margin-bottom: @spacing-md;
-  });
+  &:has(.selectControlOpen) {
+    z-index: 20;
+  }
+
+  &:last-of-type {
+    margin-bottom: (@spacing-lg * @server-modal-scale);
+  }
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    margin-bottom: @spacing-sm;
+
+    &:last-of-type {
+      margin-bottom: @spacing-sm;
+    }
+  }
+}
+
+.selectControl {
+  position: relative;
+  border: 3px solid @server-modal-input-border;
+  border-radius: @server-select-pill-radius;
+  background: @server-modal-input-bg;
+  overflow: hidden;
+  transition:
+    box-shadow @server-select-transition,
+    border-radius @server-select-transition,
+    border-color @server-select-transition;
+
+  &.selectControlOpen {
+    overflow: visible;
+    border-radius: @server-select-pill-radius @server-select-pill-radius 0 0;
+    border-bottom-color: transparent;
+    box-shadow: 0 0.125rem 0.375rem rgba(94, 84, 71, 0.06);
+
+    .dropdownCollapse {
+      grid-template-rows: 1fr;
+      pointer-events: auto;
+    }
+
+    .dropdownList {
+      border-color: @server-modal-input-border;
+      border-width: 3px;
+      border-top-color: #e8dcc8;
+      box-shadow: 0 0.375rem 0.75rem rgba(94, 84, 71, 0.12);
+
+      &::before {
+        opacity: 1;
+      }
+    }
+  }
+
+  &.selectControlDisabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+  }
 }
 
 .inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 0; // 允许子项 input 在 flex 内正确收缩，避免 placeholder 被异常裁切
-  border: 1px solid #e0e0e0;
-  border-radius: 1.25rem; // 20px 圆角（默认状态）
-  background: @white;
-  overflow: visible; // 改为 visible，让下拉列表可以显示
+  min-width: 0;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
   z-index: 1;
-  transition: border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 3rem; // 48px 统一最小高度
-
-  // 当下拉列表打开时，保持顶部圆角，底部圆角变为0
-  &.inputWrapperOpen {
-    border-radius: 1.25rem 1.25rem 0 0; // 20px 顶部保持圆角，底部变为0
-    border-bottom: 1px solid transparent; // 使用透明边框而不是none，避免闪烁
-  }
+  min-height: (3rem * @server-modal-scale);
 
   .mobile({
-    min-height: 2.5rem; // 40px
+    min-height: (2.75rem * @server-modal-scale);
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    min-height: 2.5rem;
+  }
+}
+
+.inputWrapperWithServerPlaceholder {
+  min-height: auto;
+  align-items: stretch;
 }
 
 .input {
   flex: 1;
-  min-width: 0; // 与 inputWrapper 配合，保证占位符在可用宽度内尽量完整显示
+  min-width: 0;
   width: 100%;
-  padding: @spacing-md;
-  padding-right: @spacing-xs;
+  padding: (0.875rem * @server-modal-scale) (0.5rem * @server-modal-scale) (0.875rem * @server-modal-scale)
+    (1.25rem * @server-modal-scale);
   border: none;
   outline: none;
-  font-size: @font-size-md;
-  color: @text-color;
+  font-family: @font-family-sans;
+  font-size: (@font-size-md * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-text;
   background: transparent;
-  line-height: 1.5; // 统一行高
-  min-height: auto; // 移除最小高度限制
+  line-height: 1.4;
 
   &::placeholder {
-    color: #cccccc; // 更浅的灰色
-    font-size: 1rem; 
-    line-height: 1.4;
-    letter-spacing: -0.015em;
+    color: @server-modal-text;
+    font-weight: bold;
+    opacity: 0.88;
   }
 
   .mobile({
-    padding: @spacing-sm;
-    font-size: @font-size-sm;
+    padding: (0.75rem * @server-modal-scale) (0.375rem * @server-modal-scale) (0.75rem * @server-modal-scale)
+      (0.875rem * @server-modal-scale);
+    font-size: (@font-size-sm * @server-modal-scale);
 
     &::placeholder {
-      font-size: 0.8rem; 
-      letter-spacing: -0.02em;
+      font-size: @font-size-xs;
+      line-height: 1.2;
     }
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    padding: 0.5rem 0.375rem 0.5rem 0.875rem;
+    font-size: @font-size-sm;
+  }
+}
+
+.serverPlaceholder {
+  flex: 1;
+  min-width: 0;
+  padding: (0.875rem * @server-modal-scale) (0.5rem * @server-modal-scale) (0.875rem * @server-modal-scale)
+    (1.25rem * @server-modal-scale);
+  font-family: @font-family-sans;
+  font-size: (@font-size-md * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-text;
+  line-height: 1.25;
+  opacity: 0.88;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  pointer-events: none;
+
+  .mobile({
+    padding: (0.75rem * @server-modal-scale) (0.375rem * @server-modal-scale) (0.75rem * @server-modal-scale)
+      (0.875rem * @server-modal-scale);
+    font-size: @font-size-xs;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    padding: 0.5rem 0.375rem 0.5rem 0.875rem;
+    font-size: @font-size-sm;
+  }
+}
+
+.inputWrapperWithServerPlaceholder .input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  opacity: 0;
 }
 
 .characterInput {
   flex: 1;
-  padding: @spacing-md;
+  padding: (0.875rem * @server-modal-scale) (0.5rem * @server-modal-scale) (0.875rem * @server-modal-scale)
+    (1.25rem * @server-modal-scale);
   cursor: pointer;
   display: flex;
   align-items: center;
-  outline: none; // 移除焦点轮廓
-  min-height: 3rem; // 48px 与输入框保持一致的高度
+  outline: none;
+  min-height: (3rem * @server-modal-scale);
+
+  &.characterInputDisabled {
+    cursor: not-allowed;
+  }
 
   .mobile({
-    padding: @spacing-sm;
-    min-height: 2.5rem; // 40px
+    padding: (0.75rem * @server-modal-scale) (0.375rem * @server-modal-scale) (0.75rem * @server-modal-scale)
+      (0.875rem * @server-modal-scale);
+    min-height: (2.75rem * @server-modal-scale);
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.375rem 0.5rem 0.875rem;
+  }
 }
 
 .characterName {
-  font-size: @font-size-md; // 与输入框字体大小一致
-  color: @text-color;
-  font-weight: normal; // 移除加粗，与输入框一致
+  font-family: @font-family-sans;
+  font-size: (@font-size-md * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-text;
   width: 100%;
 
   .mobile({
-    font-size: @font-size-sm; // 移动端与输入框字体大小一致
+    font-size: (@font-size-sm * @server-modal-scale);
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    font-size: @font-size-sm;
+  }
 }
 
 .characterPlaceholder {
-  font-size: @font-size-md; // 与输入框字体大小一致
-  color: #cccccc; // 与输入框 placeholder 颜色一致
+  font-family: @font-family-sans;
+  font-size: (@font-size-md * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-placeholder;
 
   .mobile({
-    font-size: @font-size-sm; // 移动端与输入框字体大小一致
+    font-size: @font-size-xs;
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    font-size: @font-size-sm;
+  }
 }
 
 .dropdownButton {
   .button-reset();
-  padding: @spacing-md;
+  position: relative;
+  z-index: 2;
+  padding: (0.875rem * @server-modal-scale) (1.125rem * @server-modal-scale) (0.875rem * @server-modal-scale)
+    (0.5rem * @server-modal-scale);
   background: transparent;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: @text-color-secondary;
   flex-shrink: 0;
 
   .mobile({
-    padding: @spacing-sm;
+    padding: (0.75rem * @server-modal-scale) (0.75rem * @server-modal-scale) (0.75rem * @server-modal-scale)
+      (0.375rem * @server-modal-scale);
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    padding: 0.5rem 0.875rem 0.5rem 0.375rem;
+  }
 }
 
 .chevron {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: (1rem * @server-modal-scale);
+  height: (1rem * @server-modal-scale);
+  transition: transform @server-select-transition;
   display: inline-block;
 }
 
-.chevronUp {
-  transform: rotate(0deg);
-}
-
-.chevronDown {
+.chevronOpen {
   transform: rotate(180deg);
 }
 
-.dropdownList {
+.dropdownCollapse {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
-  background: @white;
-  border: 1px solid #e0e0e0;
-  border-top: 1px solid transparent; // 顶部边框透明，避免与输入框边框重叠
-  border-radius: 0 0 20px 20px; // 顶部圆角为0，底部圆角与输入框一致（20px），保持整体圆角形状
-  max-height: 12.5rem; // 200px
-  overflow-y: auto;
-  z-index: 10;
-  margin-top: -1px; // 负边距，让下拉列表覆盖输入框的底部边框
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); // 添加阴影增强一体感
-  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: top;
-  overflow-x: hidden;
+  left: -3px;
+  right: -3px;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -3px;
+  transition: grid-template-rows @server-select-transition;
+  pointer-events: none;
 }
 
-@keyframes slideDown {
-  from {
+.dropdownList {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  background-color: @server-modal-input-bg;
+  border: 3px solid transparent;
+  border-radius: 0 0 @server-select-pill-radius @server-select-pill-radius;
+  transition:
+    border-color @server-select-transition,
+    box-shadow @server-select-transition;
+  border-top: none;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 90%;
+    height: 2px;
+    background: @server-modal-input-border;
     opacity: 0;
-    transform: translateY(-10px) scaleY(0.95);
+    margin: 0 auto;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scaleY(1);
+
+  &.dropdownListCapped {
+    max-height: @server-dropdown-scroll-max-height;
+  }
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    &.dropdownListCapped {
+      max-height: min(@server-dropdown-scroll-max-height, 8rem);
+    }
+  }
+
+  &.dropdownListScrollable {
+    overflow-y: auto;
+  }
+
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    &.dropdownListCapped {
+      max-height: @server-dropdown-scroll-max-height;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+}
+
+.selectControlKeyboardActive {
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    .dropdownListCapped {
+      max-height: @server-dropdown-scroll-max-height;
+    }
   }
 }
 
 .dropdownItem {
-  padding: @spacing-md;
+  padding: (0.625rem * @server-modal-scale) 0;
   cursor: pointer;
-  font-size: @font-size-md;
-  color: @text-color;
-  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s ease;
-  transform: translateZ(0); // 启用硬件加速
+  font-family: @font-family-sans;
+  font-size: (@font-size-md * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-text;
+  text-align: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  width: 90%;
+  margin: 0 auto;
+  text-align: left;
 
   &:hover {
-    background: @background-color;
-    transform: translateX(2px); // 轻微右移，增加交互感
-  }
-
-  &:active {
-    background: darken(@background-color, 5%);
-    transform: translateX(0) scale(0.98);
+    color: @server-modal-orange;
   }
 
   &.dropdownItemSelected {
-    background: fade(@primary-color, 10%);
-    color: @primary-color;
-    font-weight: 500;
+    color: @server-modal-orange;
+    background: #fff1db;
   }
 
   .mobile({
-    padding: @spacing-sm;
-    font-size: @font-size-sm;
+    padding: (0.5625rem * @server-modal-scale) (1rem * @server-modal-scale);
+    padding-left: 0.3rem;
+    font-size: (@font-size-sm * @server-modal-scale);
+    color: @server-modal-text;
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    padding: 0.4375rem 0.875rem;
+    padding-left: 0.3rem;
+    font-size: @font-size-sm;
+  }
 }
 
 .dropdownItemEmpty {
-  padding: @spacing-md;
-  font-size: @font-size-sm;
-  color: @text-color-secondary;
+  padding: (0.875rem * @server-modal-scale) (1.25rem * @server-modal-scale);
+  font-family: @font-family-sans;
+  font-size: (@font-size-sm * @server-modal-scale);
+  font-weight: bold;
+  color: @server-modal-placeholder;
   text-align: center;
 
   .mobile({
-    padding: @spacing-sm;
-    font-size: @font-size-xs;
+    padding: (0.75rem * @server-modal-scale) (1rem * @server-modal-scale);
+    font-size: (@font-size-xs * @server-modal-scale);
   });
 }
 
 .confirmButton {
-  flex: 1;
-  padding: @spacing-md;
-  background: #626cda;
-  border: none;
-  border-radius: 1.25rem; // 20px 圆角
-  color: @white;
-  font-size: @font-size-md;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  .touch-friendly();
+  .button-reset();
   width: 100%;
-  margin-top: @spacing-md;
+  padding: (0.9375rem * @server-modal-scale) (@spacing-lg * @server-modal-scale);
+  background: @server-modal-orange;
+  border: none;
+  border-radius: 999px;
+  color: @white;
+  font-family: @font-family-sans;
+  font-size: (@font-size-lg * @server-modal-scale);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  .touch-friendly();
 
   &:hover {
-    background: darken(#626cda, 10%);
+    background: @server-modal-orange-dark;
   }
 
   &:active {
@@ -284,48 +546,13 @@
   }
 
   .mobile({
-    font-size: @font-size-sm;
-    padding: @spacing-sm;
+    font-size: (@font-size-md * @server-modal-scale);
+    padding: (0.875rem * @server-modal-scale) (@spacing-md * @server-modal-scale);
   });
-}
 
-.closeButton {
-  .button-reset();
-  position: absolute;
-  bottom: -60px; // 增加与弹窗的距离
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2.5rem; // 40px
-  height: 2.5rem; // 40px
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: @background-color;
-    border-color: @text-color-secondary;
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    min-height: 2.25rem;
+    padding: 0.5rem @spacing-md;
+    font-size: @font-size-md;
   }
-
-  &:active {
-    transform: translateX(-50%) scale(0.95);
-  }
-
-  .mobile({
-    
-  });
 }
-
-.closeIcon {
-  width: 2.5rem; // 40px
-  height: 2.5rem; // 40px
-  object-fit: contain;
-
-  .mobile({
-    width: 2.5rem; // 40px
-    height: 2.5rem; // 40px
-  });
-}
-

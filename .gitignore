@@ -9,6 +9,11 @@ node_modules/
 # Production
 /dist
 /build
+/game_shop_fe_test/
+
+# Local maintenance scripts
+/scripts/apply_locale_updates.py
+/scripts/locale-updates.json
 
 # Misc
 .DS_Store
@@ -38,4 +43,3 @@ lerna-debug.log*
 
 # Bundle analyzer
 bundle-report.html
-

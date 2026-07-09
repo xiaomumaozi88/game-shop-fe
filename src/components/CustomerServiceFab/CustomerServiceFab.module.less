@@ -1,0 +1,70 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
+.fab {
+  .button-reset();
+  position: fixed;
+  right: @spacing-md;
+  bottom: 20%;
+  z-index: @z-index-dropdown;
+  width: 8rem;
+  height: 8rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .mobile({
+    right: @spacing-sm;
+    bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px));
+    width: 4rem;
+    height: 4rem;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    position: fixed;
+    right: @spacing-sm;
+    bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px));
+    width: 4rem;
+    height: 4rem;
+  }
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    position: absolute;
+    right: @spacing-sm;
+    bottom: 8.5rem;
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+.fabHome {
+  .mobile({
+    bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    bottom: 5.75rem;
+  }
+}
+
+.fabImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+}

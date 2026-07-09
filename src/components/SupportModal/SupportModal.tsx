@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useScrollLock } from '@/hooks/useScrollLock';
+import loginModalClose from '@/assets/img2/login_modal_close.png';
 import styles from './SupportModal.module.less';
 
 interface SupportModalProps {
@@ -12,13 +14,9 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
   const [copied, setCopied] = useState(false);
   const email = 'support@toukagame.com';
 
-  if (!isOpen) return null;
+  useScrollLock(isOpen);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  if (!isOpen) return null;
 
   const handleCopy = async () => {
     try {
@@ -28,7 +26,6 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
         setCopied(false);
       }, 2000);
     } catch (err) {
-      // 降级方案：使用传统方法
       const textArea = document.createElement('textarea');
       textArea.value = email;
       textArea.style.position = 'fixed';
@@ -41,29 +38,34 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
         setTimeout(() => {
           setCopied(false);
         }, 2000);
-      } catch (err) {
-        console.error('复制失败', err);
+      } catch (copyErr) {
+        // console.error('复制失败', copyErr);
       }
       document.body.removeChild(textArea);
     }
   };
 
   return (
-    <div className={styles.overlay} onClick={handleBackdropClick}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{t('support.title')}</h2>
+    <div className={styles.overlay} data-scroll-lock-overlay>
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="support-modal-title">
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={onClose}
+          aria-label="关闭"
+        >
+          <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
+        </button>
+
+        <h2 id="support-modal-title" className={styles.title}>
+          {t('support.title')}
+        </h2>
         <p className={styles.description}>{t('support.description')}</p>
-        <div className={styles.email}>{email}</div>
-        <div className={styles.actions}>
-          <button className={styles.cancelButton} onClick={onClose}>
-            {t('support.cancel')}
-          </button>
-          <button className={styles.copyButton} onClick={handleCopy}>
-            {copied ? t('support.copied') : t('support.copy')}
-          </button>
-        </div>
+        <p className={styles.email}>{email}</p>
+        <button type="button" className={styles.copyButton} onClick={handleCopy}>
+          {copied ? t('support.copied') : t('support.copy')}
+        </button>
       </div>
     </div>
   );
 };
-

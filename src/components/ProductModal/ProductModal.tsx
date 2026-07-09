@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product } from '@/types';
-import { formatPrice, storage, STORAGE_KEYS, trackStoreIapClick, PAYMENT_TYPES, navigateTo } from '@/utils';
-import { ModalCloseIcon } from '../Icons/ModalCloseIcon';
+import {
+  formatPrice,
+  storage,
+  STORAGE_KEYS,
+  trackStoreIapClick,
+  navigateTo,
+  isAirwallexOrderPaymentData,
+  resolveAirwallexPaymentType,
+  isProductPurchaseDisabled,
+  getProductMaxPurchasableQuantity,
+  isProductQuantityOverPurchaseLimit,
+} from '@/utils';
 import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
 import { PurchaseConfirmModal } from '../PurchaseConfirmModal';
 // 暂时注释掉 Stripe 相关逻辑，因为目前都使用 h5_url 的支付方式
@@ -10,16 +20,23 @@ import { PurchaseConfirmModal } from '../PurchaseConfirmModal';
 import { AirwallexCheckout } from '../AirwallexCheckout/AirwallexCheckout';
 import { LoginModal } from '../LoginModal';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
 import { useUser } from '@/hooks/useUser';
 import { bmallOrderApi } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorHandler';
+import { SinglePurchaseQuantityLimitReached } from '@/utils/bizCodes';
 import { messageStore } from '@/store/messageStore';
-import addIcon from '@/assets/imgs/touka_buy_Item_Add.png';
-import reduceIcon from '@/assets/imgs/touka_buy_Item_Reduce.png';
-import shadowImg from '@/assets/imgs/touka_buy_Item_ic_shadow.png';
-import productVoucherBg from '@/assets/imgs/product-voucher-bg.png';
-import productPackBg from '@/assets/imgs/product-pack-bg.png';
-import productDiamondBg from '@/assets/imgs/product-diamond-bg.png';
+import loginModalClose from '@/assets/img2/login_modal_close.png';
+import buyWindowImg from '@/assets/img2/product-bg-close.png';
+import buyWindowExpandedImg from '@/assets/img2/product-bg-open.png';
+import buyItemBgImg from '@/assets/img2/pay_com_buy_itembg1.png';
+import purchaseDetailBgImg from '@/assets/img2/purchase-detail-bg.png';
+import buyItemNameImg from '@/assets/img2/pay_com_buy_itemname.png';
+import shadowImg from '@/assets/img2/touka_buy_Item_ic_shadow.png';
+import purchaseTokenItemImg from '@/assets/img2/purchase-token-item.png';
+import { getVoucherBonusGemCount } from '@/utils/voucherGem';
+import { ProductModalGiftShowcase } from './components/ProductModalGiftShowcase';
 import styles from './ProductModal.module.less';
 
 interface ProductModalProps {
@@ -28,6 +45,8 @@ interface ProductModalProps {
   onAddToCart: (product: Product, quantity: number) => void;
   preConfirmed?: boolean;
 }
+
+const PRODUCT_MODAL_MAX_QUANTITY = 99;
 
 export const ProductModal: React.FC<ProductModalProps> = ({
   product,
@@ -41,6 +60,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const { gameId } = useParams<{ gameId: string }>();
   const [quantity, setQuantity] = useState(1);
   const [showDetails, setShowDetails] = useState(false); // 默认收起，只显示价格信息
+  const [frameOpen, setFrameOpen] = useState(false); // 背景图与详情动画同步，避免切换闪烁
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   // 暂时注释掉 Stripe 相关逻辑，因为目前都使用 h5_url 的支付方式
   // const [showStripeCheckout, setShowStripeCheckout] = useState(false);
@@ -56,81 +76,124 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     countryCode?: string;
     orderNo?: string;
   } | null>(null);
+  const skipNextQuantityClickRef = React.useRef(false);
+
+  const getInitialQuantity = (nextProduct: Product | null) => {
+    if (!nextProduct) return 1;
+    const effectiveMax = Math.min(getProductMaxPurchasableQuantity(nextProduct), PRODUCT_MODAL_MAX_QUANTITY);
+    return effectiveMax > 0 ? 1 : 0;
+  };
+
+  const resetModalState = (nextProduct: Product | null = null) => {
+    setQuantity(getInitialQuantity(nextProduct));
+    setShowDetails(false);
+    setFrameOpen(false);
+    setShowConfirmModal(false);
+    // 暂时注释掉 Stripe 相关逻辑
+    // setShowStripeCheckout(false);
+    // setStripeClientSecret(undefined);
+    setCurrentOrderPaymentType(undefined);
+    setIsCreatingOrder(false);
+    setShowAirwallexCheckout(false);
+    setAirwallexCheckoutParams(null);
+  };
+
+  const handleClose = () => {
+    resetModalState();
+    onClose();
+  };
+
+  // 预加载收起/展开背景，避免切换时解码闪烁
+  useEffect(() => {
+    if (!product) return;
+
+    const sources = [buyWindowImg, buyWindowExpandedImg];
+    sources.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      void img.decode?.().catch(() => undefined);
+    });
+  }, [product]);
+
+  useEffect(() => {
+    if (showDetails) {
+      setFrameOpen(true);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setFrameOpen(false), 300);
+    return () => window.clearTimeout(timer);
+  }, [showDetails]);
 
   // 当弹窗关闭或商品变化时，重置状态
   useEffect(() => {
     if (!product) {
-      setQuantity(1);
-      setShowDetails(false);
-      setShowConfirmModal(false);
-      // 暂时注释掉 Stripe 相关逻辑
-      // setShowStripeCheckout(false);
-      // setStripeClientSecret(undefined);
-      setCurrentOrderPaymentType(undefined);
-      setIsCreatingOrder(false);
+      resetModalState();
     } else {
-      // 当商品变化时，重置数量，并应用限购/库存上限
-      const resetQuantity = () => {
-        const stockLimit = product.stock ?? 999;
-        const purchaseLimit = product.purchase_limit ?? 0;
-        const purchaseUsed = product.purchase_used ?? 0;
-        const remainingPurchaseLimit =
-          purchaseLimit > 0 ? Math.max(purchaseLimit - purchaseUsed, 0) : undefined;
-        const effectiveMax = Math.min(stockLimit, remainingPurchaseLimit ?? stockLimit);
-        setQuantity(effectiveMax > 0 ? 1 : 0);
-      };
-      resetQuantity();
-      setShowDetails(false);
+      resetModalState(product);
     }
   }, [product]);
 
+  useScrollLock(Boolean(product));
+
   if (!product) return null;
 
-  const stockLimit = product.stock ?? 999;
-  const purchaseLimit = product.purchase_limit ?? 0;
-  const purchaseUsed = product.purchase_used ?? 0;
-  const remainingPurchaseLimit =
-    purchaseLimit > 0 ? Math.max(purchaseLimit - purchaseUsed, 0) : undefined;
-  const effectiveMaxQuantity = Math.min(stockLimit, remainingPurchaseLimit ?? stockLimit);
-  const noPurchasable = effectiveMaxQuantity <= 0;
-  const isOutOfStock = product.stock === 0 || noPurchasable;
+  const effectiveMaxQuantity = Math.min(getProductMaxPurchasableQuantity(product), PRODUCT_MODAL_MAX_QUANTITY);
+  const isOutOfStock = isProductPurchaseDisabled(product);
   const totalPrice = product.price * quantity;
   
   // 使用接口返回的商品图片
   const productImage = product.image;
-  const isDiamond = product.categoryId === 'diamond';
+  const isVoucher = product.categoryId === 'vouchers';
   const isGiftPack = product.categoryId === 'giftPacks';
-  
-  // 根据商品类型获取对应的背景图
-  const getBackgroundImage = () => {
-    switch (product.categoryId) {
-      case 'vouchers':
-        return productVoucherBg;
-      case 'giftPacks':
-        return productPackBg;
-      case 'diamond':
-        return productDiamondBg;
-      default:
-        return productVoucherBg;
-    }
-  };
+  const productImageBg = isVoucher ? purchaseDetailBgImg : buyItemBgImg;
+  const giftPackDisplayName = product.name || product.description;
+  const gemCount = product.gem_count ?? 0;
+  const valueRatio = product.value_ratio ?? 0;
+  const bonusGemCount = getVoucherBonusGemCount(gemCount, valueRatio);
+  const showVoucherGemTitle = isVoucher && gemCount > 0;
+  const voucherTitleLabel = showVoucherGemTitle
+    ? bonusGemCount > 0
+      ? `${gemCount}+${bonusGemCount}`
+      : String(gemCount)
+    : product.description || product.name;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose();
+      handleClose();
     }
   };
 
   const handleDecrease = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
+    setQuantity((prev) => Math.max(effectiveMaxQuantity > 0 ? 1 : 0, prev - 1));
   };
 
   const handleIncrease = () => {
-    if (quantity < effectiveMaxQuantity) {
-      setQuantity(quantity + 1);
+    setQuantity((prev) => Math.min(effectiveMaxQuantity, prev + 1));
+  };
+
+  const handleQuantityPointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    action: () => void
+  ) => {
+    if (event.currentTarget.disabled) return;
+
+    skipNextQuantityClickRef.current = true;
+    event.preventDefault();
+    action();
+  };
+
+  const handleQuantityClickFallback = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    action: () => void
+  ) => {
+    if (skipNextQuantityClickRef.current) {
+      skipNextQuantityClickRef.current = false;
+      return;
     }
+
+    if (event.currentTarget.disabled) return;
+    action();
   };
 
   const handleConfirm = () => {
@@ -144,7 +207,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       if (dontAskExpiry && new Date(dontAskExpiry) > new Date()) {
         // 在30天内，直接添加到购物车
         onAddToCart(product, quantity);
-        onClose();
+        handleClose();
       } else {
         // 显示确认弹窗
         setShowConfirmModal(true);
@@ -154,7 +217,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const handlePurchaseConfirm = () => {
     onAddToCart(product, quantity);
-    onClose();
+    handleClose();
   };
 
   // 根据游戏ID获取对应的 app_key
@@ -187,14 +250,21 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     return langMap[locale] || locale.split('-')[0] || 'en';
   };
 
-  const handleProceedToPayment = async () => {
-    if (!product) return;
+  const handleProceedToPayment = async (): Promise<string | null> => {
+    if (!product) return '商品信息缺失，请重试';
+
+    if (quantity <= 0 || quantity > effectiveMaxQuantity || isProductQuantityOverPurchaseLimit(product, quantity)) {
+      const errorMessage = getErrorMessage(SinglePurchaseQuantityLimitReached);
+      messageStore.show(errorMessage);
+      return errorMessage;
+    }
 
     // 获取必要的参数
     const appKey = getAppKeyByGameId(gameId) || storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
     if (!appKey) {
-      messageStore.show('无法获取游戏配置，请刷新页面重试');
-      return;
+      const errorMessage = '无法获取游戏配置，请刷新页面重试';
+      messageStore.show(errorMessage);
+      return errorMessage;
     }
 
     // 获取platform，优先使用user.platform，否则检测浏览器平台
@@ -227,32 +297,33 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       if (!res.success || !res.data) {
         const errorMessage = res.error || '创建订单失败';
         messageStore.show(errorMessage);
-        console.error('创建订单失败:', errorMessage);
-        return;
+        // console.error('创建订单失败:', errorMessage);
+        return errorMessage;
       }
 
-      // 获取支付方式（从接口返回）
-      const paymentType = res.data.payment_type;
-      
-      // 保存支付方式到 state（暂时注释 Stripe 相关说明，因为目前都使用 h5_url 的支付方式）
-      // 用于支付失败事件上报
+      const isAirwallexFlow = isAirwallexOrderPaymentData(res.data);
+      const paymentType = isAirwallexFlow
+        ? resolveAirwallexPaymentType(res.data.payment_type)
+        : res.data.payment_type;
+
+      // 保存支付方式到 state，用于支付失败事件上报
       setCurrentOrderPaymentType(paymentType);
-      
-      // 上报内购点击事件（使用接口返回的 payment_type）
+
+      // 上报内购点击事件（Airwallex 走 airwallex_store / airwallex_h5store）
       const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
       await trackStoreIapClick(product, paymentType, environment);
 
       // 如果返回了 h5_url，等待事件上报完成后再跳转（通用 H5 支付页面）
       if (res.data.h5_url) {
         navigateTo(res.data.h5_url);
-        return;
+        return null;
       }
 
       // 判断支付方式：优先检查 Airwallex 相关字段
       if (res.data.billing_checkout_url) {
         // 方式1: 后端已创建 Billing Checkout，直接使用 URL 跳转
         navigateTo(res.data.billing_checkout_url);
-        return;
+        return null;
       } else if (res.data.intent_id && res.data.client_secret) {
         // 方式2: 后端返回 Airwallex Payment Intent 参数，使用 AirwallexCheckout 组件重定向
         setAirwallexCheckoutParams({
@@ -263,7 +334,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           orderNo: res.data.order_no,
         });
         setShowAirwallexCheckout(true);
-        return;
+        return null;
       }
       // 暂时注释掉 Stripe 支付方式，因为目前都使用 h5_url 的支付方式
       // // Stripe 支付方式（向后兼容）
@@ -283,12 +354,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       
       // 如果没有匹配到任何支付方式，显示错误提示
       if (!res.data.h5_url && !res.data.billing_checkout_url && !res.data.intent_id) {
-        messageStore.show('支付配置错误，请联系客服');
-        console.error('创建订单成功但未返回支付信息:', res.data);
+        const errorMessage = '支付配置错误，请联系客服';
+        messageStore.show(errorMessage);
+        // console.error('创建订单成功但未返回支付信息:', res.data);
+        return errorMessage;
       }
+      return null;
     } catch (error) {
-      console.error('创建订单异常:', error);
-      messageStore.show('创建订单失败，请重试');
+      // console.error('创建订单异常:', error);
+      const errorMessage = '创建订单失败，请重试';
+      messageStore.show(errorMessage);
+      return errorMessage;
     } finally {
       setIsCreatingOrder(false);
     }
@@ -304,6 +380,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const handleAirwallexCheckoutClose = () => {
     setShowAirwallexCheckout(false);
     setAirwallexCheckoutParams(null);
+    setCurrentOrderPaymentType(undefined);
   };
 
   // 暂时注释掉 Stripe 相关逻辑，因为目前都使用 h5_url 的支付方式
@@ -317,99 +394,167 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // const stripeAmount = convertToStripeAmount(product.price * quantity);
 
   return (
-    <div className={styles.overlay} onClick={handleBackdropClick}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose} aria-label="关闭">
-          <ModalCloseIcon size={24} />
+    <div className={styles.overlay} data-scroll-lock-overlay onClick={handleBackdropClick}>
+      <div
+        className={`${styles.modal} ${showDetails ? styles.modalDetailsExpanded : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.modalFrameAnchor} aria-hidden>
+          <img
+            src={buyWindowImg}
+            alt=""
+            decoding="async"
+            className={`${styles.modalFrameImg} ${!frameOpen ? styles.modalFrameVisible : ''}`}
+          />
+          <img
+            src={buyWindowExpandedImg}
+            alt=""
+            decoding="async"
+            className={`${styles.modalFrameImg} ${frameOpen ? styles.modalFrameVisible : ''}`}
+          />
+        </div>
+        <img src={buyWindowImg} alt="" className={styles.modalSizeSpacer} aria-hidden />
+
+        <button type="button" className={styles.closeButton} onClick={handleClose} aria-label="关闭">
+          <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
         </button>
-        
-        {/* 上部分：商品展示区域 - 棕色背景 + 背景图底板 */}
-        <div className={styles.imageSection}>
-          <div className={styles.productImage}>
+
+        <div className={styles.modalContent}>
+          <div
+            className={`${styles.imageSection} ${isGiftPack ? styles.imageSectionGiftPack : ''}`}
+          >
             <div
-              className={styles.productImageBg}
-              style={{
-                backgroundImage: `url(${getBackgroundImage()})`,
-              }}
-            ></div>
-            <img src={productImage} alt={product.name} className={styles.productImageMain} />
-            <img src={shadowImg} alt="shadow" className={styles.productImageShadow} />
-          </div>
-          {/* 商品名称 */}
-          <div className={styles.productNameRow}>
-            <span className={styles.productName}>{product.description || product.name}</span>
-          </div>
-          
-          {/* 数量选择器 - 灰色横条 */}
-          <div className={styles.quantityRow}>
-                <div className={styles.quantitySelector}>
-                  <button
-                    className={styles.quantityButton}
-                    onClick={handleDecrease}
-                    disabled={quantity <= 1 || isOutOfStock}
-                  >
-                    <img src={reduceIcon} alt="减少" className={styles.quantityButtonIcon} />
-                  </button>
-                  <span className={styles.quantityValue}>{quantity}</span>
-                  <button
-                    className={styles.quantityButton}
-                    onClick={handleIncrease}
-                    disabled={quantity >= effectiveMaxQuantity || isOutOfStock}
-                  >
-                    <img src={addIcon} alt="增加" className={styles.quantityButtonIcon} />
-                  </button>
+              className={`${styles.productShowcase} ${
+                isGiftPack ? styles.productShowcaseGiftPack : ''
+              }`}
+            >
+              {isGiftPack ? (
+                <div className={styles.productImageGiftPack}>
+                  <ProductModalGiftShowcase product={product} />
+                  <div className={styles.productNamePlate}>
+                    <img
+                      src={buyItemNameImg}
+                      alt=""
+                      className={styles.productNamePlateBg}
+                      aria-hidden
+                    />
+                    {giftPackDisplayName ? (
+                      <span className={styles.productName}>{giftPackDisplayName}</span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.productImage}>
+                  <img src={productImageBg} alt="" className={styles.productImageBg} aria-hidden />
+                  <img src={productImage} alt={product.name} className={styles.productImageMain} />
+                  <img src={shadowImg} alt="" className={styles.productImageShadow} />
+                  <div className={styles.productNamePlate}>
+                    <img src={buyItemNameImg} alt="" className={styles.productNamePlateBg} aria-hidden />
+                    {showVoucherGemTitle ? (
+                      <div className={styles.productNamePlateVoucherRow} aria-label={voucherTitleLabel}>
+                        <img
+                          src={purchaseTokenItemImg}
+                          alt=""
+                          className={styles.productNamePlateGemIcon}
+                          aria-hidden
+                        />
+                        <span className={styles.productNamePlateGemText}>{gemCount}</span>
+                        {bonusGemCount > 0 && (
+                          <>
+                            <span className={styles.productNamePlateGemPlus}>+</span>
+                            <img
+                              src={purchaseTokenItemImg}
+                              alt=""
+                              className={styles.productNamePlateGemIcon}
+                              aria-hidden
+                            />
+                            <span className={styles.productNamePlateGemText}>{bonusGemCount}</span>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <span className={styles.productName}>{product.description || product.name}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.quantityRow}>
+              <div className={styles.quantitySelector}>
+                <button
+                  type="button"
+                  className={styles.quantityButton}
+                  onPointerDown={(event) => handleQuantityPointerDown(event, handleDecrease)}
+                  onClick={(event) => handleQuantityClickFallback(event, handleDecrease)}
+                  disabled={quantity <= 1 || isOutOfStock}
+                  aria-label="减少"
+                >
+                  <span className={styles.quantityButtonSymbol} aria-hidden />
+                </button>
+                <span className={styles.quantityValue}>{quantity}</span>
+                <button
+                  type="button"
+                  className={styles.quantityButton}
+                  onPointerDown={(event) => handleQuantityPointerDown(event, handleIncrease)}
+                  onClick={(event) => handleQuantityClickFallback(event, handleIncrease)}
+                  disabled={quantity >= effectiveMaxQuantity || isOutOfStock}
+                  aria-label="增加"
+                >
+                  <span className={styles.quantityButtonSymbol} aria-hidden />
+                </button>
               </div>
             </div>
-        </div>
+          </div>
 
-        {/* 下部分：购买详情区域 - 深棕色背景 */}
-        <div className={styles.purchaseSection}>
-          {/* 购买详情标题 - 可展开收起 */}
-          <button
-            className={styles.detailsToggle}
-            onClick={() => setShowDetails(!showDetails)}
-          >
-            <span>{t('productModal.purchaseDetails')}</span>
-            <ChevronUpIcon
-              className={`${styles.detailsArrow} ${showDetails ? styles.arrowUp : styles.arrowDown}`}
-              color="#000000"
-            />
-          </button>
+          <div className={styles.purchaseSection}>
+            <button
+              type="button"
+              className={styles.detailsToggle}
+              onClick={() => setShowDetails(!showDetails)}
+              aria-expanded={showDetails}
+            >
+              <span className={styles.detailsToggleLabel}>{t('productModal.purchaseDetails')}</span>
+              <ChevronUpIcon
+                className={`${styles.detailsArrow} ${showDetails ? styles.arrowDown : styles.arrowUp}`}
+                color="#5e5447"
+              />
+            </button>
 
-          {/* 购买详情内容 - 可展开收起 */}
-          <div className={`${styles.detailsContent} ${!showDetails ? styles.detailsCollapsed : ''}`}>
-            {/* 价格信息 - 展开时显示单价和数量 */}
-            {showDetails && (
-              <div className={styles.priceInfo}>
-                <div className={styles.priceRow}>
-                  <span className={styles.priceLabel}>{t('productModal.unitPrice')}</span>
-                  <span className={styles.priceValue}>{formatPrice(product.price, product.currency)}</span>
-                </div>
-                <div className={styles.priceRow}>
-                  <span className={styles.priceLabel}>{t('productModal.quantity')}</span>
-                  <span className={styles.priceValue}>{quantity}</span>
+            <div className={styles.detailsDivider} />
+
+            <div className={styles.detailsExpandArea}>
+              <div className={`${styles.detailsContent} ${!showDetails ? styles.detailsCollapsed : ''}`}>
+                <div className={styles.priceInfo}>
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>{t('productModal.unitPrice')}</span>
+                    <span className={styles.priceValue}>{formatPrice(product.price, product.currency)}</span>
+                  </div>
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>{t('productModal.quantity')}</span>
+                    <span className={styles.priceValue}>{quantity}</span>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* 全部 - 始终显示 */}
-          <div className={styles.totalSection}>
-            <span className={styles.totalLabel}>{t('productModal.total')}</span>
-            <span className={styles.totalPrice}>
-              {formatPrice(totalPrice, product.currency)}
-            </span>
-          </div>
+          <div className={styles.purchaseFooter}>
+            <div className={styles.totalSection}>
+              <span className={styles.totalLabel}>{t('productModal.total')}</span>
+              <span className={styles.totalPrice}>{formatPrice(totalPrice, product.currency)}</span>
+            </div>
 
-          {/* 确认按钮 */}
-          <div className={styles.actions}>
-            <button
-              className={styles.confirmButton}
-              disabled={isOutOfStock || isCreatingOrder}
-              onClick={handleConfirm}
-            >
-              {isCreatingOrder ? t('common.loading') || '处理中...' : t('productModal.confirm')}
-            </button>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                disabled={isOutOfStock || isCreatingOrder}
+                onClick={handleConfirm}
+              >
+                {isCreatingOrder ? t('common.loading') || '处理中...' : t('productModal.confirm')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -459,4 +604,3 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     </div>
   );
 };
-

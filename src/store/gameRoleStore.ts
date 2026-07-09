@@ -15,14 +15,14 @@ const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Storage set error:', error);
+      // console.error('Storage set error:', error);
     }
   },
   remove: (key: string): void => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('Storage remove error:', error);
+      // console.error('Storage remove error:', error);
     }
   },
 };

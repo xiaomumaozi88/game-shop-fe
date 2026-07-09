@@ -13,9 +13,38 @@ export const deDE = {
     "noData": "Keine Daten",
     "server": "Server"
   },
+  "auth": {
+    "tokenExpired": "Anmeldung abgelaufen"
+  },
+  "errors": {
+    "900400": "Interner Parameterfehler",
+    "900401": "Authentifizierung fehlgeschlagen",
+    "900402": "Anmeldung abgelaufen",
+    "1000000": "Systemfehler. Bitte versuchen Sie es später erneut",
+    "1000001": "Systemparameterfehler. Bitte versuchen Sie es später erneut",
+    "1000002": "Captcha-ID oder Code darf nicht leer sein",
+    "1000003": "Ungültige E-Mail-Adresse",
+    "1000004": "Ungültiger Captcha-Code",
+    "1000005": "E-Mail-Code wurde bereits gesendet. Bitte warten Sie 1 Minute und versuchen Sie es erneut",
+    "1000006": "Limit für E-Mail-Code erreicht. Bitte versuchen Sie es morgen erneut",
+    "1000007": "E-Mail darf nicht leer sein",
+    "1000008": "Code darf nicht leer sein",
+    "1000009": "Ungültiger Code",
+    "1000010": "Login-Token konnte nicht abgerufen werden",
+    "1000011": "Produkt ist inaktiv. Bitte wählen Sie ein anderes Produkt",
+    "1000012": "Das Kauflimit für dieses Produkt wurde überschritten. Bitte wählen Sie ein anderes Produkt",
+    "1000013": "Das Produkt wurde offline genommen",
+    "1000014": "Zahlungsmethode ist nicht aktiviert",
+    "1000015": "Ihr Konto unterstützt den Kauf von Produkten nicht. Bitte kontaktieren Sie den Kundendienst",
+    "1000016": "Bestellung konnte nicht erstellt werden. Bitte versuchen Sie es erneut",
+    "1000017": "Diese Bestellung kann nicht storniert werden",
+    "1000018": "Das Limit für die Menge pro Einzelkauf wurde erreicht",
+    "1000019": "Der Verifizierungscode ist abgelaufen. Bitte fordern Sie einen neuen an"
+  },
   "footer": {
     "language": "Chinesisch (vereinfacht)",
     "privacyPolicy": "Datenschutzrichtlinie",
+    "refundPolicy": "Rückerstattungsrichtlinie",
     "termsOfService": "Nutzungsbedingungen",
     "userSupport": "Benutzersupport",
     "downloadNow": "Jetzt herunterladen!"
@@ -27,7 +56,7 @@ export const deDE = {
     "greeting": "Hallo",
     "loginPrompt": "Bitte klicken Sie auf Anmelden",
     "switchServer": "Wechseln",
-    "title": "Spiel-Aufladeplattform",
+    "title": "Spiel-Aufladecenter",
     "logout": "Abmelden"
   },
   "games": {
@@ -36,6 +65,7 @@ export const deDE = {
   },
   "history": {
     "backToGameZone": "Zurück zum Spiel-Shop",
+    "allGames": "Alle Spiele",
     "empty": "Keine Bestellungen",
     "filter": {
       "all": "Alle",
@@ -49,8 +79,13 @@ export const deDE = {
     "pendingAutoCancelSuffix": "automatisch storniert",
     "cancelOrder": "Bestellung stornieren",
     "payOrder": "Bezahlen",
+    "cancelOrderConfirmTitle": "Bestellung stornieren?",
+    "cancelOrderConfirmPrimary": "Bestätigen",
+    "cancelOrderDismiss": "Vorerst nicht",
+    "previousPage": "Zurück",
+    "nextPage": "Weiter",
     "status": {
-      "cancelled": "Storniert ",
+      "cancelled": "Geschlossen",
       "completed": "Transaktion abgeschlossen ",
       "paid": "Bezahlt ",
       "pending": "Ausstehende Zahlung",
@@ -59,10 +94,17 @@ export const deDE = {
   },
   "home": {
     "selectGame": "Wählen Sie das Spiel, das Sie aufladen möchten",
+    "selectGameMobileTitle": "Spiel zum Aufladen wählen",
+    "mobileGameCardGo": "Los",
     "selectGameParts": {
       "prefix": "Wählen Sie das Spiel, das Sie ",
       "keyword": "aufladen",
       "suffix": " möchten"
+    },
+    "purchaseEntryParts": {
+      "prefix": "Zum ",
+      "keyword": "Kauf",
+      "suffix": ""
     },
     "noRoleAccount": "Sie haben in diesem Spiel noch keinen Charakter. Bitte erstellen Sie zuerst einen Charakter im Spiel, bevor Sie kaufen.",
     "noRoleRefreshPrefix": "Konto bereits erstellt? Tippen Sie auf ",
@@ -84,7 +126,7 @@ export const deDE = {
     "captchaPlaceholder": "Bestätigungscode ",
     "invalidCaptcha": "Bitte geben Sie einen 4-stelligen Bestätigungscode ein",
     "email": "E-Mail ",
-    "emailNotBound": "Abfrage nicht erfolgreich, bitte geben Sie die im Spiel registrierte E-Mail-Adresse ein~",
+    "emailNotBound": "Konto nicht gefunden. Bitte geben Sie die im Spiel verknüpfte E-Mail-Adresse ein~",
     "emailPlaceholder": "Bitte geben Sie Ihre E-Mail-Adresse ein ",
     "keepLogin": "Angemeldet bleiben für 15 Tage ",
     "loading": "Anmeldung läuft... ",
@@ -100,9 +142,9 @@ export const deDE = {
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
     "dontRemind": "Nicht mehr erinnern",
-    "messageLine1": "Nach Abmeldung sind innerhalb der letzten 30 Tage alle Geräte von",
-    "messageLine2": "Der Anmeldestatus wird ungültig.",
-    "title": "Freundlicher Hinweis"
+    "messageLine1": "Nach dem Abmelden wird der Anmeldestatus auf allen Geräten, die in den letzten 30 Tagen verwendet wurden,",
+    "messageLine2": "ungültig.",
+    "title": "Hinweis"
   },
   "menu": {
     "contactSupport": "Kundenservice kontaktieren",
@@ -111,6 +153,7 @@ export const deDE = {
   },
   "paymentSuccess": {
     "account": "Konto:",
+    "celebrationTitle": "Kauf erfolgreich",
     "confirm": "Bestätigen",
     "getPaymentInfoFailed": "Fehler beim Abrufen der Zahlungsinformationen",
     "loading": "Wird geladen...",
@@ -122,8 +165,8 @@ export const deDE = {
     "purchaseContent": "Kaufinhalt:",
     "quantity": "Kaufsmenge:",
     "serverAndCharacter": "Server/Charakter:",
-    "title": "Vielen Dank für Ihren Kauf",
-    "total": "Alle:",
+    "title": "Danke für Ihren Kauf",
+    "total": "Gesamt:",
     "unionPay": "UnionPay",
     "amountPaid": "Gezahlter Betrag:",
     "closeModal": "Schließen"
@@ -132,7 +175,7 @@ export const deDE = {
     "confirm": "Bestätigen",
     "purchaseDetails": "Kaufdetails",
     "quantity": "Menge:",
-    "total": "Alle:",
+    "total": "Gesamt:",
     "unitPrice": "Stückpreis:"
   },
   "products": {
@@ -140,15 +183,24 @@ export const deDE = {
     "diamond": "Diamant",
     "products": "Artikel",
     "vouchers": "Gutschein",
+    "toukaCoin": "Touka Coin",
+    "toukaCoinBonusTip": "Shoppen Sie im TOUKA Store und erhalten Sie 10 % extra Belohnung!",
+    "superValue": "Top-Angebot",
     "limitShort": "Limit",
-    "remainingShort": "Rest",
-    "howToUseVouchers": "Wie verwendet man Gutscheine?",
+    "remainingShort": "Restzeit",
+    "giftPackLimitType": {
+      "lifetime": "Lebenslang",
+      "weekly": "Wöchentlich",
+      "monthly": "Monatlich"
+    },
+    "howToUseVouchers": "Wie verwendet man Touka Coin?",
     "voucherGuide": {
-      "title": "Wie verwendet man Gutscheine?",
-      "step1": "1.Bitte überprüfen Sie die von Ihnen gekauften Gutscheine im Postfach im Spiel.",
-      "step2": "2.Sie können die Anzahl Ihrer Gutscheine oben im Tab des In-Game-Shops sehen. Wenn die Anzahl Ihrer Gutscheine die für den Kauf eines Pakets erforderliche Menge erreicht, werden die Gutscheine vorrangig für den Kauf verwendet.",
+      "title": "Wie verwendet man Touka Coin?",
+      "step1": "1. Bitte prüfen Sie Ihr In-Game-Postfach, um die gekauften Touka Coin zu erhalten.",
+      "step2": "2. Oben im Tab des In-Game-Shops können Sie Ihr Touka-Coin-Guthaben einsehen. Sobald Sie genügend Touka Coin für den Kauf eines Geschenkpakets haben, werden Touka Coin beim Kauf vorrangig verwendet.",
       "backToProducts": "Zur Produktliste zurückkehren"
-    }
+    },
+    "luxuryVouchers": "Premium-Gutscheine"
   },
   "purchaseConfirm": {
     "card": "Kreditkarte/EC-Karte",
@@ -157,7 +209,7 @@ export const deDE = {
     "gameServer": "Spielserver",
     "paymentMethods": "Unterstützte Zahlungsmethoden",
     "paypal": "PayPal",
-    "title": "Sind Sie sicher, dass Sie mit diesem Konto kaufen möchten?",
+    "title": "Möchten Sie diesen Kauf wirklich mit diesem Konto tätigen?",
     "unionPay": "UnionPay-Karte"
   },
   "serverSelect": {
@@ -166,14 +218,16 @@ export const deDE = {
     "confirm": "Bestätigen",
     "noResults": "Keine Ergebnisse",
     "serverPlaceholder": "Bitte geben Sie den Servernamen zur Suche ein",
-    "title": "Spielregion auswählen",
     "title": "Spielserver auswählen"
+  },
+  "orientation": {
+    "bestExperience": "Bitte wechseln Sie für das beste Erlebnis ins Hochformat"
   },
   "support": {
     "cancel": "Abbrechen",
     "copied": "Kopiert",
     "copy": "Mit einem Klick kopieren",
-    "description": "Bitte senden Sie Ihre detaillierten Informationen an die offizielle E-Mail",
+    "description": "Bitte senden Sie Ihre detaillierten Informationen an die offizielle Support-E-Mail-Adresse.",
     "title": "Kundensupport"
   },
   "verification": {

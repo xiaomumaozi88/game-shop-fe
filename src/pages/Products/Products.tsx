@@ -9,38 +9,56 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { userStore } from '@/store/userStore';
 import { gameRoleStore } from '@/store/gameRoleStore';
 import { messageStore } from '@/store/messageStore';
+import { productsUserPanelStore } from '@/store/productsUserPanelStore';
 import { ProductModal } from '@/components/ProductModal';
 import { LoginModal } from '@/components/LoginModal';
 import { PurchaseConfirmModal } from '@/components/PurchaseConfirmModal';
 import { ServerSelectModal } from '@/components/ServerSelectModal';
-import { PaymentSuccessModal } from '@/components/PaymentSuccessModal';
+import { PaymentSuccessModal, PaymentSuccessCelebration } from '@/components/PaymentSuccessModal';
 import { Loading } from '@/components/Loading';
 import { Product } from '@/types';
 import { gameApi, userDetailApi, productListApi, quickLoginApi, gameRoleApi, bmallOrderApi } from '@/utils/api';
-import { formatCountdown, formatPrice, storage, STORAGE_KEYS, PAYMENT_TYPES } from '@/utils';
+import {
+  formatCountdown,
+  formatPrice,
+  storage,
+  STORAGE_KEYS,
+  resolveAnalyticsPaymentType,
+  buildNoRoleHomeState,
+  refreshGameStoreRoles,
+  isProductPurchaseDisabled,
+} from '@/utils';
+import { logoutUser } from '@/utils/auth';
 import { thinkingData } from '@/utils/thinkingData';
 import { trackStoreSdkLoginOnce, trackStoreRoleSelect, trackStoreIapShow, trackStoreIapFail } from '@/utils/analytics';
-import shoppingCartIcon from '@/assets/imgs/touka_commodity_ShoppingCart.png';
-import timeIcon from '@/assets/imgs/time.png';
+import {
+  parseProductMultiName,
+  resolveOrderProductFallbackName,
+} from '@/utils/productMultiName';
+import { parseGiftPackSmallImages } from '@/utils/parseGiftPackSmallImages';
+import { parseGiftPackPurchaseLimitType } from '@/utils/giftPackPurchaseLimitType';
+import { ProductCountdown } from './components/ProductCountdown';
+import { ProductsPageBackground } from './components/ProductsPageBackground';
+import { GiftPackProductCard } from './components/GiftPackProductCard';
+import {
+  ProductsCatalogSections,
+  getCategorySectionId,
+  type ProductCategory,
+} from './components/ProductsCatalogSections';
+import { scrollToCategorySection, isCategoryScrollSpyPaused } from './utils/scrollToCategorySection';
+import { VoucherProductCard } from './components/VoucherProductCard';
+import { CategoryNavBrandText } from './components/CategoryNavBrandText';
+import { LogoutModal } from '@/components/LogoutModal';
+import { ProductsUserPanel } from './components/ProductsUserPanel';
 import styles from './Products.module.less';
 
-// 商品类型
-type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks';
-
 // 导入图片
-import shadowImg from '@/assets/imgs/touka_buy_Item_ic_shadow.png';
-import crocoBannerImg from '@/assets/imgs/croco_banner.png';
-import banBamBannerImg from '@/assets/imgs/ban_bam_banner.jpg';
-import toukaWebHomeBanner1 from '@/assets/imgs/touka_web_home_banner1.png';
-import toukaWebHomeBanner2 from '@/assets/imgs/touka_web_home_banner2.png';
-import productVoucherBg from '@/assets/imgs/product-voucher-bg.png';
-import productPackBg from '@/assets/imgs/product-pack-bg.png';
-import productDiamondBg from '@/assets/imgs/product-diamond-bg.png';
+import productDiamondCardBg from '@/assets/img2/pay_item_diamond_bg.png';
+import toukaCoinGuideArrowIcon from '@/assets/img2/touka-coin-guide-arrow.png';
 
 // 商品卡片包装组件，用于处理曝光追踪
 interface ProductCardWrapperProps {
   product: Product;
-  getBackgroundImage: () => string;
   onProductClick: (product: Product) => void;
   t: (key: string) => string;
   formatCountdown: (seconds: number) => string;
@@ -49,7 +67,6 @@ interface ProductCardWrapperProps {
 
 const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
   product,
-  getBackgroundImage,
   onProductClick,
   t,
   formatCountdown,
@@ -86,48 +103,136 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
     };
   }, [product]);
 
+  if (product.categoryId === 'giftPacks') {
+    return (
+      <GiftPackProductCard
+        cardRef={cardRef}
+        product={product}
+        onProductClick={onProductClick}
+        t={t}
+        formatCountdown={formatCountdown}
+        formatPrice={formatPrice}
+      />
+    );
+  }
+
+  if (product.categoryId === 'vouchers') {
+    return (
+      <VoucherProductCard
+        cardRef={cardRef}
+        product={product}
+        onProductClick={onProductClick}
+        t={t}
+        formatCountdown={formatCountdown}
+        formatPrice={formatPrice}
+      />
+    );
+  }
+
+  const isDiamondCard = product.categoryId === 'diamond';
+  const isUnavailable = isProductPurchaseDisabled(product);
+  const displayLabel = product.name || product.description;
+
   return (
     <div 
       ref={cardRef}
-      className={styles.productCard}
+      className={`${styles.productCard} ${isDiamondCard ? styles.productCardDiamond : ''}${
+        isUnavailable ? ` ${styles.productCardUnavailable}` : ''
+      }`}
+      style={
+        isDiamondCard
+          ? {
+              backgroundImage: `url(${productDiamondCardBg})`,
+            }
+          : undefined
+      }
       onClick={() => onProductClick(product)}
     >
-      <div className={styles.productImage}>
+      <img
+        src={product.image}
+        alt={product.name}
+        className={styles.productImageMain}
+        loading="lazy"
+        decoding="async"
+      />
+      {product.expire_time_left !== undefined && product.expire_time_left > 0 && (
+        <ProductCountdown
+          text={`${t('products.remainingShort')}:${formatCountdown(product.expire_time_left)}`}
+        />
+      )}
+      {product.purchase_limit !== undefined && product.purchase_limit > 0 && (
         <div
-          className={styles.productImageBg}
-          style={{
-            backgroundImage: `url(${getBackgroundImage()})`,
-          }}
-        ></div>
-        <img src={product.image} alt={product.name} className={styles.productImageMain} />
-        <img src={shadowImg} alt="shadow" className={styles.productImageShadow} />
-        {product.expire_time_left !== undefined && product.expire_time_left > 0 && (
-          <div className={styles.countdown}>
-            <img src={timeIcon} alt="time" className={styles.countdownIcon} />
-            <div className={styles.countdownText}>
-              {t('products.remainingShort')}:{formatCountdown(product.expire_time_left)}
-            </div>
-          </div>
-        )}
-        {product.purchase_limit !== undefined && product.purchase_limit > 0 && (
-          <div className={`${styles.limitInfo} ${
+          className={`${styles.limitInfo} ${
             product.categoryId === 'giftPacks' ? styles.limitInfoGiftPack : styles.limitInfoDefault
-          }`}>
-            {
-                `${t('products.limitShort')} ${product.purchase_used ?? 0}/${product.purchase_limit}`
-            }
-          </div>
-        )}
-      </div>
+          }`}
+        >
+          {`${t('products.limitShort')} ${product.purchase_used ?? 0}/${product.purchase_limit}`}
+        </div>
+      )}
       <div className={styles.productInfo}>
         <div className={styles.productDescriptionWrapper}>
-          <p className={styles.productDescription}>{product.description}</p>
+          <p className={styles.productDescription}>{displayLabel}</p>
         </div>
       </div>
       <button className={styles.productPriceButton}>{formatPrice(product.price, product.currency)}</button>
     </div>
   );
 };
+
+interface ToukaCoinGuideViewProps {
+  t: (key: string) => string;
+  onBack: () => void;
+}
+
+const ToukaCoinGuideBackButton: React.FC<{ label: string; onClick: () => void }> = ({
+  label,
+  onClick,
+}) => (
+  <button
+    type="button"
+    className={`${styles.toukaCoinGuideEntry} ${styles.toukaCoinGuideBackButton}`}
+    onClick={onClick}
+  >
+    <span className={styles.toukaCoinGuideEntryBgMiddle} aria-hidden />
+    <span className={styles.toukaCoinGuideEntryContent}>
+      <span className={styles.toukaCoinGuideEntryLabel}>
+        <span className={styles.toukaCoinGuideEntryText}>{label}</span>
+      </span>
+      <img src={toukaCoinGuideArrowIcon} alt="" className={styles.toukaCoinGuideEntryArrow} />
+    </span>
+  </button>
+);
+
+const ToukaCoinGuideView: React.FC<ToukaCoinGuideViewProps> = ({ t, onBack }) => (
+  <section className={styles.toukaCoinGuidePage} aria-labelledby="touka-coin-guide-title">
+    <h1 id="touka-coin-guide-title" className={styles.toukaCoinGuideTitle}>
+      {t('products.voucherGuide.title')}
+    </h1>
+
+    <div className={styles.toukaCoinGuideSteps}>
+      <article className={styles.toukaCoinGuideStep}>
+        <p className={styles.toukaCoinGuideStepText}>{t('products.voucherGuide.step1')}</p>
+        <div
+          className={`${styles.toukaCoinGuideImageSlot} ${styles.toukaCoinGuideImageSlotMail}`}
+          aria-hidden
+        />
+      </article>
+
+      <article className={styles.toukaCoinGuideStep}>
+        <p className={styles.toukaCoinGuideStepText}>{t('products.voucherGuide.step2')}</p>
+        <div
+          className={`${styles.toukaCoinGuideImageSlot} ${styles.toukaCoinGuideImageSlotStore}`}
+          aria-hidden
+        />
+      </article>
+    </div>
+
+    <ToukaCoinGuideBackButton
+      label={t('products.voucherGuide.backToProducts')}
+      onClick={onBack}
+    />
+  </section>
+);
 
 export const Products: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -137,30 +242,145 @@ export const Products: React.FC = () => {
   const { addItem } = useCart();
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const { user, clearGameSpecificFields, saveGameRoleSelection, getGameRoleSelection } = useUser();
-  const { roles } = useGameRole(); // 获取全局角色列表状态
+  const { loading: rolesLoading, hasRolesForAppKey, roles } = useGameRole();
+  const { isMobile, isTablet, isTouchLandscape } = useResponsive();
 
-  // 商品页需有效登录态：无 token（未登录、已退出、登录过期被清空）时回到游戏列表首页（含直接刷新）
+  useEffect(() => {
+    productsUserPanelStore.show();
+  }, []);
+
+  // 进入商品页时拉取最新角色，避免本地缓存误判可进入
+  useEffect(() => {
+    if (!user?.token) return;
+    refreshGameStoreRoles();
+  }, [user?.token, gameId]);
+
+  // 商品页需有效登录态；无该游戏角色时与首页点击游戏一致，回首页并提示
   useEffect(() => {
     if (!user?.token) {
       navigate('/', { replace: true });
+      return;
     }
-  }, [user?.token, navigate]);
-  const { isDesktop } = useResponsive();
-  const [activeCategory, setActiveCategory] = useState<ProductCategory>('vouchers');
+    if (rolesLoading) return;
+
+    const appKey = getAppKeyByGameId(gameId);
+    if (appKey && !hasRolesForAppKey(appKey)) {
+      navigate('/', {
+        replace: true,
+        state: buildNoRoleHomeState(gameId ?? ''),
+      });
+    }
+  }, [user?.token, gameId, rolesLoading, roles, navigate, hasRolesForAppKey]);
+  const [activeCategory, setActiveCategory] = useState<ProductCategory>('diamond');
+  const [showToukaCoinGuide, setShowToukaCoinGuide] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showAccountConfirm, setShowAccountConfirm] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showServerSelect, setShowServerSelect] = useState(false);
+  const serverSelectForProductRef = useRef(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingUserDetail, setLoadingUserDetail] = useState(false); // 用户详情接口 loading 状态
   const [products, setProducts] = useState<Product[]>([]); // 从API获取的商品列表
-  const [showVoucherGuide, setShowVoucherGuide] = useState(false); // 是否显示代金券使用引导
+  const [productsRefreshToken, setProductsRefreshToken] = useState(0);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const productsPageBodyRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = async (): Promise<boolean> => {
+    if (logoutLoading) return false;
+
+    setLogoutLoading(true);
+    try {
+      const result = await logoutUser();
+      if (!result.success) {
+        messageStore.show(result.error || t('logout.failed'));
+        return false;
+      }
+
+      navigate('/', { replace: true });
+      return true;
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
+
+  const handleLogoutClick = () => {
+    if (logoutLoading) return;
+    const dontRemind = localStorage.getItem('logout_dont_remind') === 'true';
+    if (dontRemind) {
+      void handleLogout();
+      return;
+    }
+    setLogoutModalOpen(true);
+  };
+
+  useEffect(() => {
+    setShowToukaCoinGuide(false);
+  }, [gameId]);
+
+  useEffect(() => {
+    if (showToukaCoinGuide) {
+      productsUserPanelStore.hide();
+      return () => {
+        productsUserPanelStore.show();
+      };
+    }
+
+    productsUserPanelStore.show();
+    return undefined;
+  }, [showToukaCoinGuide]);
+
+  useEffect(() => {
+    const shouldAutoHidePanel = isMobile || isTablet || isTouchLandscape;
+    if (!shouldAutoHidePanel || showToukaCoinGuide) return undefined;
+
+    const hidePanelOnScroll = () => {
+      productsUserPanelStore.hide();
+    };
+
+    window.addEventListener('scroll', hidePanelOnScroll, { passive: true, capture: true });
+    window.addEventListener('wheel', hidePanelOnScroll, { passive: true });
+    window.addEventListener('touchmove', hidePanelOnScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', hidePanelOnScroll, { capture: true });
+      window.removeEventListener('wheel', hidePanelOnScroll);
+      window.removeEventListener('touchmove', hidePanelOnScroll);
+    };
+  }, [isMobile, isTablet, isTouchLandscape, showToukaCoinGuide]);
+
+  const scrollToProductsBodyTop = () => {
+    window.requestAnimationFrame(() => {
+      const top = productsPageBodyRef.current
+        ? productsPageBodyRef.current.getBoundingClientRect().top + window.scrollY - 16
+        : 0;
+      window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+    });
+  };
+
+  const scrollToPageTop = () => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+
+  const handleShowToukaCoinGuide = () => {
+    setShowToukaCoinGuide(true);
+    scrollToPageTop();
+  };
+
+  const handleBackToProducts = () => {
+    setShowToukaCoinGuide(false);
+    scrollToProductsBodyTop();
+  };
+
   const quickLoginTriggered = useRef<boolean>(false);
   
   // 记录每个游戏是否已经上报过登录事件（本次登录会话内）
   const loginTrackedGames = useRef<Set<string>>(new Set());
 
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentCelebration, setShowPaymentCelebration] = useState(false);
   
   // 保存支付参数，避免 URL 参数被清除后丢失
   const [paymentParams, setPaymentParams] = useState<{
@@ -239,7 +459,7 @@ export const Products: React.FC = () => {
                 platform: user.platform || '',
               });
       }
-            console.log('🟢 Products 数数SDK初始化成功（从保存的配置）');
+            // console.log('🟢 Products 数数SDK初始化成功（从保存的配置）');
           }
         }
       }
@@ -252,33 +472,10 @@ export const Products: React.FC = () => {
 
   // 注意：游戏角色列表现在从登录接口返回，不再需要单独请求
 
-  // 根据游戏ID获取对应的banner图
-  const getBannerImage = () => {
-    // PC端使用新的banner图
-    if (isDesktop) {
-      if (gameId === 'bam-bam-squad') {
-        return toukaWebHomeBanner1;
-      } else if (gameId === 'oopsie-croco' || gameId === 'oopsie') {
-        return toukaWebHomeBanner2;
-      }
-      // 默认返回第一个banner
-      return toukaWebHomeBanner1;
-    }
-    
-    // 移动端使用原有banner图
-    if (gameId === 'bam-bam-squad') {
-      return banBamBannerImg;
-    } else if (gameId === 'oopsie-croco' || gameId === 'oopsie') {
-      return crocoBannerImg;
-    }
-    // 默认返回第一个banner
-    return crocoBannerImg;
-  };
-
   const categories: { id: ProductCategory; label: string }[] = [
-    { id: 'vouchers', label: t('products.vouchers') },
     { id: 'diamond', label: t('products.diamond') },
     { id: 'giftPacks', label: t('products.giftPacks') },
+    { id: 'vouchers', label: t('products.toukaCoin') },
   ];
 
   // 仅展示有数据的分类 tab（无数据则不显示该 tab）
@@ -286,6 +483,61 @@ export const Products: React.FC = () => {
     () => categories.filter((c) => products.some((p) => p.categoryId === c.id)),
     [products, categories]
   );
+
+  const productsByCategory = useMemo(() => {
+    const result: Record<ProductCategory, Product[]> = {
+      diamond: [],
+      giftPacks: [],
+      vouchers: [],
+    };
+    for (const product of products) {
+      const list = result[product.categoryId];
+      if (list) list.push(product);
+    }
+    return result;
+  }, [products]);
+
+  const handleCategoryTabClick = (categoryId: ProductCategory) => {
+    setActiveCategory(categoryId);
+    scrollToCategorySection(categoryId);
+  };
+
+  // 滚动时根据当前可见分区高亮 Tab
+  useEffect(() => {
+    if (loadingProducts || visibleCategories.length === 0) return;
+
+    const sections = visibleCategories
+      .map((c) => document.getElementById(getCategorySectionId(c.id)))
+      .filter((el): el is HTMLElement => el != null);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isCategoryScrollSpyPaused()) return;
+
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        const topSection = visible[0]?.target;
+        if (!topSection) return;
+
+        const categoryId = topSection.getAttribute('data-category-section') as ProductCategory | null;
+        if (categoryId) {
+          setActiveCategory((prev) => (prev === categoryId ? prev : categoryId));
+        }
+      },
+      {
+        root: null,
+        rootMargin: '-88px 0px -58% 0px',
+        threshold: [0, 0.05, 0.15],
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [loadingProducts, visibleCategories]);
 
   // 处理 quick_sign 快速登录：仅执行一次（只做轻量校验 + 调用后端校验）
   useEffect(() => {
@@ -335,7 +587,7 @@ export const Products: React.FC = () => {
                 gameRoleStore.setRoles(roleRes.data);
             }
           } catch (error) {
-            console.error('获取游戏角色列表失败:', error);
+            // console.error('获取游戏角色列表失败:', error);
             // 即使失败也不影响快速登录，因为快速登录接口可能已经返回了角色列表
           }
 
@@ -350,7 +602,7 @@ export const Products: React.FC = () => {
           quickLoginTriggered.current = false;
         }
       } catch (error) {
-        console.error('quick_sign 登录失败:', error);
+        // console.error('quick_sign 登录失败:', error);
         messageStore.show('快速登录失败');
         quickLoginTriggered.current = false;
       }
@@ -358,82 +610,6 @@ export const Products: React.FC = () => {
 
     doQuickLogin();
   }, []);
-
-  // 将语言代码转换为API需要的格式（如 zh-CN -> zh, en-US -> en）
-  const getLanguageCode = (locale: string): string => {
-    const langMap: Record<string, string> = {
-      'zh-CN': 'zh',
-      'zh-TW': 'zh',
-      'en-US': 'en',
-      'ja-JP': 'ja',
-      'ko-KR': 'ko',
-      'ru-RU': 'ru',
-      'vi-VN': 'vi',
-      'de-DE': 'de',
-      'pt-PT': 'pt',
-      'es-ES': 'es',
-      'fr-FR': 'fr',
-    };
-    return langMap[locale] || locale.split('-')[0] || 'en';
-  };
-
-  // 解析多语言名称（兼容大小写），英文直接返回空以便回退到 name
-  const parseMultiName = (multiNameStr: string, locale: string, fallbackName: string): string => {
-    try {
-      const multiNameRaw = JSON.parse(multiNameStr || '{}') || {};
-      const multiName: Record<string, string> = {};
-      // 统一键为小写，兼容大小写
-      Object.keys(multiNameRaw || {}).forEach((k) => {
-        multiName[k.toLowerCase()] = multiNameRaw[k];
-      });
-
-      const langCode = getLanguageCode(locale).toLowerCase();
-      // 英文使用 name 字段，不取 multi_name
-      if (langCode === 'en') {
-        return '';
-      }
-
-      // 多语言键映射（兼容中文的 cn / zh，且区分简繁优先级）
-      const langKeyMap: Record<string, string[]> = {
-        // 简体优先 cn，其次 zh
-        'zh-cn': ['cn', 'zh'],
-        // 繁体优先 zh，其次 cn
-        'zh-tw': ['zh', 'cn'],
-        zh: ['zh', 'cn'],
-        de: ['de'],
-        es: ['es'],
-        fr: ['fr'],
-        ja: ['ja'],
-        ko: ['ko'],
-        pt: ['pt'],
-        vi: ['vi'],
-        ru: ['ru'],
-      };
-
-      const localeKey = locale.toLowerCase();
-      const candidates =
-        langKeyMap[localeKey] ||
-        langKeyMap[langCode] ||
-        [langCode];
-      const found = candidates.find((code) => multiName[code]);
-      if (found) return multiName[found];
-
-      // 再尝试中文及英文兜底
-      // 对于简体中文，优先使用 cn
-      const localeLower = locale.toLowerCase();
-      if (localeLower === 'zh-cn' && multiName['cn']) return multiName['cn'];
-      if (multiName['zh']) return multiName['zh'];
-      if (multiName['cn']) return multiName['cn'];
-      if (multiName['en']) return multiName['en'];
-
-      // 返回第一个可用值
-      const firstKey = Object.keys(multiName)[0];
-      return firstKey ? multiName[firstKey] : '';
-    } catch (error) {
-      console.error('解析多语言名称失败:', error);
-      return '';
-    }
-  };
 
   // 根据position映射到categoryId
   const mapPositionToCategoryId = (position: string): ProductCategory => {
@@ -448,12 +624,34 @@ export const Products: React.FC = () => {
     return positionMap[position.toLowerCase()] || 'vouchers';
   };
 
+  // 将 locale 转为商品列表等接口所需的 language 参数（如 zh-CN -> zh）
+  const getLanguageCode = (loc: string): string => {
+    const langMap: Record<string, string> = {
+      'zh-CN': 'zh',
+      'zh-TW': 'zh',
+      'en-US': 'en',
+      'ja-JP': 'ja',
+      'ko-KR': 'ko',
+      'ru-RU': 'ru',
+      'vi-VN': 'vi',
+      'de-DE': 'de',
+      'pt-PT': 'pt',
+      'es-ES': 'es',
+      'fr-FR': 'fr',
+    };
+    return langMap[loc] || loc.split('-')[0] || 'en';
+  };
+
+  const isApiProductVisible = (apiProduct: import('@/utils/api').ProductListItem): boolean => {
+    const expireTimeLeft = apiProduct.expire_time_left;
+    return expireTimeLeft === undefined || expireTimeLeft === -1 || expireTimeLeft > 0;
+  };
+
   // 将API返回的商品数据转换为Product类型
   const convertApiProductToProduct = (apiProduct: import('@/utils/api').ProductListItem, locale: string): Product => {
-    const parsedName = apiProduct.multi_name 
-      ? parseMultiName(apiProduct.multi_name, locale, apiProduct.name) 
-      : '';
-    const name = parsedName || apiProduct.name;
+    const name = apiProduct.multi_name
+      ? parseProductMultiName(apiProduct.multi_name, locale, apiProduct.name)
+      : apiProduct.name;
     
     const categoryId = apiProduct.position 
       ? mapPositionToCategoryId(apiProduct.position)
@@ -484,17 +682,13 @@ export const Products: React.FC = () => {
       position: apiProduct.position,
       iap: apiProduct.iap,
       iap_id: apiProduct.iap_id,
+      value_ratio: apiProduct.value_ratio ?? 0,
+      gem_count: apiProduct.gem_count ?? 0,
+      small_images: parseGiftPackSmallImages(apiProduct.small_images),
+      purchase_limit_type: parseGiftPackPurchaseLimitType(apiProduct.purchase_limit_type),
+      is_gray: apiProduct.is_gray ?? 0,
     };
   };
-
-  const filteredProducts = products.filter((p) => p.categoryId === activeCategory);
-
-  // 当切换分类时，如果不在代金券分类，则隐藏使用引导
-  useEffect(() => {
-    if (activeCategory !== 'vouchers') {
-      setShowVoucherGuide(false);
-    }
-  }, [activeCategory]);
 
   // 当某分类无数据被隐藏后，若当前选中的正是该分类，则自动切换到第一个有数据的分类
   useEffect(() => {
@@ -513,8 +707,9 @@ export const Products: React.FC = () => {
   const handleProductClick = (product: Product) => {
     requireLogin(() => {
       const currentUser = userStore.getUser();
-      if (!currentUser?.gameServer) {
+      if (!currentUser?.gameServer || !currentUser?.characterName || !currentUser?.platform) {
         setSelectedProduct(product);
+        serverSelectForProductRef.current = true;
         setShowServerSelect(true);
         return;
       }
@@ -532,16 +727,48 @@ export const Products: React.FC = () => {
     setShowProductModal(false);
   };
 
+  const handleCloseServerSelect = () => {
+    if (serverSelectForProductRef.current) {
+      setSelectedProduct(null);
+      setShowAccountConfirm(false);
+      setShowProductModal(false);
+    }
+    setShowServerSelect(false);
+    serverSelectForProductRef.current = false;
+  };
+
+  // 商品列表刷新后同步弹窗内商品（更新限购次数 / 置灰状态）
+  useEffect(() => {
+    if (!selectedProduct) return;
+    const updated = products.find((p) => p.id === selectedProduct.id);
+    if (updated) {
+      setSelectedProduct(updated);
+    }
+  }, [products, selectedProduct?.id]);
+
   const handleServerConfirm = async (serverName: string, characterName: string, game_user_id: string) => {
     // characterName 实际上是 game_user_id
+    const shouldStopProductFlowAfterRoleSelect = serverSelectForProductRef.current;
+    serverSelectForProductRef.current = false;
+    const resetPendingProductFlow = () => {
+      if (!shouldStopProductFlowAfterRoleSelect) return;
+      setSelectedProduct(null);
+      setShowAccountConfirm(false);
+      setShowProductModal(false);
+      setProductsRefreshToken((n) => n + 1);
+    };
     const gameUserId = game_user_id || characterName;
     const appKey = getAppKeyByGameId(gameId) || storage.get(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
+    const previousCharacterId = userStore.getUser()?.characterName;
+    const characterChanged = !!gameUserId && gameUserId !== previousCharacterId;
     if (!appKey) {
+      resetPendingProductFlow();
       setShowServerSelect(false);
       return;
     }
     
     if (!gameUserId) {
+      resetPendingProductFlow();
       setShowServerSelect(false);
       return;
     }
@@ -567,6 +794,7 @@ export const Products: React.FC = () => {
             characterName: gameUserId, // 存储 game_user_id
           });
         }
+        resetPendingProductFlow();
         setShowServerSelect(false);
         return;
       }
@@ -630,6 +858,11 @@ export const Products: React.FC = () => {
         }
       }
 
+      if (shouldStopProductFlowAfterRoleSelect) {
+        resetPendingProductFlow();
+        return;
+      }
+
       // 如果之前选择了商品，继续购买流程
       if (selectedProduct) {
         if (shouldSkipAccountConfirm()) {
@@ -639,7 +872,7 @@ export const Products: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('获取用户详情异常:', error);
+      // console.error('获取用户详情异常:', error);
       // 即使异常，也更新基本的区服信息
       const currentUser = userStore.getUser();
       if (currentUser) {
@@ -650,6 +883,11 @@ export const Products: React.FC = () => {
         });
       }
       
+      if (shouldStopProductFlowAfterRoleSelect) {
+        resetPendingProductFlow();
+        return;
+      }
+
       // 如果之前选择了商品，继续购买流程
       if (selectedProduct) {
         if (shouldSkipAccountConfirm()) {
@@ -661,6 +899,9 @@ export const Products: React.FC = () => {
     } finally {
       // 无论成功或失败，都关闭 loading
       setLoadingUserDetail(false);
+      if (characterChanged) {
+        setProductsRefreshToken((n) => n + 1);
+      }
     }
   };
 
@@ -725,7 +966,7 @@ export const Products: React.FC = () => {
     try {
       const appKey = getAppKeyByGameId(gameId) || storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
       if (!appKey) {
-        console.warn('无法获取 appKey，跳过订单状态检查');
+        // console.warn('无法获取 appKey，跳过订单状态检查');
         return;
       }
 
@@ -757,7 +998,7 @@ export const Products: React.FC = () => {
       });
 
       if (!result.success || !result.data) {
-        console.warn('查询订单详情失败，无法判断支付状态');
+        // console.warn('查询订单详情失败，无法判断支付状态');
         return;
       }
 
@@ -795,36 +1036,11 @@ export const Products: React.FC = () => {
           return 'vouchers';
         };
 
-        // 解析多语言名称
-        const parseMultiName = (multiNameStr: string | undefined, locale: string, fallbackName: string): string => {
-          if (!multiNameStr) return fallbackName;
-          try {
-            const multiNameRaw = JSON.parse(multiNameStr || '{}') || {};
-            const multiName: Record<string, string> = {};
-            Object.keys(multiNameRaw || {}).forEach((k) => {
-              multiName[k.toLowerCase()] = multiNameRaw[k];
-            });
-            const localeLower = locale.toLowerCase();
-            const candidates = [
-              localeLower,
-              localeLower.split('-')[0],
-              localeLower,
-            ];
-            const found = candidates.find((code) => multiName[code]);
-            if (found) return multiName[found];
-            if (localeLower === 'zh-cn' && multiName['cn']) return multiName['cn'];
-            if (multiName['zh']) return multiName['zh'];
-            if (multiName['cn']) return multiName['cn'];
-            if (multiName['en']) return multiName['en'];
-            const firstKey = Object.keys(multiName)[0];
-            return firstKey ? multiName[firstKey] : fallbackName;
-          } catch (error) {
-            console.warn('解析 multi_name 失败:', error);
-            return fallbackName;
-          }
-        };
-
-        const productName = parseMultiName(orderData.multi_name, locale, orderData.product_name);
+        const productName = parseProductMultiName(
+          orderData.multi_name,
+          locale,
+          resolveOrderProductFallbackName(orderData)
+        );
         const categoryId = mapPositionToCategoryId(orderData.product_position);
         
         // 构建 Product 对象
@@ -846,8 +1062,8 @@ export const Products: React.FC = () => {
         const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
         
         // 获取支付方式：从订单详情接口返回中获取
-        const paymentType = orderData.payment_type;
-        
+        const paymentType = resolveAnalyticsPaymentType(orderData.payment_type);
+
         // 确定失败原因
         let failReason = failReasonFromUrl;
         if (!failReason) {
@@ -860,20 +1076,20 @@ export const Products: React.FC = () => {
             failReason = 'Payment failed - unknown reason';
           }
         }
-        
+
         trackStoreIapFail(product, paymentType, environment, failReason);
         paymentFailTrackedRef.current = true;
-        
-        console.log('✅ Products: 已上报支付失败事件', { 
-          orderNo: orderData.order_no, 
-          payStatus: orderData.pay_status, 
-          failReason,
-          paymentType,
-          productId: product.id 
-        });
+
+        // console.log('✅ Products: 已上报支付失败事件', {
+          // orderNo: orderData.order_no,
+          // payStatus: orderData.pay_status,
+          // failReason,
+          // paymentType,
+          // productId: product.id,
+        // });
       }
     } catch (error) {
-      console.error('❌ Products: 检查订单状态失败:', error);
+      // console.error('❌ Products: 检查订单状态失败:', error);
     }
   };
   
@@ -888,7 +1104,7 @@ export const Products: React.FC = () => {
     try {
       const appKey = getAppKeyByGameId(gameId) || storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
       if (!appKey) {
-        console.warn('无法获取 appKey，跳过支付失败检查');
+        // console.warn('无法获取 appKey，跳过支付失败检查');
         return;
       }
 
@@ -920,7 +1136,7 @@ export const Products: React.FC = () => {
       });
 
       if (!result.success || !result.data) {
-        console.warn('查询订单详情失败，无法判断支付状态');
+        // console.warn('查询订单详情失败，无法判断支付状态');
         return;
       }
 
@@ -941,36 +1157,11 @@ export const Products: React.FC = () => {
           return 'vouchers';
         };
 
-        // 解析多语言名称
-        const parseMultiName = (multiNameStr: string | undefined, locale: string, fallbackName: string): string => {
-          if (!multiNameStr) return fallbackName;
-          try {
-            const multiNameRaw = JSON.parse(multiNameStr || '{}') || {};
-            const multiName: Record<string, string> = {};
-            Object.keys(multiNameRaw || {}).forEach((k) => {
-              multiName[k.toLowerCase()] = multiNameRaw[k];
-            });
-            const localeLower = locale.toLowerCase();
-            const candidates = [
-              localeLower,
-              localeLower.split('-')[0],
-              localeLower,
-            ];
-            const found = candidates.find((code) => multiName[code]);
-            if (found) return multiName[found];
-            if (localeLower === 'zh-cn' && multiName['cn']) return multiName['cn'];
-            if (multiName['zh']) return multiName['zh'];
-            if (multiName['cn']) return multiName['cn'];
-            if (multiName['en']) return multiName['en'];
-            const firstKey = Object.keys(multiName)[0];
-            return firstKey ? multiName[firstKey] : fallbackName;
-          } catch (error) {
-            console.warn('解析 multi_name 失败:', error);
-            return fallbackName;
-          }
-        };
-
-        const productName = parseMultiName(orderData.multi_name, locale, orderData.product_name);
+        const productName = parseProductMultiName(
+          orderData.multi_name,
+          locale,
+          resolveOrderProductFallbackName(orderData)
+        );
         const categoryId = mapPositionToCategoryId(orderData.product_position);
         
         // 构建 Product 对象
@@ -990,10 +1181,9 @@ export const Products: React.FC = () => {
         };
 
         const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
-        
-        // 获取支付方式：从订单详情接口返回中获取
-        const paymentType = orderData.payment_type;
-        
+
+        const paymentType = resolveAnalyticsPaymentType(orderData.payment_type);
+
         // 确定失败原因
         let failReason = failReasonFromUrl;
         if (!failReason) {
@@ -1006,20 +1196,20 @@ export const Products: React.FC = () => {
             failReason = 'Payment failed - unknown reason';
           }
         }
-        
+
         trackStoreIapFail(product, paymentType, environment, failReason);
         paymentFailTrackedRef.current = true;
-        
-        console.log('✅ Products: 已上报支付失败事件', { 
-          orderNo: orderData.order_no, 
-          payStatus: orderData.pay_status, 
-          failReason,
-          paymentType,
-          productId: product.id 
-        });
+
+        // console.log('✅ Products: 已上报支付失败事件', {
+          // orderNo: orderData.order_no,
+          // payStatus: orderData.pay_status,
+          // failReason,
+          // paymentType,
+          // productId: product.id,
+        // });
       }
     } catch (error) {
-      console.error('❌ Products: 检查订单状态并上报支付失败事件失败:', error);
+      // console.error('❌ Products: 检查订单状态并上报支付失败事件失败:', error);
     }
   };
   
@@ -1040,14 +1230,32 @@ export const Products: React.FC = () => {
 
   const handlePaymentSuccessClose = () => {
     setShowPaymentSuccess(false);
+    setProductsRefreshToken((n) => n + 1);
   };
+
+  const handlePaymentSuccessConfirm = () => {
+    setShowPaymentSuccess(false);
+    setShowPaymentCelebration(true);
+  };
+
+  const handlePaymentCelebrationClose = () => {
+    setShowPaymentCelebration(false);
+    setProductsRefreshToken((n) => n + 1);
+  };
+
+  useEffect(() => {
+    if (!showPaymentCelebration) return;
+
+    const timer = window.setTimeout(handlePaymentCelebrationClose, 3000);
+    return () => window.clearTimeout(timer);
+  }, [showPaymentCelebration]);
 
   // 获取商品列表
   useEffect(() => {
     const loadProducts = async () => {
       const appKey = getAppKeyByGameId(gameId);
       if (!appKey) {
-        console.warn('无法获取appKey');
+        // console.warn('无法获取appKey');
         setProducts([]);
         setLoadingProducts(false);
         return;
@@ -1075,16 +1283,16 @@ export const Products: React.FC = () => {
         const res = await productListApi.getProductList(appKey, platform, language);
         
         if (res.success && res.data) {
-          const convertedProducts = res.data.map((item) => 
-            convertApiProductToProduct(item, locale)
-          );
+          const convertedProducts = res.data
+            .filter(isApiProductVisible)
+            .map((item) => convertApiProductToProduct(item, locale));
           setProducts(convertedProducts);
         } else {
-          console.error('获取商品列表失败:', res.error);
+          // console.error('获取商品列表失败:', res.error);
           setProducts([]);
         }
       } catch (error) {
-        console.error('获取商品列表异常:', error);
+        // console.error('获取商品列表异常:', error);
         setProducts([]);
       } finally {
         setLoadingProducts(false);
@@ -1092,128 +1300,99 @@ export const Products: React.FC = () => {
     };
 
     loadProducts();
-  }, [gameId, user?.platform, locale]); // 当游戏ID、平台或语言变化时重新加载
+  }, [gameId, user?.platform, locale, productsRefreshToken]); // 购买成功 / 更换角色后刷新
 
   return (
     <div className={styles.products}>
-      {/* 用户详情接口 loading 蒙层 */}
+      <ProductsPageBackground />
+
       {loadingUserDetail && (
         <div className={styles.loadingOverlay}>
-          <div className={styles.loadingSpinner}></div>
-        </div>
-      )}
-      {/* 促销横幅 */}
-      <div className={styles.bannerSection}>
-        <img src={getBannerImage()} alt="Product Banner" className={styles.bannerImage} />
-      </div>
-
-      <div className={styles.productsContent}>
-      {/* 商品按钮 */}
-      <div className={styles.productsButton}>
-        <button className={styles.productsBtn}>
-          <img src={shoppingCartIcon} alt="购物车" className={styles.cartIcon} />
-          <span>{t('products.products')}</span>
-        </button>
-      </div>
-
-      {/* 分类标签（仅当有多种分类时显示，单一分类时隐藏） */}
-      {visibleCategories.length > 1 && (
-        <div className={styles.tabs}>
-          {visibleCategories.map((category) => (
-            <button
-              key={category.id}
-              className={`${styles.tab} ${activeCategory === category.id ? styles.tabActive : ''}`}
-              onClick={() => setActiveCategory(category.id)}
-            >
-              {category.label}
-            </button>
-          ))}
+          <div className={styles.loadingSpinner} />
         </div>
       )}
 
-      {/* 商品网格或使用引导 */}
-      {showVoucherGuide && activeCategory === 'vouchers' ? (
-        <div className={styles.voucherGuide}>
-          <h2 className={styles.voucherGuideTitle}>{t('products.voucherGuide.title')}</h2>
-          <div className={styles.voucherGuideStep}>
-            <p className={styles.voucherGuideText}>{t('products.voucherGuide.step1')}</p>
-            <div className={styles.voucherGuideImage}>
-              {/* 步骤1截图占位符 - 需要替换为实际图片 */}
-              <div className={styles.voucherGuideImagePlaceholder}>
-                {/* TODO: 添加步骤1的游戏内截图 */}
-              </div>
-            </div>
-          </div>
-          <div className={styles.voucherGuideStep}>
-            <p className={styles.voucherGuideText}>{t('products.voucherGuide.step2')}</p>
-            <div className={styles.voucherGuideImage}>
-              {/* 步骤2截图占位符 - 需要替换为实际图片 */}
-              <div className={styles.voucherGuideImagePlaceholder}>
-                {/* TODO: 添加步骤2的游戏内截图 */}
-              </div>
-            </div>
-          </div>
-          <button 
-            className={styles.voucherGuideBackButton}
-            onClick={() => setShowVoucherGuide(false)}
-          >
-            {t('products.voucherGuide.backToProducts')}
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className={styles.productGrid}>
-        {loadingProducts ? (
-          <div className={styles.tableLoading}>
-            <Loading size="small" />
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className={styles.tableLoading}>{t('common.noData')}</div>
-        ) : (
-          filteredProducts.map((product) => {
-            // 所有商品类型使用统一的卡片样式
-            // 根据商品类型获取对应的背景图
-            const getBackgroundImage = () => {
-              switch (product.categoryId) {
-                case 'vouchers':
-                  return productVoucherBg;
-                case 'giftPacks':
-                  return productPackBg;
-                case 'diamond':
-                  return productDiamondBg;
-                default:
-                  return productVoucherBg;
-              }
-            };
-
-              return (
-              <ProductCardWrapper 
-                  key={product.id}
-                  product={product}
-                getBackgroundImage={getBackgroundImage}
-                onProductClick={handleProductClick}
-                t={t}
-                formatCountdown={formatCountdown}
-                formatPrice={formatPrice}
-              />
-            );
-          })
-                )}
-                </div>
-          {/* 如何使用代金券按钮 - 仅在代金券分类时显示 */}
-          {activeCategory === 'vouchers' && !loadingProducts && filteredProducts.length > 0 && (
-            <button 
-              className={styles.howToUseVouchersButton}
-              onClick={() => setShowVoucherGuide(true)}
-            >
-              {t('products.howToUseVouchers')}
-            </button>
-          )}
-        </>
+      <div className={styles.productsTopSpacer} aria-hidden>
+        {!loadingProducts && !showToukaCoinGuide && (
+          <ProductsUserPanel
+            gameId={gameId}
+            onSwitchServer={() => {
+              requireLogin(() => {
+                serverSelectForProductRef.current = false;
+                setShowServerSelect(true);
+              });
+            }}
+            onLogout={handleLogoutClick}
+          />
         )}
       </div>
 
-     
+      <div ref={productsPageBodyRef} className={styles.productsPageBody}>
+        {showToukaCoinGuide ? (
+          <ToukaCoinGuideView t={t} onBack={handleBackToProducts} />
+        ) : (
+          <div className={styles.productsMainColumn}>
+            {visibleCategories.length > 0 && (
+              <div className={styles.categoryNav}>
+                <div className={styles.categoryNavInner}>
+                  <div className={styles.categoryNavInnerBg} aria-hidden>
+                    <span className={styles.categoryNavInnerBgLeft} />
+                    <span className={styles.categoryNavInnerBgMiddle} />
+                    <span className={styles.categoryNavInnerBgRight} />
+                  </div>
+                  <div className={styles.categoryNavBrand} aria-hidden>
+                    <CategoryNavBrandText text={t('products.products')} locale={locale} />
+                  </div>
+                  <div className={styles.categoryNavTabs}>
+                    {visibleCategories.map((category, tabIndex) => {
+                      const isActive = activeCategory === category.id;
+                      const useTraditionalChineseTabFont = locale === 'zh-TW' && category.id === 'vouchers';
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          className={`${styles.categoryTab} ${isActive ? styles.categoryTabActive : ''} ${
+                            useTraditionalChineseTabFont ? styles.categoryTabTraditionalChinese : ''
+                          }`}
+                          style={
+                            {
+                              '--tab-slot': tabIndex + 1,
+                              '--tab-total': visibleCategories.length,
+                            } as React.CSSProperties
+                          }
+                          onClick={() => handleCategoryTabClick(category.id)}
+                        >
+                          <span>{category.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className={styles.productsCatalog}>
+              <ProductsCatalogSections
+                visibleCategories={visibleCategories}
+                productsByCategory={productsByCategory}
+                loading={loadingProducts}
+                t={t}
+                onToukaCoinGuideClick={handleShowToukaCoinGuide}
+                renderProduct={(product) => (
+                  <ProductCardWrapper
+                    key={product.id}
+                    product={product}
+                    onProductClick={handleProductClick}
+                    t={t}
+                    formatCountdown={formatCountdown}
+                    formatPrice={formatPrice}
+                  />
+                )}
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 商品详情弹窗 */}
       <ProductModal
@@ -1242,10 +1421,16 @@ export const Products: React.FC = () => {
         onClose={() => setShowLoginModal(false)}
       />
 
+      <LogoutModal
+        isOpen={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+      />
+
       {/* 区服选择弹窗：未选择区服时先提示选择 */}
       <ServerSelectModal
         isOpen={showServerSelect}
-        onClose={() => setShowServerSelect(false)}
+        onClose={handleCloseServerSelect}
         onConfirm={handleServerConfirm}
         appKey={getAppKeyByGameId(gameId)}
       />
@@ -1255,6 +1440,7 @@ export const Products: React.FC = () => {
         <PaymentSuccessModal
           isOpen={showPaymentSuccess}
           onClose={handlePaymentSuccessClose}
+          onConfirm={handlePaymentSuccessConfirm}
           sessionId={paymentParams.sessionId}
           orderNo={paymentParams.orderNo}
           productName={paymentParams.productName}
@@ -1263,7 +1449,11 @@ export const Products: React.FC = () => {
           totalAmount={paymentParams.totalAmount}
         />
       )}
+
+      <PaymentSuccessCelebration
+        isOpen={showPaymentCelebration}
+        onClose={handlePaymentCelebrationClose}
+      />
     </div>
   );
 };
-

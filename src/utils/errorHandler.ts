@@ -5,10 +5,11 @@ import { getTranslation } from '@/i18n';
 import { languageStore } from '@/store/languageStore';
 import { messageStore } from '@/store/messageStore';
 import {
+  DefaultBizCodeSysError,
   DefaultBizCodeAuthenticationExpired,
   CAPTCHA_RELATED_ERROR_CODES,
-  BizCode,
 } from './bizCodes';
+import type { BizCode } from './bizCodes';
 import { handleTokenExpired } from './auth';
 
 /**
@@ -35,6 +36,39 @@ export const getErrorMessage = (bizCode: number | undefined, locale?: string): s
   return getTranslation(currentLocale as any, 'errors.1000000') || '系统错误，请稍后重试';
 };
 
+export const getDefaultApiErrorMessage = (locale?: string): string => {
+  const currentLocale = locale || languageStore.getLocale();
+  return getTranslation(currentLocale as any, `errors.${DefaultBizCodeSysError}`) || '系统错误，请稍后重试';
+};
+
+export const isAuthExpiredError = (
+  code?: number,
+  bizCode?: BizCode,
+  msg?: string
+): boolean => {
+  return code === 401 || bizCode === DefaultBizCodeAuthenticationExpired || msg === 'JWT token has expired';
+};
+
+export const getApiErrorMessage = (
+  code?: number,
+  bizCode?: BizCode,
+  msg?: string
+): string | null => {
+  if (code === 0) {
+    return null;
+  }
+
+  const currentLocale = languageStore.getLocale();
+
+  if (isAuthExpiredError(code, bizCode, msg)) {
+    return getTranslation(currentLocale as any, 'auth.tokenExpired')
+      || getErrorMessage(DefaultBizCodeAuthenticationExpired, currentLocale)
+      || getDefaultApiErrorMessage(currentLocale);
+  }
+
+  return getErrorMessage(bizCode, currentLocale) || getDefaultApiErrorMessage(currentLocale);
+};
+
 /**
  * 检查错误码是否为验证码相关错误
  * @param bizCode 业务错误码
@@ -56,7 +90,7 @@ export const isCaptchaRelatedError = (bizCode: number | undefined): boolean => {
  */
 export const handleApiError = (
   code: number,
-  bizCode?: number,
+  bizCode?: BizCode,
   msg?: string
 ): string | null => {
   // code 为 0 表示成功
@@ -65,15 +99,12 @@ export const handleApiError = (
   }
 
   // 处理登录认证过期
-  if (bizCode === DefaultBizCodeAuthenticationExpired) {
+  if (isAuthExpiredError(code, bizCode, msg)) {
     handleTokenExpired();
-    return null; // token 过期已通过 handleTokenExpired 处理，不需要返回错误信息
+    return getApiErrorMessage(code, bizCode, msg);
   }
 
-  // 获取本地化错误信息
-  const errorMessage = getErrorMessage(bizCode);
-
-  return errorMessage || msg || '操作失败，请重试';
+  return getApiErrorMessage(code, bizCode, msg);
 };
 
 /**
@@ -85,4 +116,3 @@ export const showErrorToast = (errorMessage: string): void => {
     messageStore.show(errorMessage);
   }
 };
-

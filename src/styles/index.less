@@ -1,10 +1,24 @@
 @import './variables.less';
+@import './fonts.less';
 @import './mixins.less';
 @import './reset.less';
+
+html {
+  .desktop({
+    overscroll-behavior: none;
+  });
+}
 
 // 全局样式
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+  min-height: var(--app-viewport-height, 100dvh);
+  width: 100%;
+  min-width: 0;
+  background-color: @background-color;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 // 容器
@@ -63,3 +77,11 @@
   margin-bottom: @spacing-lg;
 }
 
+.font-display {
+  font-family: @font-family-display;
+}
+
+.font-sans-bold {
+  font-family: @font-family-sans;
+  font-weight: 700;
+}

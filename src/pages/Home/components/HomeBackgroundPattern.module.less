@@ -1,0 +1,24 @@
+@import '@/styles/mixins.less';
+
+.patternLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  .mobile({
+    min-height: 100%;
+  });
+}
+
+.patternSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-5deg) scale(1.15);
+  transform-origin: center center;
+}
+
+.patternSvgMobile {
+  transform: rotate(-5deg) scale(1.22);
+}

@@ -1,45 +1,106 @@
 @import '@/styles/variables.less';
 @import '@/styles/mixins.less';
 
+@buy-modal-scale: 1.3;
+@buy-modal-mobile-scale: 0.72;
+@buy-modal-base-width: 25rem;
+@buy-modal-text: #5e5447;
+@buy-modal-text-muted: #dbbe9e;
+@buy-modal-orange: #ff8100;
+@buy-modal-orange-light: #ff9a3d;
+@buy-modal-orange-dark: #e67400;
+@buy-modal-cream: #fff9eb;
+@buy-modal-divider: #e8dcc8;
+@buy-details-transition: 0.3s ease;
+@quantity-pill-height: 2.25rem;
+@quantity-end-width: 2.625rem;
+@quantity-pill-height-mobile: 1.625rem;
+@quantity-end-width-mobile: 1.875rem;
+@quantity-symbol-size: 1.125rem;
+@quantity-symbol-size-mobile: 0.875rem;
+@quantity-symbol-bar-thickness: 0.1875rem;
+
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  inset: 0;
   z-index: @z-index-modal;
   .flex-center();
-  padding: @spacing-md;
-  overflow-y: auto;
+  padding: @spacing-xl @spacing-md;
+  .modalOverlayBackdrop();
 
   .mobile({
-    padding: @spacing-md;
+    padding: @spacing-md @spacing-sm;
   });
+
+  .touchLandscapeModalOverlay(0.5rem, 1rem);
 }
 
 .modal {
   position: relative;
-  background: @white; // 白色背景
-  border-radius: @border-radius-lg;
-  max-width: 25rem; // 400px
-  width: 100%;
-  max-height: 90vh;
-  overflow: hidden;
+  width: (@buy-modal-base-width * 1.6);
+  max-width: 92vw;
   animation: slideUp 0.3s ease;
-  box-shadow: 0 0.25rem 1.25rem rgba(0, 0, 0, 0.15);
+  overflow: visible;
+  font-family: @font-family-sans;
 
   .mobile({
-    max-width: 95%;
-    max-height: 85vh;
+    width: min(calc(@buy-modal-base-width * @buy-modal-mobile-scale * 1.6), 90vw);
   });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    width: min(calc(@buy-modal-base-width * @buy-modal-mobile-scale * 1.6), 90vw, 90vh);
+    max-width: min(90vw, 90vh);
+    margin-left: auto;
+    margin-right: auto;
+
+    @supports (height: 100lvh) {
+      width: min(calc(@buy-modal-base-width * @buy-modal-mobile-scale * 1.6), 90vw, 90lvh);
+      max-width: min(90vw, 90lvh);
+    }
+  }
+}
+
+.modalSizeSpacer {
+  display: block;
+  width: 100%;
+  height: auto;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.modalFrameAnchor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.modalFrameImg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+  opacity: 1;
+  visibility: hidden;
+  z-index: 0;
+
+  &.modalFrameVisible {
+    visibility: visible;
+    z-index: 1;
+  }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(1.25rem); // 20px
+    transform: translateY(1.25rem);
   }
   to {
     opacity: 1;
@@ -48,52 +109,174 @@
 }
 
 .closeButton {
-  position: absolute;
-  top: @spacing-sm;
-  right: @spacing-sm;
   .button-reset();
-  .touch-friendly();
-  .flex-center();
+  position: absolute;
+  top: 2rem;
+  right: 4.5rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   z-index: 10;
-  color: @text-color;
-  border-radius: 50%;
-  width: 2rem; // 32px
-  height: 2rem; // 32px
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 
   .mobile({
-    width: 1.75rem; // 28px
-    height: 1.75rem; // 28px
+    top: 1rem;
+    right: 2.4rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  });
+
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    top: 1rem;
+    right: 2.4rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+.closeButtonImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.modalContent {
+  position: absolute;
+  inset: 0;
+  padding: 12.5% 10.5% 10.5% 10.5%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  align-content: end;
+  height: 100%;
+  overflow: visible;
+  z-index: 1;
+
+  .mobile({
+    padding: 11% 9.5% 8.5% 9.5%;
   });
 }
 
-// 商品展示区域 - 白色背景
 .imageSection {
-  position: relative;
-  background: @white; // 白色背景
-  .flex-center();
+  display: flex;
   flex-direction: column;
-  padding: @spacing-xl @spacing-md @spacing-xs @spacing-md; // 底部 padding 减少
+  align-items: center;
+  justify-content: flex-start;
+  align-self: start;
   width: 100%;
+  min-height: 0;
+  padding-top: 0.25rem;
+  position: relative;
+  z-index: 1;
+
+  .mobile({
+    padding-top: 0;
+  });
 }
 
-// 商品图片容器 - 与商品列表保持一致
-.productImage {
-  width: 50%; // 缩小为原来的一半
-  aspect-ratio: 1 / 1;
+.productShowcase {
   position: relative;
-  overflow: visible;
-  margin: 0 auto; // 居中显示
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imageSectionGiftPack {
+  overflow: hidden;
+  min-height: 0;
+  padding-top: 0.5rem;
+
+  .mobile({
+    padding-top: 0.375rem;
+  });
+
+  .productShowcaseGiftPack {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: visible;
+  }
+}
+
+.productShowcaseGiftPack {
+  overflow: hidden;
+  align-items: flex-start;
+  padding: 0 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.productImageGiftPack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  max-height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+
+
+  .mobile({
+    width: 80%;
+  });
+
+  .productNamePlate {
+    right: -5%;
+    bottom: -7%;
+
+    .mobile({
+      right: -8%;
+      bottom: -10%;
+    });
+  }
+
+  .productName {
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .mobile({
+      max-width: 6.5rem;
+    });
+  }
+}
+
+.productImage {
+  position: relative;
+  width: 76%;
+  aspect-ratio: 424 / 240;
+
+  .mobile({
+    width: 78%;
+  });
 }
 
 .productImageBg {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
-  aspect-ratio: 1 / 1; // 1:1 宽高比，高度根据宽度自适应
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 
 .productImageMain {
@@ -101,141 +284,436 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 60%;
-  max-height: 60%;
+  width: 50%;
+  height: 62%;
   object-fit: contain;
   z-index: 2;
+
+  .mobile({
+    height: 100%;
+    top: 50%;
+  });
 }
 
 .productImageShadow {
   position: absolute;
-  top: 75%;
+  top: 70%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 70%;
-  max-height: 100%;
+  width: 54%;
   object-fit: contain;
   z-index: 1;
-  opacity: 0.6;
+  opacity: 0.4;
+  pointer-events: none;
+
+  .mobile({
+    width: 48%;
+    top: 68%;
+  });
 }
 
+.productNamePlate {
+  position: absolute;
+  right: -5%;
+  bottom: -8%;
+  z-index: 3;
+  pointer-events: none;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  min-width: 11.25rem;
+  min-height: 5.125rem;
+  padding: 0.375rem 1.25rem 0.5rem;
+  box-sizing: border-box;
 
-// 商品名称行
-.productNameRow {
+  .mobile({
+    right: -8%;
+    bottom: -8%;
+    min-width: 6.5rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.875rem 0.375rem;
+  });
+}
+
+.productNamePlateBg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  padding: @spacing-sm 0;
-  text-align: center;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
 }
 
-// 商品名称
 .productName {
-  color: @text-color; // 黑色文字
-  font-size: @font-size-md;
-  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  color: #ffe14d;
+  font-family: @font-family-sans;
+  font-size: @font-size-xxl;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.075rem #121212;
+  paint-order: stroke fill;
+  text-shadow:
+    0.065rem 0 0 #121212,
+    -0.065rem 0 0 #121212,
+    0 0.065rem 0 #121212,
+    0 -0.065rem 0 #121212,
+    0.065rem 0.065rem 0 #121212,
+    -0.065rem 0.065rem 0 #121212,
+    0.065rem -0.065rem 0 #121212,
+    -0.065rem -0.065rem 0 #121212;
+
+  .mobile({
+    font-size: @font-size-sm;
+    -webkit-text-stroke-width: 0.05rem;
+    text-shadow:
+      0.05rem 0 0 #121212,
+      -0.05rem 0 0 #121212,
+      0 0.05rem 0 #121212,
+      0 -0.05rem 0 #121212,
+      0.05rem 0.05rem 0 #121212,
+      -0.05rem 0.05rem 0 #121212,
+      0.05rem -0.05rem 0 #121212,
+      -0.05rem -0.05rem 0 #121212;
+  });
 }
 
-// 数量选择器行 - 灰色横条
+// Touka 币：与商品卡 voucherTitleRow 一致（图标 + 数量 + 赠送）
+.productNamePlateVoucherRow {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.productNamePlateGemIcon {
+  width: 1.375rem;
+  height: 1.375rem;
+  object-fit: contain;
+  flex-shrink: 0;
+
+  .mobile({
+    width: 1rem;
+    height: 1rem;
+  });
+}
+
+.productNamePlateGemText,
+.productNamePlateGemPlus {
+  font-family: @font-family-sans;
+  font-size: @font-size-xl;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff883;
+  -webkit-text-stroke: 0.0625rem #121212;
+  paint-order: stroke fill;
+  text-shadow:
+    0.0625rem 0 0 #121212,
+    -0.0625rem 0 0 #121212,
+    0 0.0625rem 0 #121212,
+    0 -0.0625rem 0 #121212;
+  flex-shrink: 0;
+
+  .mobile({
+    font-size: @font-size-lg;
+    -webkit-text-stroke-width: 0.05rem;
+  });
+}
+
 .quantityRow {
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin: @spacing-sm 0 @spacing-xs 0; // 底部 margin 减少
+  position: relative;
+  z-index: 4;
+  margin-top: 1rem;
+  overflow: hidden;
+  max-height: 4rem;
+  opacity: 1;
+  transition:
+    max-height @buy-details-transition,
+    opacity @buy-details-transition,
+    margin-top @buy-details-transition;
+
+  .mobile({
+    margin-top: 0.5rem;
+    max-height: 3.25rem;
+  });
 }
 
 .quantitySelector {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: @spacing-md;
-  background: #f5f5f5; // 浅灰色背景
-  border-radius: 999px; // 药丸形状
-  padding: @spacing-xs @spacing-lg;
-  min-width: 7rem; // 最小宽度
+  display: inline-flex;
+  align-items: stretch;
+  height: @quantity-pill-height;
+  min-width: 10.75rem;
+  border-radius: @quantity-pill-height;
+  overflow: hidden;
+  background: @buy-modal-orange;
+  padding: 0;
+  pointer-events: auto;
+  touch-action: manipulation;
+
+  .mobile({
+    height: @quantity-pill-height-mobile;
+    min-width: 7.5rem;
+    border-radius: @quantity-pill-height-mobile;
+  });
 }
 
 .quantityButton {
   .button-reset();
-  width: 1.5rem; // 24px
-  height: 1.5rem; // 24px
-  background: transparent;
+  position: relative;
+  z-index: 1;
+  flex: 0 0 @quantity-end-width;
+  width: @quantity-end-width;
+  height: 100%;
+  border: none;
   border-radius: 0;
+  background: #feb129;
+  color: @white;
   .flex-center();
-  transition: opacity 0.2s;
+  flex-shrink: 0;
   padding: 0;
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s ease;
+
+  .mobile({
+    flex-basis: @quantity-end-width-mobile;
+    width: @quantity-end-width-mobile;
+  });
 
   &:hover:not(:disabled) {
-    opacity: 0.7;
+    opacity: 0.92;
+  }
+
+  &:active:not(:disabled) {
+    opacity: 0.85;
   }
 
   &:disabled {
-    opacity: 0.3;
+    opacity: 0.48;
+    background: #d8c6ad;
     cursor: not-allowed;
   }
 }
 
-.quantityButtonIcon {
-  width: 60%;
-  height: 60%;
-  object-fit: contain;
-  filter: brightness(0.3) invert(0); // 深灰色（接近黑色但不完全黑）
+.quantityButtonSymbol {
+  display: block;
+  position: relative;
+  flex-shrink: 0;
+  width: @quantity-symbol-size;
+  height: @quantity-symbol-size;
+  color: @white;
+  user-select: none;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: @quantity-symbol-bar-thickness;
+    border-radius: (@quantity-symbol-bar-thickness / 2);
+    background: currentColor;
+    transform: translate(-50%, -50%);
+  }
+
+  .mobile({
+    width: @quantity-symbol-size-mobile;
+    height: @quantity-symbol-size-mobile;
+  });
+}
+
+.quantitySelector > .quantityButton:last-child .quantityButtonSymbol::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: @quantity-symbol-bar-thickness;
+  height: 100%;
+  border-radius: (@quantity-symbol-bar-thickness / 2);
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.quantityButton:disabled .quantityButtonSymbol {
+  opacity: 0.6;
 }
 
 .quantityValue {
-  color: #666; // 深灰色文字
+  flex: 1 1 auto;
+  min-width: 3.25rem;
+  margin: 0;
+  padding: 0 0.75rem;
+  background: #ffe2b2;
+  border-radius: 0;
+  color: @buy-modal-text;
+  font-family: @font-family-sans;
   font-size: @font-size-lg;
-  font-weight: 600;
-  min-width: 1.5rem; // 确保数字有足够空间
+  font-weight: 700;
   text-align: center;
-  flex-shrink: 0; // 防止数字被压缩
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .mobile({
+    min-width: 2.125rem;
+    padding: 0 0.375rem;
+    font-size: @font-size-xs;
+  });
 }
 
-// 购买详情区域 - 白色背景
 .purchaseSection {
-  background: @white; // 白色背景
-  padding: 0 @spacing-md @spacing-md @spacing-md; // 顶部 padding 设为 0
   display: flex;
   flex-direction: column;
+  padding-top: 0.625rem;
+  width: 100%;
+  padding-left: 12%;
+  padding-right: 12%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+
+  .mobile({
+    padding-top: 0.25rem;
+    padding-left: 10%;
+    padding-right: 10%;
+  });
 }
 
+.purchaseFooter {
+  width: 100%;
+  padding-left: 12%;
+  padding-right: 12%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 
-// 购买详情标题 - 居中显示
+  .mobile({
+    padding-left: 10%;
+    padding-right: 10%;
+  });
+}
+
+.modalDetailsExpanded {
+  .quantityRow {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
+  }
+}
+
 .detailsToggle {
   .button-reset();
   width: 100%;
   display: flex;
   align-items: center;
-  gap: @spacing-xs;
-  color: @text-color; // 黑色文字
+  justify-content: space-between;
+  gap: @spacing-sm;
+  color: @buy-modal-text;
   font-size: @font-size-md;
-  font-weight: 500;
+  font-weight: bold;
   cursor: pointer;
   background: transparent;
   border: none;
-  padding: @spacing-xs 0; // 减少 padding
-  margin-top: @spacing-xs; // 减少 margin-top
+  padding: 0.125rem 0;
+
+  .mobile({
+    font-size: @font-size-xs;
+    gap: @spacing-xs;
+    padding: 0;
+    line-height: 1.2;
+    min-height: 0;
+  });
+}
+
+.detailsToggleLabel {
+  flex: 1;
+  text-align: left;
+  color: #605549;
 }
 
 .detailsArrow {
+  flex-shrink: 0;
   transition: transform 0.3s ease;
-  display: inline-block;
-  margin-left: @spacing-xs;
+
+  .mobile({
+    width: 0.875rem;
+    height: 0.875rem;
+  });
 }
 
 .arrowUp {
-  transform: rotate(0deg); // 向上指向（展开状态）
+  transform: rotate(0deg);
 }
 
 .arrowDown {
-  transform: rotate(180deg); // 向下指向（收起状态）
+  transform: rotate(180deg);
 }
 
-// 价格信息区域 - 展开时显示
+.detailsExpandArea {
+  flex-shrink: 0;
+
+  .mobile({
+    line-height: 1.2;
+    margin-bottom: 0.125rem;
+  });
+}
+
+.detailsDivider {
+  height: 1px;
+  margin: 0.375rem 0 0.5rem;
+  background: @buy-modal-divider;
+
+  .modalDetailsExpanded & {
+    margin-bottom: 0.375rem;
+  }
+
+  .mobile({
+    margin: 0.1875rem 0 0.25rem;
+
+    .modalDetailsExpanded & {
+      margin-bottom: 0.1875rem;
+    }
+  });
+}
+
 .priceInfo {
   display: flex;
   flex-direction: column;
-  padding-top: 0.25rem; // 4px
+  gap: 0.375rem;
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: @buy-modal-text-muted;
+  font-size: @font-size-md;
+
+  .mobile({
+    gap: 0.1875rem;
+    padding: 0;
+    font-size: @font-size-xs;
+    line-height: 1.2;
+  });
 }
 
 .priceRow {
@@ -244,115 +722,252 @@
   align-items: center;
 }
 
-.priceLabel {
-  color: @text-color; // 黑色文字
-  font-size: @font-size-sm;
-  font-weight: 500;
-}
-
+.priceLabel,
 .priceValue {
-  color: @text-color; // 黑色文字
-  font-size: @font-size-sm;
-  font-weight: 500;
+  font-weight: bold;
 }
 
-// 全部区域 - 始终显示
 .totalSection {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: @spacing-md 0;
+  padding: 0.125rem 0 0.625rem;
+  color: @buy-modal-text-muted;
   font-size: @font-size-md;
-  color: #adadad;
 
+  .mobile({
+    font-size: @font-size-xs;
+    line-height: 1.2;
+    padding: 0;
+  });
 }
 
-.totalLabel {
-  font-weight: bold;
-}
-
+.totalLabel,
 .totalPrice {
   font-weight: bold;
 }
 
-
-
-// 购买详情内容 - 可展开收起
 .detailsContent {
-  overflow: hidden;
-  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
-  max-height: 31.25rem; // 500px
-  opacity: 1;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows @buy-details-transition;
 
   &.detailsCollapsed {
-    max-height: 0;
-    padding: 0;
-    opacity: 0;
+    grid-template-rows: 0fr;
   }
 }
 
-// 商品描述内容（仅在展开时显示）
-.descriptionContent {
-  padding: @spacing-md 0;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: @font-size-sm;
-  line-height: 1.6;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  margin-top: @spacing-md;
-
-  p {
-    margin: 0 0 @spacing-sm 0;
-  }
-}
-
-.tags {
-  .flex-start();
-  gap: @spacing-sm;
-  flex-wrap: wrap;
-  margin-top: @spacing-sm;
-}
-
-.tag {
-  background: rgba(255, 255, 255, 0.2);
-  color: @white;
-  padding: @spacing-xs @spacing-sm;
-  border-radius: @border-radius-sm;
-  font-size: @font-size-xs;
-}
-
-// 确认按钮
 .actions {
-  margin-top: @spacing-md;
+  padding-top: 0.125rem;
+
+  .mobile({
+    padding-top: 0;
+  });
 }
 
 .confirmButton {
   .button-reset();
   width: 100%;
-  padding: @spacing-md;
-  background: #FFB128; // 橙色按钮
+  padding: 0.8125rem @spacing-md;
+  background: linear-gradient(180deg, @buy-modal-orange-light 0%, @buy-modal-orange 100%);
   color: @white;
   border: none;
-  border-radius: 999px; // 药丸形状
-  font-size: @font-size-lg;
+  border-radius: 999px;
+  font-family: @font-family-sans;
+  font-size: @font-size-xxl;
   font-weight: bold;
+  line-height: 1.2;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s ease, transform 0.2s ease;
   .touch-friendly();
 
   &:hover:not(:disabled) {
-    background: #FFA000;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(255, 177, 40, 0.3);
+    background: linear-gradient(180deg, @buy-modal-orange 0%, @buy-modal-orange-dark 100%);
   }
 
   &:active:not(:disabled) {
-    transform: translateY(0);
+    transform: scale(0.98);
+    box-shadow: 0 0.0625rem 0 #d96a00;
   }
 
   &:disabled {
-    background: #999;
+    background: #b0a090;
     cursor: not-allowed;
-    opacity: 0.6;
+    box-shadow: none;
   }
+
+  .desktop({
+    font-size: @font-size-xxxl;
+    padding: 0.9375rem @spacing-lg;
+  });
+
+  .mobile({
+    scale: 0.8;
+    font-size: @font-size-md;
+    padding: 0.5625rem @spacing-sm;
+    line-height: 1.2;
+  });
 }
 
+// 手机横屏时 CSS 宽度可能超过 767px，会绕过 .mobile 规则；这里强制复用移动端弹窗内部排版。
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  .modalContent {
+    padding: 11% 9.5% 8.5% 9.5%;
+  }
+
+  .imageSection {
+    padding-top: 0;
+  }
+
+  .imageSectionGiftPack {
+    padding-top: 0.375rem;
+  }
+
+  .productImage {
+    width: 78%;
+  }
+
+  .productImageMain {
+    height: 100%;
+    top: 50%;
+  }
+
+  .productImageShadow {
+    width: 48%;
+    top: 68%;
+  }
+
+  .productNamePlate {
+    right: -8%;
+    bottom: -8%;
+    min-width: 6.5rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.875rem 0.375rem;
+  }
+
+  .productImageGiftPack {
+    width: 80%;
+
+    .productNamePlate {
+      right: -8%;
+      bottom: -10%;
+    }
+
+    .productName {
+      max-width: 6.5rem;
+    }
+  }
+
+  .productName {
+    font-size: @font-size-sm;
+    -webkit-text-stroke-width: 0.05rem;
+    text-shadow:
+      0.05rem 0 0 #121212,
+      -0.05rem 0 0 #121212,
+      0 0.05rem 0 #121212,
+      0 -0.05rem 0 #121212,
+      0.05rem 0.05rem 0 #121212,
+      -0.05rem 0.05rem 0 #121212,
+      0.05rem -0.05rem 0 #121212,
+      -0.05rem -0.05rem 0 #121212;
+  }
+
+  .productNamePlateGemIcon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .productNamePlateGemText,
+  .productNamePlateGemPlus {
+    font-size: @font-size-lg;
+    -webkit-text-stroke-width: 0.05rem;
+  }
+
+  .quantityRow {
+    margin-top: 0.5rem;
+    max-height: 3.25rem;
+  }
+
+  .quantitySelector {
+    height: @quantity-pill-height-mobile;
+    min-width: 7.5rem;
+    border-radius: @quantity-pill-height-mobile;
+  }
+
+  .quantityButton {
+    flex-basis: @quantity-end-width-mobile;
+    width: @quantity-end-width-mobile;
+  }
+
+  .quantityButtonSymbol {
+    width: @quantity-symbol-size-mobile;
+    height: @quantity-symbol-size-mobile;
+  }
+
+  .quantityValue {
+    min-width: 2.125rem;
+    padding: 0 0.375rem;
+    font-size: @font-size-xs;
+  }
+
+  .purchaseSection {
+    padding-top: 0.25rem;
+    padding-left: 10%;
+    padding-right: 10%;
+  }
+
+  .purchaseFooter {
+    padding-left: 10%;
+    padding-right: 10%;
+  }
+
+  .detailsToggle {
+    font-size: @font-size-xs;
+    gap: @spacing-xs;
+    padding: 0;
+    line-height: 1.2;
+    min-height: 0;
+  }
+
+  .detailsArrow {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .detailsExpandArea {
+    line-height: 1.2;
+    margin-bottom: 0.125rem;
+  }
+
+  .detailsDivider {
+    margin: 0.1875rem 0 0.25rem;
+
+    .modalDetailsExpanded & {
+      margin-bottom: 0.1875rem;
+    }
+  }
+
+  .priceInfo {
+    gap: 0.1875rem;
+    padding: 0;
+    font-size: @font-size-xs;
+    line-height: 1.2;
+  }
+
+  .totalSection {
+    font-size: @font-size-xs;
+    line-height: 1.2;
+    padding: 0;
+  }
+
+  .actions {
+    padding-top: 0;
+  }
+
+  .confirmButton {
+    scale: 0.8;
+    font-size: @font-size-md;
+    padding: 0.5625rem @spacing-sm;
+    line-height: 1.2;
+  }
+}

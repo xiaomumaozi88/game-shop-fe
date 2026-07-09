@@ -1,4 +1,10 @@
 // 商品相关类型
+export interface GiftPackSmallImage {
+  num: number;
+  img_url: string;
+  quality: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -20,6 +26,11 @@ export interface Product {
   position?: string; // 商品位置/分类，如 "coupon"
   iap?: string; // IAP标识
   iap_id?: string; // IAP ID
+  value_ratio?: number; // 礼包超值比例，>0 时展示角标；代金券为赠送比例（%）
+  gem_count?: number; // Touka 币数量
+  small_images?: GiftPackSmallImage[]; // 礼包内含小图
+  purchase_limit_type?: 1 | 2 | 3; // 1 终身特惠 2 周特惠 3 月特惠
+  is_gray?: number; // 1 置灰不可购买
 }
 
 // 商品分类

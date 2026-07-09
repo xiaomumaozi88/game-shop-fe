@@ -12,6 +12,10 @@
     padding: @spacing-md 0;
   });
 
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    margin-top: 0;
+  }
+
   .desktop({
     height: 14rem;
   });
@@ -322,3 +326,9 @@
   })
 }
 
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  .footer {
+    margin-top: 0;
+    height: auto;
+  }
+}

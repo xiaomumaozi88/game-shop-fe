@@ -6,17 +6,39 @@
 
 html {
   font-size: 16px;
+  font-family: @font-family-sans;
+  background-color: @background-color;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  // 缩放后内容超出视口时可滚动（避免仅 overflow:hidden 导致裁切）
+  overflow-x: auto;
+  overflow-y: scroll;
+  text-size-adjust: 100%;
+  touch-action: manipulation;
+  overscroll-behavior-x: none;
+
+  .mobile({
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  });
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: @font-family-sans;
+  font-weight: 400;
   color: @text-color;
   background-color: @background-color;
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
+  min-width: 0;
+  overflow-x: auto;
+  touch-action: manipulation;
+  overscroll-behavior-x: none;
+
+  .mobile({
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  });
 }
 
 a {
@@ -36,6 +58,10 @@ input,
 textarea {
   font-family: inherit;
   outline: none;
+
+  .mobile({
+    font-size: 16px;
+  });
 }
 
 img {
@@ -48,4 +74,3 @@ ul,
 ol {
   list-style: none;
 }
-
