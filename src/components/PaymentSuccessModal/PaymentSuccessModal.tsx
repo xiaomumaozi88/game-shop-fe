@@ -10,6 +10,7 @@ import {
   STORAGE_KEYS,
   trackStoreIapSuccess,
   resolveAnalyticsPaymentType,
+  resolveAnalyticsEnvironment,
   formatServerChannelForDisplay,
 } from '@/utils';
 import {
@@ -50,6 +51,11 @@ interface PaymentInfo {
   characterName?: string;
 }
 
+const SUCCESS_STATUS_POLL_MAX_RETRIES = 6;
+const SUCCESS_STATUS_POLL_INTERVAL_MS = 1500;
+const SUCCESS_TRACK_MAX_RETRIES = 5;
+const SUCCESS_TRACK_RETRY_INTERVAL_MS = 600;
+
 /** 订单日期展示：YYYY/MM/DD HH:mm:ss（24 小时制），各语言环境一致 */
 function formatOrderDateDisplay(date: Date): string {
   const y = date.getFullYear();
@@ -65,6 +71,15 @@ function formatCurrencyAmount(amount: number, currency: string): string {
   if (currency === 'CNY') return `¥${amount.toFixed(2)}`;
   if (currency === 'USD') return `$${amount.toFixed(2)}`;
   return formatPrice(amount, currency);
+}
+
+function parseOrderDate(value?: string | null): Date | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+
+  const normalized = raw.includes('T') ? raw : raw.replace(/-/g, '/');
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
@@ -88,6 +103,8 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const successEventTracked = useRef(false);
+  const successStatusPollTimerRef = useRef<number | null>(null);
+  const successTrackRetryTimerRef = useRef<number | null>(null);
 
   const getAppKeyByGameId = (id: string | undefined): string | undefined => {
     if (!id) return undefined;
@@ -118,6 +135,9 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      successEventTracked.current = false;
+      clearSuccessStatusPollTimer();
+      clearSuccessTrackRetryTimer();
       if (sessionId || orderNo) {
         fetchPaymentInfo();
       } else {
@@ -137,6 +157,27 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
     gameServerProp,
     characterNameProp,
   ]);
+
+  useEffect(() => {
+    return () => {
+      clearSuccessStatusPollTimer();
+      clearSuccessTrackRetryTimer();
+    };
+  }, []);
+
+  const clearSuccessStatusPollTimer = () => {
+    if (successStatusPollTimerRef.current !== null) {
+      window.clearTimeout(successStatusPollTimerRef.current);
+      successStatusPollTimerRef.current = null;
+    }
+  };
+
+  const clearSuccessTrackRetryTimer = () => {
+    if (successTrackRetryTimerRef.current !== null) {
+      window.clearTimeout(successTrackRetryTimerRef.current);
+      successTrackRetryTimerRef.current = null;
+    }
+  };
 
   const loadPaymentInfoFromURL = () => {
     setLoading(true);
@@ -171,14 +212,16 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
     }
   };
 
-  const fetchPaymentInfo = async () => {
+  const fetchPaymentInfo = async (attempt = 0) => {
     if (!sessionId && !orderNo) {
       loadPaymentInfoFromURL();
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (attempt === 0) {
+      setLoading(true);
+      setError(null);
+    }
 
     try {
       const appKey = getAppKeyByGameId(gameId) || storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
@@ -200,19 +243,10 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
 
       const orderData = result.data;
 
-      let orderDate = formatOrderDateDisplay(new Date());
-      if (orderData.pay_success_time) {
-        try {
-          const payTime = new Date(orderData.pay_success_time);
-          if (!isNaN(payTime.getTime())) {
-            orderDate = formatOrderDateDisplay(payTime);
-          }
-        } catch (e) {
-          // console.warn('解析支付时间失败:', e);
-        }
-      }
+      const orderDateValue = orderData.pay_success_time || orderData.created_time;
+      const orderDate = formatOrderDateDisplay(parseOrderDate(orderDateValue) || new Date());
 
-      const paymentMethod = 'cup';
+      const paymentMethod = orderData.payment_type?.trim() || 'cup';
       const productName = parseProductMultiName(
         orderData.multi_name,
         locale,
@@ -231,8 +265,8 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
         customerEmail: orderData.user_email || user?.email || '',
         gameServer: orderData.game_server_channel
           ? `${t('common.server')} ${formatServerChannelForDisplay(orderData.game_server_channel)}`
-          : user?.gameServer,
-        characterName: user?.characterName,
+          : formatServerChannelForDisplay(gameServerProp ?? user?.gameServer),
+        characterName: orderData.game_user_id || characterNameProp || user?.characterName,
       });
 
       const isPaymentSuccess = orderData.pay_status === 1 || !!orderData.pay_success_time;
@@ -256,7 +290,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
             description: productName,
             price: orderData.unit_price,
             image: orderData.product_image || '',
-            category: categoryId === 'vouchers' ? '代金券' : categoryId === 'diamond' ? '钻石' : '礼包',
+            category: categoryId === 'vouchers' ? t('products.toukaCoin') : categoryId === 'diamond' ? t('products.diamond') : t('products.giftPacks'),
             categoryId,
             stock: 0,
             currency: orderData.currency || 'USD',
@@ -265,28 +299,76 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
             position: orderData.product_position,
           };
 
-          const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+          const environment = resolveAnalyticsEnvironment(
+            orderData.environment,
+            orderData.payment_environment,
+            orderData.env
+          );
           const paymentType = resolveAnalyticsPaymentType(orderData.payment_type);
 
-          trackStoreIapSuccess(product, paymentType, environment);
-          successEventTracked.current = true;
+          scheduleStoreIapSuccessTrack(product, paymentType, environment, {
+            serverChannel: orderData.game_server_channel,
+            gameUserId: orderData.game_user_id,
+            platform: orderData.platform,
+          });
         } catch (trackError) {
           // console.error('❌ PaymentSuccessModal: 上报支付成功事件失败:', trackError);
         }
+      } else if (!isPaymentSuccess && attempt < SUCCESS_STATUS_POLL_MAX_RETRIES) {
+        clearSuccessStatusPollTimer();
+        successStatusPollTimerRef.current = window.setTimeout(() => {
+          void fetchPaymentInfo(attempt + 1);
+        }, SUCCESS_STATUS_POLL_INTERVAL_MS);
       }
     } catch (err) {
       // console.error('获取订单信息失败:', err);
-      setError(err instanceof Error ? err.message : t('paymentSuccess.getPaymentInfoFailed'));
-      loadPaymentInfoFromURL();
+      if (attempt === 0) {
+        setError(err instanceof Error ? err.message : t('paymentSuccess.getPaymentInfoFailed'));
+        loadPaymentInfoFromURL();
+      }
     } finally {
-      setLoading(false);
+      if (attempt === 0) {
+        setLoading(false);
+      }
     }
+  };
+
+  const scheduleStoreIapSuccessTrack = (
+    product: Product,
+    paymentType: string | undefined,
+    environment: 'production' | 'sandbox',
+    context: {
+      serverChannel?: string | number | null;
+      gameUserId?: string | null;
+      platform?: string | null;
+    },
+    attempt = 0
+  ) => {
+    if (successEventTracked.current) return;
+
+    const tracked = trackStoreIapSuccess(product, paymentType, environment, context);
+    if (tracked) {
+      successEventTracked.current = true;
+      clearSuccessTrackRetryTimer();
+      return;
+    }
+
+    if (attempt >= SUCCESS_TRACK_MAX_RETRIES) return;
+
+    clearSuccessTrackRetryTimer();
+    successTrackRetryTimerRef.current = window.setTimeout(() => {
+      scheduleStoreIapSuccessTrack(product, paymentType, environment, context, attempt + 1);
+    }, SUCCESS_TRACK_RETRY_INTERVAL_MS);
   };
 
   const paymentMethodLabel = (method: string): string => {
     const m = method.toLowerCase();
     if (m === 'paypal') return t('paymentSuccess.paypal');
     if (m === 'cup' || m === 'unionpay') return t('paymentSuccess.unionPay');
+    if (m.startsWith('airwallex')) return 'Airwallex';
+    if (m.startsWith('stripe')) return 'Stripe';
+    if (m === 'apple' || m === 'applepay' || m === 'apple_pay') return 'Apple Pay';
+    if (m === 'google' || m === 'googlepay' || m === 'google_pay') return 'Google Pay';
     return method;
   };
 

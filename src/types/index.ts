@@ -26,8 +26,8 @@ export interface Product {
   position?: string; // 商品位置/分类，如 "coupon"
   iap?: string; // IAP标识
   iap_id?: string; // IAP ID
-  value_ratio?: number; // 礼包超值比例，>0 时展示角标；代金券为赠送比例（%）
-  gem_count?: number; // Touka 币数量
+  value_ratio?: number; // 礼包超值比例，>0 时展示角标；超级钻石为赠送比例（%）
+  gem_count?: number; // 超级钻石数量
   small_images?: GiftPackSmallImage[]; // 礼包内含小图
   purchase_limit_type?: 1 | 2 | 3; // 1 终身特惠 2 周特惠 3 月特惠
   is_gray?: number; // 1 置灰不可购买
@@ -56,6 +56,8 @@ export interface Order {
   totalAmount: number;
   currency: string;
   status: OrderStatus;
+  /** 后端 pay_status：2 表示已退款 */
+  payStatus?: number;
   /** 列表展示用时间：优先 pay_success_time，否则 created_time（见后端订单接口） */
   createdAt: string;
   /** 后端 created_time，展示/字符串兜底用 */
@@ -117,4 +119,3 @@ export interface URLParams {
   gameAccount?: string;
   token?: string;
 }
-

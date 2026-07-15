@@ -3,12 +3,9 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { Locale, selectableLocales } from '@/i18n';
 import { useLocation, useParams } from 'react-router-dom';
 import { parseURLParams, storage, STORAGE_KEYS, isGameStoreProductsPath, isGameStoreEntryVisible } from '@/utils';
-import { SupportModal } from '../SupportModal';
 import { ChevronDownIcon } from '../Icons/ChevronDownIcon';
 import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
-import { ChevronRightIcon } from '../Icons/ChevronRightIcon';
 import languageIcon from '@/assets/img2/touka_home_ic_Language.png';
-import mailIcon from '@/assets/img2/touka_home_ic_mail.png';
 import appIcon from '@/assets/img2/touka_home_ic_app.png';
 import googleIcon from '@/assets/img2/touka_home_ic_google.png';
 import BAM_ICON from '@/assets/img2/bam_icon.png';
@@ -67,7 +64,6 @@ export const Footer: React.FC = () => {
   const location = useLocation();
   const { gameId } = useParams<{ gameId?: string }>();
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [supportModalOpen, setSupportModalOpen] = useState(false);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
 
   const languageOptions = selectableLocales.map((code) => ({
@@ -204,17 +200,6 @@ export const Footer: React.FC = () => {
             )}
           </div>
 
-          <button 
-            className={styles.supportButton}
-            onClick={() => setSupportModalOpen(true)}
-          >
-            <img src={mailIcon} alt="Support" className={styles.buttonIcon} />
-            <span>{t('footer.userSupport')}</span>
-            <ChevronRightIcon
-              className={styles.chevronIcon}
-              color="#ffffff"
-            />
-          </button>
         </div>
 
         {/* 下载按钮区域 - 仅在商品页面显示 */}
@@ -269,11 +254,6 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      {/* 联系客服弹窗 */}
-      <SupportModal 
-        isOpen={supportModalOpen} 
-        onClose={() => setSupportModalOpen(false)} 
-      />
     </footer>
   );
 };

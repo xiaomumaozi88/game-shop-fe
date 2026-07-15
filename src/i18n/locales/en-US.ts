@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const enUS = {
   "accountGuide": {
-    "content": "Open any game under the Touka brand, go to the in-game settings, bind your email, and you can enjoy special product discounts!",
+    "content": "Open any Touka game, go to the in-game main screen to bind your email, and enjoy special product discounts after binding your email!",
     "title": "How to create an account?"
   },
   "bottomNav": {
@@ -95,13 +95,14 @@ export const enUS = {
       "completed": "Transaction Completed",
       "paid": "Paid",
       "pending": "Pending Payment",
+      "refunded": "Refunded",
       "shipped": "Shipped"
     }
   },
   "home": {
     "selectGame": "Select the game you want to top up",
     "selectGameMobileTitle": "Select a game",
-    "mobileGameCardGo": "Go",
+    "mobileGameCardGo": "Enter",
     "selectGameParts": {
       "prefix": "Select the game you want to ",
       "keyword": "recharge",
@@ -113,7 +114,7 @@ export const enUS = {
       "suffix": ""
     },
     "noRoleAccount": "You don't have a character in this game yet. Please create one in the game before purchasing.",
-    "noRoleRefreshPrefix": "Already created an account? Tap ",
+    "noRoleRefreshPrefix": "Already created a character? ",
     "noRoleRefreshAction": "Refresh",
     "noRoleRefreshing": "Refreshing…",
     "noRoleRefreshNotFound": "No character information found",
@@ -191,8 +192,8 @@ export const enUS = {
     "giftPacks": "Gift Packs",
     "diamond": "Diamond",
     "products": "Products",
-    "vouchers": "Voucher",
-    "toukaCoin": "Touka Coin",
+    "vouchers": "Super Diamonds",
+    "toukaCoin": "Super Diamonds",
     "toukaCoinBonusTip": "Shop at TOUKA Store and get an extra 10% bonus!",
     "superValue": "Great Value",
     "limitShort": "Limit",
@@ -202,14 +203,14 @@ export const enUS = {
       "weekly": "Weekly Deal",
       "monthly": "Monthly Deal"
     },
-    "howToUseVouchers": "How to use Touka Coin?",
+    "howToUseVouchers": "How to use Super Diamonds?",
     "voucherGuide": {
-      "title": "How to use Touka Coin?",
-      "step1": "1. Please check your in-game mailbox to claim the Touka Coin you purchased.",
-      "step2": "2. You can check your Touka Coin balance at the top of the in-game store tab. When you have enough Touka Coin to purchase a gift pack, Touka Coin will be used first for the purchase.",
+      "title": "How to use Super Diamonds?",
+      "step1": "1. Please check your in-game mailbox to claim the Super Diamonds you purchased.",
+      "step2": "2. You can check your Super Diamonds balance at the top of the in-game store tab. When you have enough Super Diamonds to purchase a gift pack, Super Diamonds will be used first for the purchase.",
       "backToProducts": "Back to Product List"
     },
-    "luxuryVouchers": "Deluxe Vouchers"
+    "luxuryVouchers": "Super Diamonds"
   },
   "purchaseConfirm": {
     "card": "Credit/Debit Card",

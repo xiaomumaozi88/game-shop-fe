@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const esES = {
   "accountGuide": {
-    "content": "Abre cualquier juego bajo Touka, ve a la configuración dentro del juego y vincula tu correo electrónico para disfrutar de descuentos especiales en productos.",
+    "content": "Abre cualquier juego de Touka, ve a la pantalla principal del juego para vincular tu correo electrónico y, una vez vinculado, disfruta de descuentos especiales en productos.",
     "title": "¿Cómo crear una cuenta?"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const esES = {
       "completed": "Transacción completada",
       "paid": "Pagado",
       "pending": "Pendiente de pago",
+      "refunded": "Reembolsado",
       "shipped": "Enviado"
     }
   },
@@ -182,8 +183,8 @@ export const esES = {
     "giftPacks": "Paquete de regalo",
     "diamond": "Diamante",
     "products": "Producto",
-    "vouchers": "Vale",
-    "toukaCoin": "Touka Coin",
+    "vouchers": "Superdiamantes",
+    "toukaCoin": "Superdiamantes",
     "toukaCoinBonusTip": "¡Compra en TOUKA Store y disfruta de un 10 % extra de recompensa!",
     "superValue": "Gran valor",
     "limitShort": "Límite",
@@ -193,14 +194,14 @@ export const esES = {
       "weekly": "Oferta semanal",
       "monthly": "Oferta mensual"
     },
-    "howToUseVouchers": "¿Cómo usar Touka Coin?",
+    "howToUseVouchers": "¿Cómo usar Superdiamantes?",
     "voucherGuide": {
-      "title": "¿Cómo usar Touka Coin?",
-      "step1": "1. Revisa el buzón del juego para recibir los Touka Coin que compraste.",
-      "step2": "2. Puedes consultar tu saldo de Touka Coin en la parte superior de la pestaña de la tienda del juego. Cuando tengas suficientes Touka Coin para comprar un paquete de regalo, se usarán primero para la compra.",
+      "title": "¿Cómo usar Superdiamantes?",
+      "step1": "1. Revisa el buzón del juego para recibir los Superdiamantes que compraste.",
+      "step2": "2. Puedes consultar tu saldo de Superdiamantes en la parte superior de la pestaña de la tienda del juego. Cuando tengas suficientes Superdiamantes para comprar un paquete de regalo, se usarán primero para la compra.",
       "backToProducts": "Volver a la lista de productos"
     },
-    "luxuryVouchers": "Vale de lujo"
+    "luxuryVouchers": "Superdiamantes"
   },
   "purchaseConfirm": {
     "card": "Tarjeta de crédito/débito",

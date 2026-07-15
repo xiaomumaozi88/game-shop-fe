@@ -42,8 +42,13 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
   const [hasUserTyped, setHasUserTyped] = useState(false); // 用于区分用户输入与回填
   const [serverListScrollReady, setServerListScrollReady] = useState(false);
   const [characterListScrollReady, setCharacterListScrollReady] = useState(false);
+  const [serverKeyboardOffset, setServerKeyboardOffset] = useState(0);
+  const serverKeyboardOffsetRef = useRef(0);
 
   const DROPDOWN_SCROLL_ITEM_THRESHOLD = 4;
+
+  const isTouchDevice = (): boolean =>
+    window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
   const getPlatformLabel = (platform: string | undefined): string => {
     if (!platform) return '';
@@ -173,6 +178,23 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
     window.setTimeout(() => {
       suppressServerBlurCloseRef.current = false;
     }, 200);
+  };
+
+  const openServerListWithoutKeyboard = () => {
+    setShowCharacterList(false);
+    setShowServerList(true);
+    setHasUserTyped(false);
+    setIsServerInputFocused(false);
+    blurServerInputWithoutClosingList();
+  };
+
+  const handleServerInputPointerDown = (event: React.PointerEvent<HTMLInputElement>) => {
+    if (event.pointerType === 'mouse') return;
+    if (!isTouchDevice()) return;
+    if (showServerList || document.activeElement === serverInputRef.current) return;
+
+    event.preventDefault();
+    openServerListWithoutKeyboard();
   };
 
   const handleCharacterSelect = (characterId: string) => {
@@ -378,6 +400,77 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
     }
   }, [showCharacterList]);
 
+  useEffect(() => {
+    serverKeyboardOffsetRef.current = serverKeyboardOffset;
+  }, [serverKeyboardOffset]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setServerKeyboardOffset(0);
+      return;
+    }
+
+    if (!isTouchDevice()) {
+      setServerKeyboardOffset(0);
+      return;
+    }
+
+    const visualViewport = window.visualViewport;
+    let frameId: number | null = null;
+
+    const syncServerKeyboardOffset = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+
+        if (document.activeElement !== serverInputRef.current) {
+          setServerKeyboardOffset(0);
+          return;
+        }
+
+        const viewportBottom = visualViewport
+          ? visualViewport.offsetTop + visualViewport.height
+          : window.innerHeight;
+        const inputRect = serverInputRef.current?.getBoundingClientRect();
+        const dropdownRect = showServerList ? serverListRef.current?.getBoundingClientRect() : undefined;
+        const currentOffset = serverKeyboardOffsetRef.current;
+        const targetBottom = Math.max(
+          inputRect ? inputRect.bottom + currentOffset : 0,
+          dropdownRect ? dropdownRect.bottom + currentOffset : 0
+        );
+        const safeGap = 18;
+        const nextOffset = Math.min(
+          Math.max(0, targetBottom + safeGap - viewportBottom),
+          220
+        );
+
+        setServerKeyboardOffset(nextOffset);
+      });
+    };
+
+    syncServerKeyboardOffset();
+    visualViewport?.addEventListener('resize', syncServerKeyboardOffset);
+    visualViewport?.addEventListener('scroll', syncServerKeyboardOffset);
+    window.addEventListener('resize', syncServerKeyboardOffset);
+    document.addEventListener('focusin', syncServerKeyboardOffset, true);
+    document.addEventListener('focusout', syncServerKeyboardOffset, true);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      visualViewport?.removeEventListener('resize', syncServerKeyboardOffset);
+      visualViewport?.removeEventListener('scroll', syncServerKeyboardOffset);
+      window.removeEventListener('resize', syncServerKeyboardOffset);
+      document.removeEventListener('focusin', syncServerKeyboardOffset, true);
+      document.removeEventListener('focusout', syncServerKeyboardOffset, true);
+    };
+  }, [isOpen, showServerList]);
+
   const handleServerDropdownTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
     if (event.propertyName !== 'grid-template-rows' || event.target !== event.currentTarget) {
       return;
@@ -412,7 +505,15 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
 
   return (
     <div className={styles.overlay} data-scroll-lock-overlay onClick={handleBackdropClick}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+        style={
+          serverKeyboardOffset > 0
+            ? ({ '--server-keyboard-offset': `${serverKeyboardOffset}px` } as React.CSSProperties)
+            : undefined
+        }
+      >
         <button className={styles.closeButton} onClick={onClose} aria-label="关闭" type="button">
           <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
         </button>
@@ -445,6 +546,7 @@ export const ServerSelectModal: React.FC<ServerSelectModalProps> = ({
                 ref={serverInputRef}
                 inputMode="text"
                 autoComplete="off"
+                onPointerDown={handleServerInputPointerDown}
                 onChange={(e) => {
                   setSearchText(e.target.value);
                   setHasUserTyped(true);

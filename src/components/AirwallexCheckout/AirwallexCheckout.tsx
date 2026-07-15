@@ -39,10 +39,20 @@ export const AirwallexCheckout: React.FC<AirwallexCheckoutProps> = ({
         // 跳转到当前游戏的商品页面，并带上订单号参数
         const currentUrl = window.location.origin;
         const gamePath = gameId ? `/game/${gameId}` : '';
-        const successUrl = `${currentUrl}${gamePath}?session_id=${intentId}&order_no=${orderNo || ''}`;
+        const successParams = new URLSearchParams({
+          session_id: intentId,
+          order_no: orderNo || '',
+          type: 'SUCCESS_URL',
+        });
+        const successUrl = `${currentUrl}${gamePath}?${successParams.toString()}`;
         
         // 构建 backUrl（取消/返回按钮的跳转地址）
-        const backUrl = `${currentUrl}${gamePath}`;
+        const backParams = new URLSearchParams({
+          order_no: orderNo || '',
+          type: 'FAIL_URL',
+          fail_reason: 'User cancelled',
+        });
+        const backUrl = `${currentUrl}${gamePath}?${backParams.toString()}`;
 
         // 将 locale 转换为 Airwallex 支持的格式
         // Airwallex 支持: 'en' | 'zh' | 'ja' | 'ko' | 'ar' | 'fr' | 'es' | 'nl' | 'de' | 'it' | 'zh-HK' | 'pl' | 'fi' | 'ru' | 'da' | 'id' | 'ms' | 'sv' | 'ro' | 'pt'
@@ -113,4 +123,3 @@ export const AirwallexCheckout: React.FC<AirwallexCheckoutProps> = ({
     </div>
   );
 };
-

@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const ptPT = {
   "accountGuide": {
-    "content": "Abra qualquer jogo da Touka, acesse a tela de configurações do jogo, vincule seu e-mail para aproveitar descontos em produtos especiais!",
+    "content": "Abra qualquer jogo da Touka, acesse a tela principal do jogo para vincular seu e-mail e, após vinculá-lo, aproveite descontos especiais em produtos!",
     "title": "Como criar uma conta?"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const ptPT = {
       "completed": "Transação concluída",
       "paid": "Pago",
       "pending": "Aguardando pagamento",
+      "refunded": "Reembolsado",
       "shipped": "Enviado"
     }
   },
@@ -182,8 +183,8 @@ export const ptPT = {
     "giftPacks": "Pacote de brindes ",
     "diamond": "Diamante ",
     "products": "Produto ",
-    "vouchers": "Voucher ",
-    "toukaCoin": "Touka Coin",
+    "vouchers": "Super Diamantes",
+    "toukaCoin": "Super Diamantes",
     "toukaCoinBonusTip": "Compre na TOUKA Store e ganhe 10% extra de recompensa!",
     "superValue": "Super valor",
     "limitShort": "Limite",
@@ -193,14 +194,14 @@ export const ptPT = {
       "weekly": "Oferta semanal",
       "monthly": "Oferta mensal"
     },
-    "howToUseVouchers": "Como usar Touka Coin?",
+    "howToUseVouchers": "Como usar Super Diamantes?",
     "voucherGuide": {
-      "title": "Como usar Touka Coin?",
-      "step1": "1. Verifique a caixa de correio do jogo para receber os Touka Coin que você comprou.",
-      "step2": "2. Você pode conferir seu saldo de Touka Coin na parte superior da aba da loja no jogo. Quando tiver Touka Coin suficiente para comprar um pacote de presente, eles serão usados primeiro na compra.",
+      "title": "Como usar Super Diamantes?",
+      "step1": "1. Verifique a caixa de correio do jogo para receber os Super Diamantes que você comprou.",
+      "step2": "2. Você pode conferir seu saldo de Super Diamantes na parte superior da aba da loja no jogo. Quando tiver Super Diamantes suficientes para comprar um pacote de presente, eles serão usados primeiro na compra.",
       "backToProducts": "Voltar à lista de produtos"
     },
-    "luxuryVouchers": "Voucher de luxo"
+    "luxuryVouchers": "Super Diamantes"
   },
   "purchaseConfirm": {
     "card": "Cartão de crédito/débito ",

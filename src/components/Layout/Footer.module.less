@@ -260,36 +260,6 @@
   }
 }
 
-.supportButton {
-  .button-reset();
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: @spacing-xs;
-  color: @white;
-  font-size: @font-size-xs;
-  padding: 0 @spacing-sm;
-  background: #000; // 黑色背景
-  border: 1px solid @white; // 白色边框
-  border-radius: 999px; // 药丸形状
-  height: 2rem;
-  padding: 0 0.7rem 0 0.5rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.8);
-  }
-
-  .mobile({
-    font-size: @font-size-xs;
-    min-width: 7.5rem;
-  });
-  .desktop({
-    height: 2.5rem;
-    font-size: @font-size-md;
-  })
-}
-
 .bottomSection {
   .flex-start();
   gap: @spacing-md;

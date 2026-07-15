@@ -548,53 +548,31 @@
   z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 0.21875rem;
+  gap: 0.4rem;
   pointer-events: none;
 }
 
 .mobileGameCardGoText {
-  display: inline-grid;
-  grid-template: 'text';
-  color: transparent;
-  font-size: clamp(0.875rem, 4.45vw, 1.1875rem);
+  display: inline-block;
+  color: #000;
+  font-size: clamp(0.625rem, 3.25vw, 0.74375rem);
   font-weight: 800;
-  line-height: 1;
+  line-height: 0.94;
   white-space: nowrap;
-  padding: 0.08em 0.12em;
-  margin: -0.08em -0.12em;
-  align-items: center;
-  justify-items: center;
-  transform: translateY(-0.035em);
+  transform: translateY(-0.07em);
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  -webkit-text-fill-color: transparent;
-
-  &::before,
-  &::after {
-    content: attr(data-text);
-    grid-area: text;
-  }
-
-  &::before {
-    color: #111;
-    -webkit-text-fill-color: #111;
-    -webkit-text-stroke: 0.14em #111;
-    paint-order: stroke fill;
-    text-shadow: 0 0 0.045em rgba(17, 17, 17, 0.65);
-  }
-
-  &::after {
-    color: #fff;
-    -webkit-text-fill-color: #fff;
-    -webkit-text-stroke: 0;
-  }
+  -webkit-text-fill-color: #000;
 }
 
 .mobileGameCardGoIcon {
-  width: clamp(0.6875rem, 3.15vw, 0.875rem);
+  display: block;
+  width: 0.35rem;
   height: auto;
   flex-shrink: 0;
-  display: block;
+  object-fit: contain;
+  filter: brightness(0);
+  transform: translateY(-0.02em);
 }
 
 @game-thumb-highlight: #fb7901;

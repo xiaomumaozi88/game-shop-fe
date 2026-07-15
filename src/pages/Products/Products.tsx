@@ -24,6 +24,7 @@ import {
   storage,
   STORAGE_KEYS,
   resolveAnalyticsPaymentType,
+  resolveAnalyticsEnvironment,
   buildNoRoleHomeState,
   refreshGameStoreRoles,
   isProductPurchaseDisabled,
@@ -50,6 +51,8 @@ import { VoucherProductCard } from './components/VoucherProductCard';
 import { CategoryNavBrandText } from './components/CategoryNavBrandText';
 import { LogoutModal } from '@/components/LogoutModal';
 import { ProductsUserPanel } from './components/ProductsUserPanel';
+import { getToukaCoinGuideImages } from './toukaCoinGuideImages';
+import type { Locale } from '@/i18n';
 import styles from './Products.module.less';
 
 // 导入图片
@@ -63,6 +66,7 @@ interface ProductCardWrapperProps {
   t: (key: string) => string;
   formatCountdown: (seconds: number) => string;
   formatPrice: (price: number, currency: string) => string;
+  exposureTrackKey: string;
 }
 
 const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
@@ -71,12 +75,19 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
   t,
   formatCountdown,
   formatPrice,
+  exposureTrackKey,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const hasTracked = useRef(false);
+  const lastExposureTrackKey = useRef(exposureTrackKey);
 
   // 使用 IntersectionObserver 监听商品卡片曝光
   useEffect(() => {
+    if (lastExposureTrackKey.current !== exposureTrackKey) {
+      hasTracked.current = false;
+      lastExposureTrackKey.current = exposureTrackKey;
+    }
+
     if (!cardRef.current || hasTracked.current) return;
 
     const observer = new IntersectionObserver(
@@ -84,9 +95,11 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasTracked.current) {
             // 商品按钮曝光，上报事件
-            trackStoreIapShow(product);
-            hasTracked.current = true;
-            observer.disconnect();
+            const tracked = trackStoreIapShow(product);
+            if (tracked) {
+              hasTracked.current = true;
+              observer.disconnect();
+            }
           }
         });
       },
@@ -101,7 +114,7 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [product]);
+  }, [product, exposureTrackKey]);
 
   if (product.categoryId === 'giftPacks') {
     return (
@@ -181,6 +194,7 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
 
 interface ToukaCoinGuideViewProps {
   t: (key: string) => string;
+  locale: Locale;
   onBack: () => void;
 }
 
@@ -203,36 +217,52 @@ const ToukaCoinGuideBackButton: React.FC<{ label: string; onClick: () => void }>
   </button>
 );
 
-const ToukaCoinGuideView: React.FC<ToukaCoinGuideViewProps> = ({ t, onBack }) => (
-  <section className={styles.toukaCoinGuidePage} aria-labelledby="touka-coin-guide-title">
-    <h1 id="touka-coin-guide-title" className={styles.toukaCoinGuideTitle}>
-      {t('products.voucherGuide.title')}
-    </h1>
+const ToukaCoinGuideView: React.FC<ToukaCoinGuideViewProps> = ({ t, locale, onBack }) => {
+  const guideImages = getToukaCoinGuideImages(locale);
 
-    <div className={styles.toukaCoinGuideSteps}>
-      <article className={styles.toukaCoinGuideStep}>
-        <p className={styles.toukaCoinGuideStepText}>{t('products.voucherGuide.step1')}</p>
-        <div
-          className={`${styles.toukaCoinGuideImageSlot} ${styles.toukaCoinGuideImageSlotMail}`}
-          aria-hidden
-        />
-      </article>
+  return (
+    <section className={styles.toukaCoinGuidePage} aria-labelledby="touka-coin-guide-title">
+      <h1 id="touka-coin-guide-title" className={styles.toukaCoinGuideTitle}>
+        {t('products.voucherGuide.title')}
+      </h1>
 
-      <article className={styles.toukaCoinGuideStep}>
-        <p className={styles.toukaCoinGuideStepText}>{t('products.voucherGuide.step2')}</p>
-        <div
-          className={`${styles.toukaCoinGuideImageSlot} ${styles.toukaCoinGuideImageSlotStore}`}
-          aria-hidden
-        />
-      </article>
-    </div>
+      <div className={styles.toukaCoinGuideSteps}>
+        <article className={styles.toukaCoinGuideStep}>
+          <p className={styles.toukaCoinGuideStepText}>{t('products.voucherGuide.step1')}</p>
+          <div className={styles.toukaCoinGuideImageSlot}>
+            <img
+              src={guideImages.mail}
+              alt=""
+              className={styles.toukaCoinGuideImage}
+              loading="eager"
+              decoding="async"
+              aria-hidden
+            />
+          </div>
+        </article>
 
-    <ToukaCoinGuideBackButton
-      label={t('products.voucherGuide.backToProducts')}
-      onClick={onBack}
-    />
-  </section>
-);
+        <article className={styles.toukaCoinGuideStep}>
+          <p className={styles.toukaCoinGuideStepText}>{t('products.voucherGuide.step2')}</p>
+          <div className={styles.toukaCoinGuideImageSlot}>
+            <img
+              src={guideImages.store}
+              alt=""
+              className={styles.toukaCoinGuideImage}
+              loading="lazy"
+              decoding="async"
+              aria-hidden
+            />
+          </div>
+        </article>
+      </div>
+
+      <ToukaCoinGuideBackButton
+        label={t('products.voucherGuide.backToProducts')}
+        onClick={onBack}
+      />
+    </section>
+  );
+};
 
 export const Products: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -845,8 +875,7 @@ export const Products: React.FC = () => {
           trackStoreSdkLoginOnce(appKey, userDetail.sdk_id, user?.token);
 
           // 上报角色选择事件（确保数数配置已初始化后）
-          const serverChannelNum = parseInt(userDetail.game_server_channel) || 0;
-          trackStoreRoleSelect(serverChannelNum, userDetail.game_user_id);
+          trackStoreRoleSelect(userDetail.game_server_channel, userDetail.game_user_id);
         }
         
         // 保存当前游戏的角色选择信息和数数配置
@@ -1050,7 +1079,7 @@ export const Products: React.FC = () => {
           description: productName,
           price: orderData.unit_price,
           image: orderData.product_image || '',
-          category: categoryId === 'vouchers' ? '代金券' : categoryId === 'diamond' ? '钻石' : '礼包',
+          category: categoryId === 'vouchers' ? t('products.toukaCoin') : categoryId === 'diamond' ? t('products.diamond') : t('products.giftPacks'),
           categoryId,
           stock: 0,
           currency: orderData.currency || 'USD',
@@ -1059,7 +1088,11 @@ export const Products: React.FC = () => {
           position: orderData.product_position,
         };
 
-        const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+        const environment = resolveAnalyticsEnvironment(
+          orderData.environment,
+          orderData.payment_environment,
+          orderData.env
+        );
         
         // 获取支付方式：从订单详情接口返回中获取
         const paymentType = resolveAnalyticsPaymentType(orderData.payment_type);
@@ -1077,7 +1110,11 @@ export const Products: React.FC = () => {
           }
         }
 
-        trackStoreIapFail(product, paymentType, environment, failReason);
+        trackStoreIapFail(product, paymentType, environment, failReason, {
+          serverChannel: orderData.game_server_channel,
+          gameUserId: orderData.game_user_id,
+          platform: orderData.platform,
+        });
         paymentFailTrackedRef.current = true;
 
         // console.log('✅ Products: 已上报支付失败事件', {
@@ -1171,7 +1208,7 @@ export const Products: React.FC = () => {
           description: productName,
           price: orderData.unit_price,
           image: orderData.product_image || '',
-          category: categoryId === 'vouchers' ? '代金券' : categoryId === 'diamond' ? '钻石' : '礼包',
+          category: categoryId === 'vouchers' ? t('products.toukaCoin') : categoryId === 'diamond' ? t('products.diamond') : t('products.giftPacks'),
           categoryId,
           stock: 0,
           currency: orderData.currency || 'USD',
@@ -1180,7 +1217,11 @@ export const Products: React.FC = () => {
           position: orderData.product_position,
         };
 
-        const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+        const environment = resolveAnalyticsEnvironment(
+          orderData.environment,
+          orderData.payment_environment,
+          orderData.env
+        );
 
         const paymentType = resolveAnalyticsPaymentType(orderData.payment_type);
 
@@ -1197,7 +1238,11 @@ export const Products: React.FC = () => {
           }
         }
 
-        trackStoreIapFail(product, paymentType, environment, failReason);
+        trackStoreIapFail(product, paymentType, environment, failReason, {
+          serverChannel: orderData.game_server_channel,
+          gameUserId: orderData.game_user_id,
+          platform: orderData.platform,
+        });
         paymentFailTrackedRef.current = true;
 
         // console.log('✅ Products: 已上报支付失败事件', {
@@ -1329,7 +1374,7 @@ export const Products: React.FC = () => {
 
       <div ref={productsPageBodyRef} className={styles.productsPageBody}>
         {showToukaCoinGuide ? (
-          <ToukaCoinGuideView t={t} onBack={handleBackToProducts} />
+          <ToukaCoinGuideView t={t} locale={locale} onBack={handleBackToProducts} />
         ) : (
           <div className={styles.productsMainColumn}>
             {visibleCategories.length > 0 && (
@@ -1386,6 +1431,7 @@ export const Products: React.FC = () => {
                     t={t}
                     formatCountdown={formatCountdown}
                     formatPrice={formatPrice}
+                    exposureTrackKey={`${user?.token || ''}|${user?.sdkId || ''}|${user?.characterName || ''}|${user?.gameServer || ''}`}
                   />
                 )}
               />

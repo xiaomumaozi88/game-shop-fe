@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const deDE = {
   "accountGuide": {
-    "content": "Öffnen Sie ein beliebiges Spiel von Touka, gehen Sie zum Einstellungsmenü im Spiel und binden Sie Ihre E-Mail-Adresse, um von Sonderangeboten zu profitieren!",
+    "content": "Öffnen Sie ein beliebiges Touka-Spiel, gehen Sie auf dem Hauptbildschirm im Spiel zur E-Mail-Verknüpfung und verknüpfen Sie Ihre E-Mail-Adresse, um Sonderangebote zu nutzen!",
     "title": "Wie erstelle ich ein Konto?"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const deDE = {
       "completed": "Transaktion abgeschlossen ",
       "paid": "Bezahlt ",
       "pending": "Ausstehende Zahlung",
+      "refunded": "Erstattet",
       "shipped": "Versandt"
     }
   },
@@ -182,8 +183,8 @@ export const deDE = {
     "giftPacks": "Paket",
     "diamond": "Diamant",
     "products": "Artikel",
-    "vouchers": "Gutschein",
-    "toukaCoin": "Touka Coin",
+    "vouchers": "Super-Diamanten",
+    "toukaCoin": "Super-Diamanten",
     "toukaCoinBonusTip": "Shoppen Sie im TOUKA Store und erhalten Sie 10 % extra Belohnung!",
     "superValue": "Top-Angebot",
     "limitShort": "Limit",
@@ -193,14 +194,14 @@ export const deDE = {
       "weekly": "Wöchentlich",
       "monthly": "Monatlich"
     },
-    "howToUseVouchers": "Wie verwendet man Touka Coin?",
+    "howToUseVouchers": "Wie verwendet man Super-Diamanten?",
     "voucherGuide": {
-      "title": "Wie verwendet man Touka Coin?",
-      "step1": "1. Bitte prüfen Sie Ihr In-Game-Postfach, um die gekauften Touka Coin zu erhalten.",
-      "step2": "2. Oben im Tab des In-Game-Shops können Sie Ihr Touka-Coin-Guthaben einsehen. Sobald Sie genügend Touka Coin für den Kauf eines Geschenkpakets haben, werden Touka Coin beim Kauf vorrangig verwendet.",
+      "title": "Wie verwendet man Super-Diamanten?",
+      "step1": "1. Bitte prüfen Sie Ihr In-Game-Postfach, um die gekauften Super-Diamanten zu erhalten.",
+      "step2": "2. Oben im Tab des In-Game-Shops können Sie Ihr Super-Diamanten-Guthaben einsehen. Sobald Sie genügend Super-Diamanten für den Kauf eines Geschenkpakets haben, werden Super-Diamanten beim Kauf vorrangig verwendet.",
       "backToProducts": "Zur Produktliste zurückkehren"
     },
-    "luxuryVouchers": "Premium-Gutscheine"
+    "luxuryVouchers": "Super-Diamanten"
   },
   "purchaseConfirm": {
     "card": "Kreditkarte/EC-Karte",

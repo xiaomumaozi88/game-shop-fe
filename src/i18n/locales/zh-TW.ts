@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const zhTW = {
   "accountGuide": {
-    "content": "打開任意一款Touka旗下遊戲，前往遊戲內設定介面，綁定你的信箱，即可享受特價商品優惠！",
+    "content": "打開任意一款Touka旗下的遊戲，前往遊戲內主介面進行信箱綁定，綁定你的信箱，即可享受特價商品優惠！",
     "title": "如何創建帳號？"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const zhTW = {
       "completed": "交易完成",
       "paid": "已支付",
       "pending": "待支付",
+      "refunded": "已退款",
       "shipped": "已發貨"
     }
   },
@@ -182,8 +183,8 @@ export const zhTW = {
     "giftPacks": "禮包",
     "diamond": "鑽石",
     "products": "商品",
-    "vouchers": "代金券",
-    "toukaCoin": "Touka幣",
+    "vouchers": "超級鑽石",
+    "toukaCoin": "超級鑽石",
     "toukaCoinBonusTip": "在TOUKA Store購物，享受額外10%的獎勵！",
     "superValue": "超值",
     "limitShort": "限購",
@@ -193,14 +194,14 @@ export const zhTW = {
       "weekly": "週特惠",
       "monthly": "月特惠"
     },
-    "howToUseVouchers": "如何使用Touka幣？",
+    "howToUseVouchers": "如何使用超級鑽石？",
     "voucherGuide": {
-      "title": "如何使用Touka幣？",
-      "step1": "1.請在遊戲內郵箱查收您購買的Touka幣。",
-      "step2": "2.您可以在遊戲商城標籤頁上方查看您的Touka幣數量。當您的Touka幣數量達到購買禮包需要的數量要求時，將優先使用Touka幣進行購買。",
+      "title": "如何使用超級鑽石？",
+      "step1": "1.請在遊戲內郵箱查收您購買的超級鑽石。",
+      "step2": "2.您可以在遊戲商城標籤頁上方查看您的超級鑽石數量。當您的超級鑽石數量達到購買禮包需要的數量要求時，將優先使用超級鑽石進行購買。",
       "backToProducts": "返回商品列表"
     },
-    "luxuryVouchers": "豪華代金券"
+    "luxuryVouchers": "超級鑽石"
   },
   "purchaseConfirm": {
     "card": "信用卡／借記卡",

@@ -12,6 +12,7 @@ import {
   isProductPurchaseDisabled,
   getProductMaxPurchasableQuantity,
   isProductQuantityOverPurchaseLimit,
+  resolveAnalyticsEnvironment,
 } from '@/utils';
 import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
 import { PurchaseConfirmModal } from '../PurchaseConfirmModal';
@@ -310,7 +311,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setCurrentOrderPaymentType(paymentType);
 
       // 上报内购点击事件（Airwallex 走 airwallex_store / airwallex_h5store）
-      const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+      const environment = resolveAnalyticsEnvironment(
+        res.data.environment,
+        res.data.payment_environment,
+        res.data.env
+      );
       await trackStoreIapClick(product, paymentType, environment);
 
       // 如果返回了 h5_url，等待事件上报完成后再跳转（通用 H5 支付页面）

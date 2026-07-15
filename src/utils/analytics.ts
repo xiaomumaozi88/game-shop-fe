@@ -3,9 +3,132 @@ import { userStore } from '@/store/userStore';
 import { Product } from '@/types';
 import { PAYMENT_TYPES, STORAGE_KEYS } from './constants';
 import { storage } from './index';
+import { config } from './config';
 
 // 记录已上报登录的标识（按 token 维度存储，每个 token 下有多个 appKey+token 的组合），支持持久化
 const SDK_LOGIN_REPORTED_STORAGE_KEY = STORAGE_KEYS.SDK_LOGIN_REPORTED_KEYS;
+
+interface AnalyticsContext {
+  serverChannel?: string | number | null;
+  gameUserId?: string | null;
+  sdkId?: string | null;
+  country?: string | null;
+  platform?: string | null;
+  ip?: string | null;
+  isGameRedirect?: boolean;
+}
+
+const GAME_ID_TO_APP_KEY: Record<string, string> = {
+  'bam-bam-squad': 'f6594168ce3a9cc57ab7ed74426e25e1',
+  'oopsie': '45a56d38bbdd60353438aa25d1ccff20',
+  'oopsie-croco': '45a56d38bbdd60353438aa25d1ccff20',
+};
+
+export const resolveAnalyticsServerChannel = (channel?: string | number | null): number | undefined => {
+  if (channel === undefined || channel === null) return undefined;
+  if (typeof channel === 'number') {
+    return Number.isFinite(channel) ? channel : undefined;
+  }
+
+  const value = String(channel).trim();
+  if (!value) return undefined;
+
+  const exactNumber = Number(value);
+  if (Number.isFinite(exactNumber)) {
+    return exactNumber;
+  }
+
+  const normalized = value.toUpperCase().replace(/\s+/g, '');
+  const prefixedMatch = normalized.match(/^(GL|TK)[-_]?(\d+)$/);
+  if (prefixedMatch) {
+    const [, prefix, rawNumber] = prefixedMatch;
+    const displayNumber = Number(rawNumber);
+    if (Number.isFinite(displayNumber)) {
+      return prefix === 'TK' ? displayNumber + 123 : displayNumber;
+    }
+  }
+
+  const matched = value.match(/\d+/);
+  if (!matched) return undefined;
+
+  const parsed = Number(matched[0]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const getCurrentAppKeyForAnalytics = (): string | undefined => {
+  const stored = storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined) || undefined;
+  if (stored) return stored;
+
+  if (typeof window === 'undefined') return undefined;
+  const match = window.location.pathname.match(/^\/game\/([^/]+)/);
+  if (!match) return undefined;
+  return GAME_ID_TO_APP_KEY[match[1]];
+};
+
+const isSandboxLikeHost = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname.toLowerCase();
+  return host.includes('localhost') || host.includes('127.0.0.1') || host.includes('test') || host.includes('dgtverse');
+};
+
+export const resolveAnalyticsEnvironment = (...candidates: Array<string | null | undefined>): 'production' | 'sandbox' => {
+  const raw = candidates.find((value) => value && String(value).trim());
+  const normalized = raw ? String(raw).trim().toLowerCase() : '';
+
+  if (['sandbox', 'test', 'testing', 'demo', 'staging'].includes(normalized)) {
+    return 'sandbox';
+  }
+  if (['production', 'prod', 'live'].includes(normalized)) {
+    return 'production';
+  }
+
+  if (config.envStage !== 'prod' || config.airwallexEnv === 'demo' || isSandboxLikeHost()) {
+    return 'sandbox';
+  }
+
+  return 'production';
+};
+
+export const getAnalyticsEnvironment = (): 'production' | 'sandbox' => resolveAnalyticsEnvironment();
+
+const ensureThinkingDataReady = (): boolean => {
+  const appKey = getCurrentAppKeyForAnalytics();
+  if (appKey && thinkingData.isGameInitialized(appKey)) {
+    return true;
+  }
+
+  if (!appKey) {
+    return thinkingData.isInitialized();
+  }
+
+  const selection = userStore.getGameRoleSelection(appKey);
+  if (!selection?.ss_app_id || !selection?.ss_url) {
+    return thinkingData.isInitialized();
+  }
+
+  const initSuccess = thinkingData.initForGame(appKey, {
+    appId: selection.ss_app_id,
+    serverUrl: selection.ss_url,
+  });
+
+  if (!initSuccess) return false;
+
+  thinkingData.setCurrentGame(appKey);
+  const user = userStore.getUser();
+  if (user?.sdkId) {
+    thinkingData.login(user.sdkId);
+    thinkingData.userSet({
+      username: user.username || user.gameAccount || '',
+      gameAccount: user.gameAccount || '',
+      nickName: user.username || '',
+      gameUserId: user.characterName || '',
+      gameServerChannel: user.gameServer || '',
+      platform: user.platform || '',
+    });
+  }
+
+  return true;
+};
 
 /**
  * 加载指定 token 的已上报记录
@@ -75,33 +198,43 @@ export const trackStoreSdkLoginOnce = (appKey: string | undefined, accountId?: s
  * - server_channel: 区服id
  * - #account_id: 账户id/角色id
  */
-const getCommonProperties = () => {
+const getCommonProperties = (context: AnalyticsContext = {}) => {
   const user = userStore.getUser();
   const params = new URLSearchParams(window.location.search);
   
   // 判断是否游戏内跳转（通过URL参数判断，如果有特定参数则认为是游戏内跳转）
-  const isGameRedirect = params.has('from_app') || params.has('game_redirect') || false;
+  const isGameRedirect = context.isGameRedirect ?? (
+    user?.quickLogin === true || params.has('from_app') || params.has('game_redirect') || false
+  );
+  const serverChannel = resolveAnalyticsServerChannel(context.serverChannel ?? user?.gameServer);
+  const roleId = context.gameUserId ?? user?.characterName;
   
   const properties: Record<string, any> = {
-    account_id: user?.sdkId || user?.id || user?.gameAccount || '', // 优先使用 sdkId（用户详情接口返回的sdk_id）
+    account_id: context.sdkId || user?.sdkId || user?.id || user?.gameAccount || '', // 优先使用 sdkId（用户详情接口返回的sdk_id）
     is_game_redirect: isGameRedirect,
-    server_channel: user?.gameServer ? parseInt(user.gameServer) || 0 : 0,
   };
+
+  if (serverChannel !== undefined) {
+    properties.server_channel = serverChannel;
+  }
   
   // 设置 # 开头的系统属性
-  if (user?.country) {
-    properties['#country_code'] = user.country;
+  const country = context.country ?? user?.country;
+  if (country) {
+    properties['#country_code'] = country;
   }
-  if (user?.platform) {
-    properties['#os'] = user.platform;
+  const platform = context.platform ?? user?.platform;
+  if (platform) {
+    properties['#os'] = platform;
   }
-  if (user?.ip) {
-    properties['#ip'] = user.ip;
+  const ip = context.ip ?? user?.ip;
+  if (ip) {
+    properties['#ip'] = ip;
   }
   // #account_id 是角色ID（game_user_id）
   // characterName 存储的就是 game_user_id
-  if (user?.characterName) {
-    properties['#account_id'] = user.characterName;
+  if (roleId) {
+    properties['#account_id'] = roleId;
   }
   
   return properties;
@@ -122,17 +255,17 @@ const resolvePaymentType = (paymentType?: string) => {
  * iap 格式：60diamonds
  */
 const extractProductInfo = (product: Product) => {
-  // 如果商品ID已经符合格式，直接使用
-  let productId = product.id;
-  let iap = product.id;
+  // product_id 优先使用后端商品字段 iap_id（如 com.oopscroco.60diamonds）
+  let productId = product.iap_id || product.id;
+  let iap = product.iap || product.id;
   
   // 尝试从商品ID中提取 iap（去掉前缀）
-  const parts = product.id.split('.');
-  if (parts.length > 1) {
+  const parts = productId.split('.');
+  if (!product.iap && parts.length > 1) {
     iap = parts[parts.length - 1];
-  } else {
+  } else if (!product.iap && parts.length <= 1) {
     // 如果不符合格式，使用商品ID作为 iap
-    iap = product.id;
+    iap = productId;
     // 构造标准的 product_id 格式
     productId = `com.oopscroco.${iap}`;
   }
@@ -153,14 +286,14 @@ const extractProductInfo = (product: Product) => {
  */
 export const trackStoreSdkLogin = (accountId?: string) => {
   // 检查数数SDK是否已初始化
-  if (!thinkingData.isInitialized()) {
+  if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_sdk_login 事件上报');
     return;
   }
 
   const user = userStore.getUser();
   const params = new URLSearchParams(window.location.search);
-  const isGameRedirect = params.has('from_app') || params.has('game_redirect') || false;
+  const isGameRedirect = user?.quickLogin === true || params.has('from_app') || params.has('game_redirect') || false;
   
   const properties: Record<string, any> = {
     account_id: accountId || user?.sdkId || user?.id || user?.gameAccount || '',
@@ -199,22 +332,26 @@ export const trackStoreSdkLogin = (accountId?: string) => {
  * @param serverChannel 区服ID
  * @param gameUserId 游戏用户ID/角色ID（用于#account_id）
  */
-export const trackStoreRoleSelect = (serverChannel?: number, gameUserId?: string) => {
+export const trackStoreRoleSelect = (serverChannel?: string | number, gameUserId?: string) => {
   // 检查数数SDK是否已初始化
-  if (!thinkingData.isInitialized()) {
+  if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_role_select 事件上报');
     return;
   }
 
   const user = userStore.getUser();
   const params = new URLSearchParams(window.location.search);
-  const isGameRedirect = params.has('from_app') || params.has('game_redirect') || false;
+  const isGameRedirect = user?.quickLogin === true || params.has('from_app') || params.has('game_redirect') || false;
+  const resolvedServerChannel = resolveAnalyticsServerChannel(serverChannel ?? user?.gameServer);
   
   const properties: Record<string, any> = {
     account_id: user?.sdkId || user?.id || user?.gameAccount || '', // SDK账号
     is_game_redirect: isGameRedirect,
-    server_channel: serverChannel || (user?.gameServer ? parseInt(user.gameServer) || 0 : 0),
   };
+
+  if (resolvedServerChannel !== undefined) {
+    properties.server_channel = resolvedServerChannel;
+  }
   
   // 设置 # 开头的系统属性
   if (user?.country) {
@@ -292,14 +429,14 @@ const saveIapShowReportedKeys = (token: string, keys: Set<string>): void => {
  * - price: 分成前价格
  * - currency: 货币单位
  */
-export const trackStoreIapShow = (product: Product) => {
+export const trackStoreIapShow = (product: Product): boolean => {
   // 检查数数SDK是否已初始化
-  if (!thinkingData.isInitialized()) {
+  if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_iap_show 事件上报', {
       productName: product.name,
       hasUser: !!userStore.getUser(),
     });
-    return;
+    return false;
   }
 
   const user = userStore.getUser();
@@ -308,14 +445,15 @@ export const trackStoreIapShow = (product: Product) => {
   // 必须有 token 才能记录上报状态
   if (!token) {
     console.warn('trackStoreIapShow: token 未提供，无法记录上报状态，商品：', product.name);
-    return;
+    return false;
   }
   
   // 检查是否已获取用户详情（必须要有角色信息，说明已经调用过用户详情接口）
   // 用户详情接口会设置 characterName（game_user_id）、sdkId、country、platform、ip 等字段
-  if (!user?.characterName && !user?.gameServer) {
+  const commonProperties = getCommonProperties();
+  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
     console.warn('用户详情未获取完成（未选择角色），跳过 store_iap_show 事件上报，商品：', product.name);
-    return;
+    return false;
   }
   
   // 提取 product_id 和 iap
@@ -324,7 +462,7 @@ export const trackStoreIapShow = (product: Product) => {
   const iap = product.iap || extractedIap;
   
   // 构建去重key：token + product_id（使用提取后的 product_id）
-  const reportedKey = `${token}|${product_id}`;
+  const reportedKey = `${token}|${commonProperties['#account_id']}|${commonProperties.server_channel}|${product_id}`;
   
   // 从存储中加载当前 token 的已上报记录
   const reportedKeysArray = loadIapShowReportedKeys(token);
@@ -332,36 +470,16 @@ export const trackStoreIapShow = (product: Product) => {
   
   // 如果已经上报过，直接返回
   if (iapShowReportedKeys.has(reportedKey)) {
-    return;
+    return true;
   }
   
-  const params = new URLSearchParams(window.location.search);
-  const isGameRedirect = params.has('from_app') || params.has('game_redirect') || false;
-  
   const properties: Record<string, any> = {
-    account_id: user?.sdkId || user?.id || user?.gameAccount || '', // SDK账号
-    is_game_redirect: isGameRedirect,
-    server_channel: user?.gameServer ? parseInt(user.gameServer) || 0 : 0,
+    ...commonProperties,
     product_id, // 商品id
     iap, // iap（商品列表详情返回的iap字段）
     price: product.price, // 分成前价格
     currency: product.currency, // 货币单位
   };
-  
-  // 设置 # 开头的系统属性
-  if (user?.country) {
-    properties['#country_code'] = user.country;
-  }
-  if (user?.platform) {
-    properties['#os'] = user.platform;
-  }
-  if (user?.ip) {
-    properties['#ip'] = user.ip;
-  }
-  // #account_id 是角色ID（game_user_id）
-  if (user?.characterName) {
-    properties['#account_id'] = user.characterName;
-  }
   
   const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
   const productName = product.name || '未知商品';
@@ -372,6 +490,7 @@ export const trackStoreIapShow = (product: Product) => {
   // 记录已上报
   iapShowReportedKeys.add(reportedKey);
   saveIapShowReportedKeys(token, iapShowReportedKeys);
+  return true;
 };
 
 /**
@@ -394,12 +513,12 @@ export const trackStoreIapShow = (product: Product) => {
 export const trackStoreIapClick = (
   product: Product,
   paymentType?: string,
-  environment: string = 'production'
-) => {
+  environment: string = getAnalyticsEnvironment()
+): Promise<boolean> => {
   // 检查数数SDK是否已初始化
-  if (!thinkingData.isInitialized()) {
+  if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_iap_click 事件上报');
-    return;
+    return Promise.resolve(false);
   }
 
   // 提取 product_id 和 iap
@@ -410,8 +529,14 @@ export const trackStoreIapClick = (
   // 使用传入的 payment_type（如果未传入则为 undefined）
   const resolvedPaymentType = resolvePaymentType(paymentType);
   
+  const commonProperties = getCommonProperties();
+  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+    console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_iap_click 事件上报，商品：', product.name);
+    return Promise.resolve(false);
+  }
+
   const properties = {
-    ...getCommonProperties(),
+    ...commonProperties,
     product_id, // 商品id
     iap, // iap（商品列表详情返回的iap字段）
     price: product.price, // 分成前价格
@@ -434,7 +559,7 @@ export const trackStoreIapClick = (
     setTimeout(() => {
       resolve();
     }, 150);
-  });
+  }).then(() => true);
 };
 
 /**
@@ -444,19 +569,27 @@ export const trackStoreIapClick = (
 export const trackStoreIapSuccess = (
   product: Product,
   paymentType?: string,
-  environment: string = 'production'
-) => {
+  environment: string = getAnalyticsEnvironment(),
+  context?: AnalyticsContext
+): boolean => {
   // 检查数数SDK是否已初始化
-  if (!thinkingData.isInitialized()) {
+  if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_iap_success 事件上报');
-    return;
+    return false;
   }
 
-  const { product_id, iap } = extractProductInfo(product);
+  const { product_id, iap: extractedIap } = extractProductInfo(product);
+  const iap = product.iap || extractedIap;
   const resolvedPaymentType = resolvePaymentType(paymentType);
   
+  const commonProperties = getCommonProperties(context);
+  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+    console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_iap_success 事件上报，商品：', product.name);
+    return false;
+  }
+
   const properties = {
-    ...getCommonProperties(),
+    ...commonProperties,
     product_id, // 商品id
     iap, 
     price: product.price,
@@ -470,6 +603,7 @@ export const trackStoreIapSuccess = (
   console.log(`✅ 触发"store_iap_success"事件，商品：${productName}，时间：${timestamp}`);
   console.log('trackStoreIapSuccess properties', properties);
   thinkingData.track('store_iap_success', properties);
+  return true;
 };
 
 /**
@@ -479,20 +613,28 @@ export const trackStoreIapSuccess = (
 export const trackStoreIapFail = (
   product: Product,
   paymentType: string | undefined,
-  environment: string = 'production',
-  failReason: string
-) => {
+  environment: string = getAnalyticsEnvironment(),
+  failReason: string,
+  context?: AnalyticsContext
+): boolean => {
   // 检查数数SDK是否已初始化
-  if (!thinkingData.isInitialized()) {
+  if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_iap_fail 事件上报');
-    return;
+    return false;
   }
 
-  const { product_id, iap } = extractProductInfo(product);
+  const { product_id, iap: extractedIap } = extractProductInfo(product);
+  const iap = product.iap || extractedIap;
   const resolvedPaymentType = resolvePaymentType(paymentType);
   
+  const commonProperties = getCommonProperties(context);
+  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+    console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_iap_fail 事件上报，商品：', product.name);
+    return false;
+  }
+
   const properties = {
-    ...getCommonProperties(),
+    ...commonProperties,
     product_id,
     iap,
     price: product.price,
@@ -507,5 +649,5 @@ export const trackStoreIapFail = (
   console.log(`✅ 触发"store_iap_fail"事件，商品：${productName}，时间：${timestamp}`);
   console.log('trackStoreIapFail properties', properties);
   thinkingData.track('store_iap_fail', properties);
+  return true;
 };
-

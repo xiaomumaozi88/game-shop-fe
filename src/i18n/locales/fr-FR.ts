@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const frFR = {
   "accountGuide": {
-    "content": "Ouvrez n'importe quel jeu du groupe Touka, allez dans les paramètres du jeu, liez votre email, et profitez des offres spéciales !",
+    "content": "Ouvrez n'importe quel jeu Touka, accédez à l'écran principal du jeu pour associer votre e-mail, puis profitez des offres spéciales une fois l'e-mail associé !",
     "title": "Comment créer un compte ?"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const frFR = {
       "completed": "Transaction terminée",
       "paid": "Payé",
       "pending": "En attente de paiement",
+      "refunded": "Remboursé",
       "shipped": "Expédié"
     }
   },
@@ -182,8 +183,8 @@ export const frFR = {
     "giftPacks": "Pack cadeau",
     "diamond": "Diamant",
     "products": "Produit",
-    "vouchers": "Coupon",
-    "toukaCoin": "Touka Coin",
+    "vouchers": "Super Diamants",
+    "toukaCoin": "Super Diamants",
     "toukaCoinBonusTip": "Achetez sur TOUKA Store et profitez de 10 % de bonus supplémentaire !",
     "superValue": "Super offre",
     "limitShort": "Limite",
@@ -193,14 +194,14 @@ export const frFR = {
       "weekly": "Offre hebdo",
       "monthly": "Offre mensuelle"
     },
-    "howToUseVouchers": "Comment utiliser les Touka Coin ?",
+    "howToUseVouchers": "Comment utiliser les Super Diamants ?",
     "voucherGuide": {
-      "title": "Comment utiliser les Touka Coin ?",
-      "step1": "1. Veuillez vérifier votre boîte aux lettres en jeu pour récupérer les Touka Coin que vous avez achetés.",
-      "step2": "2. Vous pouvez consulter votre solde de Touka Coin en haut de l'onglet de la boutique du jeu. Lorsque vous avez suffisamment de Touka Coin pour acheter un pack cadeau, les Touka Coin seront utilisés en priorité lors de l'achat.",
+      "title": "Comment utiliser les Super Diamants ?",
+      "step1": "1. Veuillez vérifier votre boîte aux lettres en jeu pour récupérer les Super Diamants que vous avez achetés.",
+      "step2": "2. Vous pouvez consulter votre solde de Super Diamants en haut de l'onglet de la boutique du jeu. Lorsque vous avez suffisamment de Super Diamants pour acheter un pack cadeau, les Super Diamants seront utilisés en priorité lors de l'achat.",
       "backToProducts": "Retour à la liste des produits"
     },
-    "luxuryVouchers": "Coupons premium"
+    "luxuryVouchers": "Super Diamants"
   },
   "purchaseConfirm": {
     "card": "Carte de crédit / Carte de débit",

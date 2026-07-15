@@ -10,7 +10,7 @@ import { ModalCloseIcon } from '../Icons/ModalCloseIcon';
 import { stripeApi } from '@/utils/api';
 import { config } from '@/utils/config';
 import { Loading } from '../Loading';
-import { trackStoreIapFail, PAYMENT_TYPES } from '@/utils';
+import { trackStoreIapFail, PAYMENT_TYPES, getAnalyticsEnvironment } from '@/utils';
 import { Product } from '@/types';
 import styles from './StripeCheckout.module.less';
 
@@ -60,7 +60,7 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
       
       // 使用传入的 product 信息上报用户取消事件
       if (product) {
-          const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+          const environment = getAnalyticsEnvironment();
         trackStoreIapFail(product, paymentType, environment, 'User cancelled');
       }
     }
@@ -100,7 +100,7 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
         
         // 上报支付初始化失败
         if (product) {
-            const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+            const environment = getAnalyticsEnvironment();
           trackStoreIapFail(product, paymentType, environment, `Checkout session creation failed: ${errorMessage}`);
         }
         
@@ -114,7 +114,7 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
         
         // 上报支付初始化失败
         if (product) {
-            const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+            const environment = getAnalyticsEnvironment();
           trackStoreIapFail(product, paymentType, environment, errorMessage);
         }
         
@@ -232,4 +232,3 @@ export const StripeCheckout: React.FC<StripeCheckoutProps> = ({
     </div>
   );
 };
-

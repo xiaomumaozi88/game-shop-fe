@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const koKR = {
   "accountGuide": {
-    "content": "Touka 소속의 아무 게임이나 열고, 게임 내 설정 화면으로 이동하여 이메일을 연동하면 특별 할인 상품 혜택을 누릴 수 있습니다!",
+    "content": "Touka의 아무 게임이나 열고, 게임 내 메인 화면에서 이메일을 연동하면 특별 할인 상품 혜택을 누릴 수 있습니다!",
     "title": "계정을 어떻게 생성하나요?"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const koKR = {
       "completed": "거래 완료",
       "paid": "결제 완료",
       "pending": "결제 대기",
+      "refunded": "환불됨",
       "shipped": "배송됨"
     }
   },
@@ -182,8 +183,8 @@ export const koKR = {
     "giftPacks": "패키지",
     "diamond": "다이아",
     "products": "상품",
-    "vouchers": "바우처",
-    "toukaCoin": "Touka 코인",
+    "vouchers": "슈퍼 다이아몬드",
+    "toukaCoin": "슈퍼 다이아몬드",
     "toukaCoinBonusTip": "TOUKA Store에서 구매 시 추가 10% 보상을 받으세요!",
     "superValue": "초특가",
     "limitShort": "제한",
@@ -193,14 +194,14 @@ export const koKR = {
       "weekly": "주간 특가",
       "monthly": "월간 특가"
     },
-    "howToUseVouchers": "Touka 코인 사용 방법",
+    "howToUseVouchers": "슈퍼 다이아몬드 사용 방법",
     "voucherGuide": {
-      "title": "Touka 코인 사용 방법",
-      "step1": "1. 구매한 Touka 코인은 게임 내 우편함에서 확인해 주세요.",
-      "step2": "2. 게임 내 상점 탭 상단에서 보유한 Touka 코인 잔액을 확인할 수 있습니다. 선물 패키지를 구매할 만큼 Touka 코인이 충분하면, 구매 시 Touka 코인이 우선 사용됩니다.",
+      "title": "슈퍼 다이아몬드 사용 방법",
+      "step1": "1. 구매한 슈퍼 다이아몬드는 게임 내 우편함에서 확인해 주세요.",
+      "step2": "2. 게임 내 상점 탭 상단에서 보유한 슈퍼 다이아몬드 잔액을 확인할 수 있습니다. 선물 패키지를 구매할 만큼 슈퍼 다이아몬드가 충분하면, 구매 시 슈퍼 다이아몬드가 우선 사용됩니다.",
       "backToProducts": "상품 목록으로 돌아가기"
     },
-    "luxuryVouchers": "고급 바우처"
+    "luxuryVouchers": "슈퍼 다이아몬드"
   },
   "purchaseConfirm": {
     "card": "신용카드/직불카드",

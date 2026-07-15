@@ -1,6 +1,6 @@
 import React from 'react';
 import { Game } from '../Home';
-import goArrowIcon from '@/assets/img2/mobile-game-card-go-arrow.png';
+import goArrowIcon from '@/assets/img2/mobile-game-card-go-white-arrow.png';
 import styles from '../Home.module.less';
 
 interface HomeMobileGameListProps {
@@ -38,7 +38,7 @@ export const HomeMobileGameList: React.FC<HomeMobileGameListProps> = ({
               decoding="async"
             />
             <span className={styles.mobileGameCardGo} aria-hidden>
-              <span className={styles.mobileGameCardGoText} data-text={goLabel} />
+              <span className={styles.mobileGameCardGoText}>{goLabel}</span>
               <img src={goArrowIcon} alt="" className={styles.mobileGameCardGoIcon} />
             </span>
           </button>

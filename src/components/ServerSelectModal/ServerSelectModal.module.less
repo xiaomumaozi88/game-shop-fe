@@ -43,6 +43,7 @@
 }
 
 .modal {
+  --server-keyboard-offset: 0px;
   position: relative;
   width: 100%;
   max-width: (@server-modal-base-width * @server-modal-scale);
@@ -52,6 +53,8 @@
   border-radius: (2rem * @server-modal-scale);
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
   animation: slideUp 0.3s ease;
+  transform: translate3d(0, calc(0px - var(--server-keyboard-offset)), 0);
+  transition: transform 0.18s ease;
   overflow: visible;
   font-family: @font-family-sans;
   max-height: none;

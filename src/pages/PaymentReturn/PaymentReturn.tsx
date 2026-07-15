@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Loading } from '@/components/Loading';
 import { stripeApi } from '@/utils/api';
-import { trackStoreIapSuccess, trackStoreIapFail, PAYMENT_TYPES, resolveOrdersListPath } from '@/utils';
+import { trackStoreIapSuccess, trackStoreIapFail, PAYMENT_TYPES, resolveOrdersListPath, getAnalyticsEnvironment } from '@/utils';
 import { Product } from '@/types';
 import styles from './PaymentReturn.module.less';
 
@@ -40,7 +40,7 @@ const PaymentReturn: React.FC = () => {
           if (pendingProductStr) {
             try {
               const pendingProduct = JSON.parse(pendingProductStr) as Product & { quantity?: number };
-              const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+              const environment = getAnalyticsEnvironment();
               
               if (status === 'complete') {
                 // 支付成功，上报成功事件
@@ -82,7 +82,7 @@ const PaymentReturn: React.FC = () => {
           if (pendingProductStr) {
             try {
               const pendingProduct = JSON.parse(pendingProductStr) as Product & { quantity?: number };
-              const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+              const environment = getAnalyticsEnvironment();
               const errorMessage = result.error || result.message || 'Session status fetch failed';
               trackStoreIapFail(pendingProduct, PAYMENT_TYPES.STRIPE_STORE, environment, `Server error: ${errorMessage}`);
               localStorage.removeItem('pending_payment_product');
@@ -100,7 +100,7 @@ const PaymentReturn: React.FC = () => {
         if (pendingProductStr) {
           try {
             const pendingProduct = JSON.parse(pendingProductStr) as Product & { quantity?: number };
-            const environment = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+            const environment = getAnalyticsEnvironment();
             trackStoreIapFail(pendingProduct, PAYMENT_TYPES.STRIPE_STORE, environment, error instanceof Error ? error.message : 'Unknown error');
             localStorage.removeItem('pending_payment_product');
           } catch (parseError) {
@@ -195,4 +195,3 @@ const PaymentReturn: React.FC = () => {
 };
 
 export default PaymentReturn;
-

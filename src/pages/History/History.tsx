@@ -172,7 +172,7 @@ export const History: React.FC = () => {
     // 根据 product_position 或默认值确定 categoryId
     const categoryId = orderData.product_position 
       ? mapPositionToCategoryId(orderData.product_position)
-      : 'vouchers'; // 默认 Touka币
+      : 'vouchers'; // 默认超级钻石
 
     const paySuccess = orderData.pay_success_time?.trim() || '';
     const createdTime = orderData.created_time?.trim() || '';
@@ -186,6 +186,17 @@ export const History: React.FC = () => {
       const parsed = Number(rawUnix.trim());
       if (Number.isFinite(parsed) && parsed > 0) {
         bmallCreatedAtUnix = parsed;
+      }
+    }
+
+    let payStatus: number | undefined;
+    const rawPayStatus = orderData.pay_status;
+    if (typeof rawPayStatus === 'number' && Number.isFinite(rawPayStatus)) {
+      payStatus = rawPayStatus;
+    } else if (typeof rawPayStatus === 'string' && rawPayStatus.trim()) {
+      const parsed = Number(rawPayStatus.trim());
+      if (Number.isFinite(parsed)) {
+        payStatus = parsed;
       }
     }
 
@@ -213,6 +224,7 @@ export const History: React.FC = () => {
       totalAmount: orderData.price,
       currency: orderData.currency,
       status: statusMap[orderData.order_status] || OrderStatus.PENDING,
+      payStatus,
       createdAt: displayTime,
       bmallCreatedTime: createdTime || undefined,
       bmallCreatedAtUnix,
@@ -378,7 +390,11 @@ export const History: React.FC = () => {
     }
   };
 
-  const getStatusText = (status: OrderStatus): string => {
+  const getStatusText = (status: OrderStatus, order?: Order): string => {
+    if (status === OrderStatus.COMPLETED && order?.payStatus === 2) {
+      return t('history.status.refunded');
+    }
+
     const statusMap: Record<OrderStatus, string> = {
       [OrderStatus.PENDING]: t('history.status.pending'),
       [OrderStatus.PAID]: t('history.status.paid'),
@@ -479,6 +495,12 @@ export const History: React.FC = () => {
     return 'web';
   };
 
+  const normalizeOrderPaymentPlatform = (platform: string | undefined | null): 'ios' | 'android' | undefined => {
+    const value = platform?.trim().toLowerCase();
+    if (value === 'ios' || value === 'android') return value;
+    return undefined;
+  };
+
   const closeCancelOrderDialog = () => {
     if (cancelRequesting) return;
     setCancelDialogOpen(false);
@@ -543,9 +565,21 @@ export const History: React.FC = () => {
       }
 
       const latestOrder = latestOrderResult.data;
+      const orderExt = order as Order & { platform?: string };
+      const paymentPlatform =
+        normalizeOrderPaymentPlatform(latestOrder.platform) ||
+        normalizeOrderPaymentPlatform(orderExt.platform) ||
+        normalizeOrderPaymentPlatform(user?.platform) ||
+        normalizeOrderPaymentPlatform(detectCurrentPlatform());
+
+      if (!paymentPlatform) {
+        messageStore.show(t('history.payConfigError'));
+        return;
+      }
+
       const createOrderResult = await bmallOrderApi.createOrder({
         appKey,
-        platform: detectCurrentPlatform(),
+        platform: paymentPlatform,
         language,
         productId: latestOrder.product_id,
         quantity: latestOrder.quantity,
@@ -843,7 +877,7 @@ export const History: React.FC = () => {
                 {/* 订单头部 */}
                 <div className={styles.orderHeader}>
                   <span className={styles.orderId}>{t('paymentSuccess.orderId')} {order.id}</span>
-                  <span className={styles.orderStatus}>{getStatusText(effectiveStatus)}</span>
+                  <span className={styles.orderStatus}>{getStatusText(effectiveStatus, order)}</span>
                 </div>
 
                 {/* 订单内容 */}

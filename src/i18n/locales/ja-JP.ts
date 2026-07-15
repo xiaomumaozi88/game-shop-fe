@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const jaJP = {
   "accountGuide": {
-    "content": "Toukaのいずれかのゲームを開き、ゲーム内の設定画面に進んでメールアドレスを連携すると、特価商品の割引を受けることができます！",
+    "content": "Toukaのいずれかのゲームを開き、ゲーム内のメイン画面でメールアドレスを連携すると、特価商品の割引を受けることができます！",
     "title": "アカウントの作成方法は？"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const jaJP = {
       "completed": "取引完了",
       "paid": "支払い済み",
       "pending": "未払い",
+      "refunded": "返金済み",
       "shipped": "発送済み"
     }
   },
@@ -182,8 +183,8 @@ export const jaJP = {
     "giftPacks": "パッケージ",
     "diamond": "ダイヤ",
     "products": "商品",
-    "vouchers": "バウチャー",
-    "toukaCoin": "Toukaコイン",
+    "vouchers": "スーパーダイヤ",
+    "toukaCoin": "スーパーダイヤ",
     "toukaCoinBonusTip": "TOUKA Storeで購入すると、追加10%のボーナスがもらえます！",
     "superValue": "お得",
     "limitShort": "制限",
@@ -193,14 +194,14 @@ export const jaJP = {
       "weekly": "週間特価",
       "monthly": "月間特価"
     },
-    "howToUseVouchers": "Toukaコインの使い方",
+    "howToUseVouchers": "スーパーダイヤの使い方",
     "voucherGuide": {
-      "title": "Toukaコインの使い方",
-      "step1": "1. ゲーム内メールで購入したToukaコインをお受け取りください。",
-      "step2": "2. ゲーム内ショップタブの上部で、所持しているToukaコイン残高を確認できます。ギフトパックの購入に必要な数量に達すると、Toukaコインが優先的に使用されます。",
+      "title": "スーパーダイヤの使い方",
+      "step1": "1. ゲーム内メールで購入したスーパーダイヤをお受け取りください。",
+      "step2": "2. ゲーム内ショップタブの上部で、所持しているスーパーダイヤ残高を確認できます。ギフトパックの購入に必要な数量に達すると、スーパーダイヤが優先的に使用されます。",
       "backToProducts": "商品リストに戻る"
     },
-    "luxuryVouchers": "高級バウチャー"
+    "luxuryVouchers": "スーパーダイヤ"
   },
   "purchaseConfirm": {
     "card": "クレジットカード／デビットカード",

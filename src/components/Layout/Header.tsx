@@ -900,9 +900,11 @@ export const Header: React.FC = () => {
                 trackStoreSdkLoginOnce(appKey, userDetail.sdk_id, user?.token);
 
                 // 上报角色选择事件（确保数数配置已初始化后）
-                const serverChannelNum = parseInt(userDetail.game_server_channel) || 0;
-                console.log('🔵 Header 准备上报角色选择事件', { serverChannelNum, game_user_id: userDetail.game_user_id });
-                trackStoreRoleSelect(serverChannelNum, userDetail.game_user_id);
+                console.log('🔵 Header 准备上报角色选择事件', {
+                  serverChannel: userDetail.game_server_channel,
+                  game_user_id: userDetail.game_user_id,
+                });
+                trackStoreRoleSelect(userDetail.game_server_channel, userDetail.game_user_id);
                 
                 // 保存当前游戏的角色选择信息和数数配置
                 if (appKey) {

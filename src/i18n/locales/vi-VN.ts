@@ -1,7 +1,7 @@
 // Auto-generated from translation.csv; do not edit manually
 export const viVN = {
   "accountGuide": {
-    "content": "Mở bất kỳ một trò chơi nào thuộc Touka, vào giao diện cài đặt trong game, liên kết email của bạn để nhận ưu đãi mua hàng giảm giá!",
+    "content": "Mở bất kỳ trò chơi nào của Touka, vào màn hình chính trong game để liên kết email, sau khi liên kết email bạn có thể nhận ưu đãi giảm giá đặc biệt!",
     "title": "Làm thế nào để tạo tài khoản?"
   },
   "bottomNav": {
@@ -89,6 +89,7 @@ export const viVN = {
       "completed": "Giao dịch hoàn thành",
       "paid": "Đã thanh toán",
       "pending": "Chờ thanh toán",
+      "refunded": "Đã hoàn tiền",
       "shipped": "Đã gửi hàng"
     }
   },
@@ -182,8 +183,8 @@ export const viVN = {
     "giftPacks": "Gói quà",
     "diamond": "Kim cương",
     "products": "Sản phẩm",
-    "vouchers": "Phiếu giảm giá",
-    "toukaCoin": "Touka Coin",
+    "vouchers": "Siêu Kim Cương",
+    "toukaCoin": "Siêu Kim Cương",
     "toukaCoinBonusTip": "Mua sắm tại TOUKA Store và nhận thêm 10% phần thưởng!",
     "superValue": "Siêu hời",
     "limitShort": "Giới hạn",
@@ -193,14 +194,14 @@ export const viVN = {
       "weekly": "Theo tuần",
       "monthly": "Theo tháng"
     },
-    "howToUseVouchers": "Cách sử dụng Touka Coin?",
+    "howToUseVouchers": "Cách sử dụng Siêu Kim Cương?",
     "voucherGuide": {
-      "title": "Cách sử dụng Touka Coin?",
-      "step1": "1. Vui lòng kiểm tra hộp thư trong game để nhận Touka Coin bạn đã mua.",
-      "step2": "2. Bạn có thể xem số dư Touka Coin ở phía trên tab cửa hàng trong game. Khi bạn có đủ Touka Coin để mua gói quà, hệ thống sẽ ưu tiên dùng Touka Coin để thanh toán.",
+      "title": "Cách sử dụng Siêu Kim Cương?",
+      "step1": "1. Vui lòng kiểm tra hộp thư trong game để nhận Siêu Kim Cương bạn đã mua.",
+      "step2": "2. Bạn có thể xem số dư Siêu Kim Cương ở phía trên tab cửa hàng trong game. Khi bạn có đủ Siêu Kim Cương để mua gói quà, hệ thống sẽ ưu tiên dùng Siêu Kim Cương để thanh toán.",
       "backToProducts": "Quay lại danh sách sản phẩm"
     },
-    "luxuryVouchers": "Phiếu giảm giá cao cấp"
+    "luxuryVouchers": "Siêu Kim Cương"
   },
   "purchaseConfirm": {
     "card": "Thẻ tín dụng/thẻ ghi nợ",

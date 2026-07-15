@@ -29,7 +29,7 @@ function isIOSLikeBrowser(): boolean {
 }
 
 function shouldRestoreScrollAfterFocus(): boolean {
-  return isIOSLikeBrowser() || window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  return isIOSLikeBrowser();
 }
 
 interface LoginModalProps {
@@ -56,8 +56,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [captchaImage, setCaptchaImage] = useState('');
   const [captchaId, setCaptchaId] = useState('');
+  const [verificationKeyboardOffset, setVerificationKeyboardOffset] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const verificationSubmittingRef = useRef(false);
+  const verificationKeyboardOffsetRef = useRef(0);
 
   useEffect(() => {
     [loginModalBg, loginModalLogo, loginModalLogoText, loginModalClose].forEach((src) => {
@@ -75,9 +78,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     const pageScrollY = window.scrollY;
     const overlayScrollTop = overlayRef.current?.scrollTop ?? 0;
 
-    input.focus({ preventScroll: true });
-
     if (shouldRestoreScrollAfterFocus()) {
+      input.focus({ preventScroll: true });
+
       const restoreScroll = () => {
         window.scrollTo(pageScrollX, pageScrollY);
         if (overlayRef.current) {
@@ -87,6 +90,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
       window.requestAnimationFrame(restoreScroll);
       window.setTimeout(restoreScroll, 80);
+    } else {
+      input.focus();
     }
   };
 
@@ -121,6 +126,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       setCodes(['', '', '', '', '', '']);
       setVerificationError('');
       setVerificationLoading(false);
+      verificationSubmittingRef.current = false;
       setCaptcha('');
       setCaptchaId('');
       setCaptchaImage('');
@@ -134,6 +140,84 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   useScrollLock(isOpen);
+
+  useEffect(() => {
+    verificationKeyboardOffsetRef.current = verificationKeyboardOffset;
+  }, [verificationKeyboardOffset]);
+
+  useEffect(() => {
+    if (!isOpen || !showVerification) {
+      setVerificationKeyboardOffset(0);
+      return;
+    }
+
+    const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (!isTouchDevice) {
+      setVerificationKeyboardOffset(0);
+      return;
+    }
+
+    if (isIOSLikeBrowser()) {
+      setVerificationKeyboardOffset(0);
+      return;
+    }
+
+    const visualViewport = window.visualViewport;
+    let frameId: number | null = null;
+
+    const syncVerificationKeyboardOffset = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+
+        const activeElement = document.activeElement;
+        if (
+          !(activeElement instanceof HTMLInputElement) ||
+          !inputRefs.current.includes(activeElement)
+        ) {
+          setVerificationKeyboardOffset(0);
+          return;
+        }
+
+        const viewportBottom = visualViewport
+          ? visualViewport.offsetTop + visualViewport.height
+          : window.innerHeight;
+
+        const inputRect = activeElement.getBoundingClientRect();
+        const safeGap = 20;
+        const inputBottomWithoutCurrentOffset =
+          inputRect.bottom + verificationKeyboardOffsetRef.current;
+        const nextOffset = Math.min(
+          Math.max(0, inputBottomWithoutCurrentOffset + safeGap - viewportBottom),
+          180
+        );
+
+        setVerificationKeyboardOffset(nextOffset);
+      });
+    };
+
+    syncVerificationKeyboardOffset();
+    visualViewport?.addEventListener('resize', syncVerificationKeyboardOffset);
+    visualViewport?.addEventListener('scroll', syncVerificationKeyboardOffset);
+    window.addEventListener('resize', syncVerificationKeyboardOffset);
+    document.addEventListener('focusin', syncVerificationKeyboardOffset, true);
+    document.addEventListener('focusout', syncVerificationKeyboardOffset, true);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      visualViewport?.removeEventListener('resize', syncVerificationKeyboardOffset);
+      visualViewport?.removeEventListener('scroll', syncVerificationKeyboardOffset);
+      window.removeEventListener('resize', syncVerificationKeyboardOffset);
+      document.removeEventListener('focusin', syncVerificationKeyboardOffset, true);
+      document.removeEventListener('focusout', syncVerificationKeyboardOffset, true);
+    };
+  }, [isOpen, showVerification]);
 
   if (!isOpen) return null;
 
@@ -186,7 +270,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           const errorMessage = bizCode
             ? getErrorMessage(bizCode)
             : sendCodeRes.error || t('login.sendCodeFailed') || '发送验证码失败';
-          showErrorToast(errorMessage);
+          setError(errorMessage);
         }
         setLoading(false);
         return;
@@ -201,7 +285,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       }, 100);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('login.sendCodeFailed') || '发送验证码失败';
-      showErrorToast(errorMessage);
+      setError(errorMessage);
       fetchCaptcha();
       setCaptcha('');
       setLoading(false);
@@ -209,17 +293,35 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleCodeChange = (index: number, value: string) => {
-    if (value && !/^\d$/.test(value)) {
+    const digits = value.replace(/\D/g, '').split('');
+
+    if (value && digits.length === 0) {
       return;
     }
 
     const newCodes = [...codes];
-    newCodes[index] = value;
+    if (digits.length <= 1) {
+      newCodes[index] = digits[0] || '';
+    } else {
+      digits.slice(0, 6 - index).forEach((digit, offset) => {
+        newCodes[index + offset] = digit;
+      });
+    }
+
     setCodes(newCodes);
     setVerificationError('');
 
-    if (value && index < 5) {
-      focusVerificationInput(index + 1);
+    const nextCode = newCodes.join('');
+    if (nextCode.length === 6) {
+      window.setTimeout(() => {
+        void handleVerifySubmit(nextCode);
+      }, 0);
+      return;
+    }
+
+    if (digits.length > 0 && index < 5) {
+      const nextIndex = Math.min(index + digits.length, 5);
+      focusVerificationInput(nextIndex);
     }
   };
 
@@ -244,18 +346,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setCodes(newCodes);
     setVerificationError('');
 
+    if (digits.length === 6) {
+      window.setTimeout(() => {
+        void handleVerifySubmit(newCodes.join(''));
+      }, 0);
+      return;
+    }
+
     const lastIndex = Math.min(digits.length - 1, 5);
     focusVerificationInput(lastIndex);
   };
 
-  const handleVerifySubmit = async () => {
-    const code = codes.join('');
+  const handleVerifySubmit = async (codeOverride?: string) => {
+    if (verificationSubmittingRef.current) return;
+
+    const code = codeOverride ?? codes.join('');
     if (code.length !== 6) {
       setVerificationError(t('verification.invalidCode'));
       return;
     }
 
     setVerificationError('');
+    verificationSubmittingRef.current = true;
     setVerificationLoading(true);
 
     try {
@@ -307,6 +419,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       setCodes(['', '', '', '', '', '']);
       focusVerificationInput(0);
     } finally {
+      verificationSubmittingRef.current = false;
       setVerificationLoading(false);
     }
   };
@@ -332,6 +445,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   const isFormValid = email.trim() !== '' && agreeTerms;
+  const formInlineError = captchaError || error;
   const verificationCode = codes.join('');
   const verificationCodeLength = verificationCode.length;
   const isVerificationComplete = verificationCodeLength === 6;
@@ -341,6 +455,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       <div
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
+        style={
+          showVerification
+            ? ({ '--verification-keyboard-offset': `${verificationKeyboardOffset}px` } as React.CSSProperties)
+            : undefined
+        }
       >
         <button type="button" className={styles.closeButton} onClick={handleClose} aria-label="关闭">
           <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
@@ -379,6 +498,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     e.currentTarget.setCustomValidity('');
                     setEmail(e.target.value);
                     setEmailError('');
+                    setError('');
                   }}
                   onInvalid={handleEmailInvalid}
                   required
@@ -397,6 +517,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                       const value = e.target.value.replace(/\D/g, '').slice(0, 4);
                       setCaptcha(value);
                       setCaptchaError('');
+                      setError('');
                     }}
                     maxLength={4}
                     inputMode="numeric"
@@ -411,19 +532,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
                 </div>
-                {captchaError && (
-                  <div
-                    className={`${styles.verificationErrorMessage} ${styles.verificationErrorMessageField}`}
-                  >
-                    <img
-                      src={payLoginTipsIcon}
-                      alt=""
-                      className={styles.verificationErrorIcon}
-                      aria-hidden
-                    />
-                    <span className={styles.verificationErrorText}>{captchaError}</span>
-                  </div>
-                )}
               </div>
 
               <div className={styles.checkboxes}>
@@ -440,7 +548,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   <input
                     type="checkbox"
                     checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    onChange={(e) => {
+                      setAgreeTerms(e.target.checked);
+                      setError('');
+                    }}
                     className={styles.checkbox}
                   />
                   <span className={styles.checkboxText}>
@@ -456,10 +567,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 </label>
               </div>
 
-              {error && (
-                <div className={styles.errorMessage}>
-                  <span className={styles.errorIcon}>⚠</span>
-                  <span className={styles.errorText}>{error}</span>
+              {formInlineError && (
+                <div className={styles.verificationErrorMessage}>
+                  <img
+                    src={payLoginTipsIcon}
+                    alt=""
+                    className={styles.verificationErrorIcon}
+                    aria-hidden
+                  />
+                  <span className={styles.verificationErrorText}>{formInlineError}</span>
                 </div>
               )}
 

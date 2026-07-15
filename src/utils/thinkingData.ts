@@ -53,6 +53,12 @@ class ThinkingData {
       return true;
     } catch (error) {
       this.initialized = false;
+      console.error('[ThinkingData init failed]', {
+        appKey,
+        appId: config.appId,
+        serverUrl: config.serverUrl,
+        error,
+      });
       return false;
     }
   }
@@ -142,7 +148,11 @@ class ThinkingData {
       // console.log('[ThinkingData track]', eventName, properties || {});
       ta.track(eventName, properties || {});
     } catch (error) {
-      // console.error('ThinkingData 发送事件失败:', error);
+      console.error('[ThinkingData track failed]', {
+        eventName,
+        properties: properties || {},
+        error,
+      });
     }
   }
 
@@ -177,4 +187,3 @@ class ThinkingData {
 }
 
 export const thinkingData = new ThinkingData();
-

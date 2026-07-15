@@ -659,6 +659,9 @@ export const quickLoginApi = {
 export interface BmallOrderCreateData {
   order_no: string;
   payment_type?: string; // 支付方式：stripe_store | stripe_h5store | airwallex_store | airwallex_h5store 等
+  environment?: string; // 支付环境：production / sandbox（如后端返回）
+  payment_environment?: string; // 支付环境备用字段
+  env?: string; // 支付环境备用字段
   session_id?: string; // 支付会话ID
   // Stripe 相关字段
   h5_url?: string;
@@ -712,6 +715,9 @@ export interface BmallOrderQueryData {
   iap_id: string;
   order_status: 'pending' | 'completed' | 'closed';
   payment_type?: string; // 支付方式：stripe_store | stripe_h5store | airwallex_store | airwallex_h5store 等
+  environment?: string; // 支付环境：production / sandbox（如后端返回）
+  payment_environment?: string; // 支付环境备用字段
+  env?: string; // 支付环境备用字段
 }
 
 interface BmallOrderQueryResponse {

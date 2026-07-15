@@ -1,8 +1,8 @@
 // Auto-generated from translation.csv; do not edit manually
 export const zhCN = {
   "accountGuide": {
-    "content": "打开任意一款Touka旗下游戏,前往游戏内设置界面,绑定你的邮箱,即可享受特价商品优惠!",
-    "title": "如何创建账号?"
+    "content": "打开任意一款Touka旗下的游戏，前往游戏内主界面进行邮箱绑定，绑定你的邮箱，即可享受特价商品优惠！",
+    "title": "如何创建账号？"
   },
   "bottomNav": {
     "home": "主页",
@@ -95,6 +95,7 @@ export const zhCN = {
       "completed": "交易完成",
       "paid": "已支付",
       "pending": "待支付",
+      "refunded": "已退款",
       "shipped": "已发货"
     }
   },
@@ -191,8 +192,8 @@ export const zhCN = {
     "giftPacks": "礼包",
     "diamond": "钻石",
     "products": "商品",
-    "vouchers": "代金券",
-    "toukaCoin": "Touka币",
+    "vouchers": "超级钻石",
+    "toukaCoin": "超级钻石",
     "toukaCoinBonusTip": "在TOUKA Store购物，享受额外10%的奖励！",
     "superValue": "超值",
     "limitShort": "限购",
@@ -202,14 +203,14 @@ export const zhCN = {
       "weekly": "周特惠",
       "monthly": "月特惠"
     },
-    "howToUseVouchers": "如何使用Touka币？",
+    "howToUseVouchers": "如何使用超级钻石？",
     "voucherGuide": {
-      "title": "如何使用Touka币？",
-      "step1": "1.请在游戏内邮箱查收您购买的Touka币。",
-      "step2": "2.您可以在游戏商城标签页上方查看您的Touka币数量。当您的Touka币数量达到购买礼包需要的数量要求时，将优先使用Touka币进行购买。",
+      "title": "如何使用超级钻石？",
+      "step1": "1.请在游戏内邮箱查收您购买的超级钻石。",
+      "step2": "2.您可以在游戏商城标签页上方查看您的超级钻石数量。当您的超级钻石数量达到购买礼包需要的数量要求时，将优先使用超级钻石进行购买。",
       "backToProducts": "返回商品列表"
     },
-    "luxuryVouchers": "豪华代金券"
+    "luxuryVouchers": "超级钻石"
   },
   "purchaseConfirm": {
     "card": "信用卡/借记卡",

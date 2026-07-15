@@ -2,7 +2,6 @@ import React from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import logoIconImg from '@/assets/img2/login_modal_logo.png';
-import logoTextImg from '@/assets/img2/login_modal_logotext.png';
 import loginModalClose from '@/assets/img2/login_modal_close.png';
 import styles from './AccountGuideModal.module.less';
 
@@ -55,9 +54,6 @@ export const AccountGuideModal: React.FC<AccountGuideModalProps> = ({
         ) : (
           <div className={styles.modalBody}>
             <img src={logoIconImg} alt="" className={styles.logoIcon} aria-hidden />
-            <span className={styles.logoTextGroup}>
-              <img src={logoTextImg} alt="TOUKA" className={styles.logoTextImg} />
-            </span>
             <h2 className={styles.title}>{t('accountGuide.title')}</h2>
             <p className={styles.content}>{t('accountGuide.content')}</p>
           </div>
