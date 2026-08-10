@@ -82,6 +82,7 @@ export const jaJP = {
     "cancelOrderConfirmTitle": "注文をキャンセルしますか？",
     "cancelOrderConfirmPrimary": "キャンセルを確定",
     "cancelOrderDismiss": "今はしない",
+    "cancelOrderSuccess": "注文をキャンセルしました",
     "previousPage": "前のページ",
     "nextPage": "次のページ",
     "status": {
@@ -179,13 +180,60 @@ export const jaJP = {
     "total": "合計：",
     "unitPrice": "単価："
   },
+  "redeemCode": {
+    "title": "交換コード",
+    "close": "閉じる",
+    "gameIdLabel": "ゲームID：",
+    "gameIdPlaceholder": "ゲームIDを入力してください",
+    "howToFindGameId": "ゲームIDの確認方法",
+    "giftCodeLabel": "ギフトコード：",
+    "giftCodePlaceholder": "ギフトコードを入力してください",
+    "captchaLabel": "認証コード：",
+    "captchaPlaceholder": "認証コードを入力してください",
+    "refreshCaptcha": "認証コードを更新",
+    "submit": "送信",
+    "submitting": "送信中...",
+    "rule": "各ギフトコードは各アカウントで1回のみ交換できます。",
+    "success": {
+      "title": "交換成功",
+      "description": "ゲーム内メールから報酬を受け取ってください！",
+      "confirm": "確認"
+    },
+    "guide": {
+      "stepOne": "1. 設定画面へ移動",
+      "stepTwo": "2. ゲームIDをコピー"
+    },
+    "messages": {
+      "enterGiftCode": "先にギフトコードを入力してください",
+      "requiredFields": "交換情報をすべて入力してください",
+      "captchaLoadFailed": "認証コードの読み込みに失敗しました。タップして再試行してください。",
+      "success": "交換に成功しました。報酬はゲーム内メールに送信されました。",
+      "redeemFailed": "交換に失敗しました。後でもう一度お試しください。"
+    },
+    "resultMessages": {
+      "0": "交換に成功しました！報酬はゲーム内メールに送信されました。お早めにご確認ください。",
+      "1": "ユーザーIDが正しくありません。確認してもう一度お試しください。",
+      "2": "交換コードが正しくありません。確認してもう一度お試しください。",
+      "3": "交換コードは使用済みです。",
+      "4": "交換コードの有効期限が切れています。",
+      "5": "交換コードが正しくありません。確認してもう一度お試しください。",
+      "6": "交換コードは配布上限に達しました。",
+      "7": "サーバーが混み合っています。後でもう一度お試しください。",
+      "8": "リクエスト異常です。後でもう一度お試しください。",
+      "9": "交換情報に誤りがあります。戻ってもう一度お試しください。",
+      "10": "キャラクターの所属サーバーが見つかりません。キャラクター情報を確認してもう一度お試しください。現在サーバーは一時的に利用できません。後でもう一度お試しください。",
+      "11": "現在サーバーは一時的に利用できません。後でもう一度お試しください。",
+      "12": "受け取りがタイムアウトしました。後でもう一度お試しください。",
+      "13": "受け取りに失敗しました。後でもう一度お試しください。"
+    }
+  },
   "products": {
     "giftPacks": "パッケージ",
     "diamond": "ダイヤ",
     "products": "商品",
     "vouchers": "スーパーダイヤ",
     "toukaCoin": "スーパーダイヤ",
-    "toukaCoinBonusTip": "TOUKA Storeで購入すると、追加10%のボーナスがもらえます！",
+    "toukaCoinBonusTip": "TOUKA Storeで追加10%獲得！",
     "superValue": "お得",
     "limitShort": "制限",
     "remainingShort": "残り時間",

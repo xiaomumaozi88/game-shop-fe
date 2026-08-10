@@ -49,6 +49,8 @@ import {
 import { scrollToCategorySection, isCategoryScrollSpyPaused } from './utils/scrollToCategorySection';
 import { VoucherProductCard } from './components/VoucherProductCard';
 import { CategoryNavBrandText } from './components/CategoryNavBrandText';
+import { RedeemCodeSection } from './components/RedeemCodeSection';
+import { RedeemCodeModal } from './components/RedeemCodeModal';
 import { LogoutModal } from '@/components/LogoutModal';
 import { ProductsUserPanel } from './components/ProductsUserPanel';
 import { getToukaCoinGuideImages } from './toukaCoinGuideImages';
@@ -80,38 +82,85 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const hasTracked = useRef(false);
   const lastExposureTrackKey = useRef(exposureTrackKey);
+  const exposureRetryTimerRef = useRef<number | null>(null);
+
+  const clearExposureRetryTimer = () => {
+    if (exposureRetryTimerRef.current !== null) {
+      window.clearTimeout(exposureRetryTimerRef.current);
+      exposureRetryTimerRef.current = null;
+    }
+  };
+
+  const isCardInViewport = (element: HTMLElement): boolean => {
+    const rect = element.getBoundingClientRect();
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < viewportHeight &&
+      rect.left < viewportWidth
+    );
+  };
 
   // 使用 IntersectionObserver 监听商品卡片曝光
   useEffect(() => {
-    if (lastExposureTrackKey.current !== exposureTrackKey) {
+    const currentExposureTrackKey = `${exposureTrackKey}|${product.id}|${product.iap_id || ''}|${product.iap || ''}`;
+    if (lastExposureTrackKey.current !== currentExposureTrackKey) {
       hasTracked.current = false;
-      lastExposureTrackKey.current = exposureTrackKey;
+      lastExposureTrackKey.current = currentExposureTrackKey;
     }
 
     if (!cardRef.current || hasTracked.current) return;
+
+    const tryTrackVisibleProduct = (retryLeft = 0) => {
+      if (hasTracked.current) return;
+
+      const element = cardRef.current;
+      if (!element || !isCardInViewport(element)) return;
+
+      const tracked = trackStoreIapShow(product);
+      if (tracked) {
+        hasTracked.current = true;
+        clearExposureRetryTimer();
+        return;
+      }
+
+      if (retryLeft > 0) {
+        clearExposureRetryTimer();
+        exposureRetryTimerRef.current = window.setTimeout(() => {
+          tryTrackVisibleProduct(retryLeft - 1);
+        }, 300);
+      }
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasTracked.current) {
-            // 商品按钮曝光，上报事件
-            const tracked = trackStoreIapShow(product);
-            if (tracked) {
-              hasTracked.current = true;
-              observer.disconnect();
-            }
+            tryTrackVisibleProduct(5);
           }
         });
       },
       {
-        threshold: 0.5, // 当50%可见时触发
+        threshold: [0, 0.01, 0.1],
         rootMargin: '0px',
       }
     );
 
-    observer.observe(cardRef.current);
+    const element = cardRef.current;
+    observer.observe(element);
+
+    const frameId = window.requestAnimationFrame(() => {
+      tryTrackVisibleProduct(5);
+    });
 
     return () => {
+      window.cancelAnimationFrame(frameId);
+      clearExposureRetryTimer();
       observer.disconnect();
     };
   }, [product, exposureTrackKey]);
@@ -307,6 +356,9 @@ export const Products: React.FC = () => {
   const [showAccountConfirm, setShowAccountConfirm] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showServerSelect, setShowServerSelect] = useState(false);
+  const [redeemCodeEntryValue, setRedeemCodeEntryValue] = useState('');
+  const [redeemInitialCode, setRedeemInitialCode] = useState('');
+  const [showRedeemCodeModal, setShowRedeemCodeModal] = useState(false);
   const serverSelectForProductRef = useRef(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingUserDetail, setLoadingUserDetail] = useState(false); // 用户详情接口 loading 状态
@@ -502,26 +554,33 @@ export const Products: React.FC = () => {
 
   // 注意：游戏角色列表现在从登录接口返回，不再需要单独请求
 
-  const categories: { id: ProductCategory; label: string }[] = [
-    { id: 'diamond', label: t('products.diamond') },
-    { id: 'giftPacks', label: t('products.giftPacks') },
-    { id: 'vouchers', label: t('products.toukaCoin') },
-  ];
-
-  // 仅展示有数据的分类 tab（无数据则不显示该 tab）
-  const visibleCategories = useMemo(
-    () => categories.filter((c) => products.some((p) => p.categoryId === c.id)),
-    [products, categories]
+  const categories = useMemo<{ id: ProductCategory; label: string }[]>(
+    () => [
+      { id: 'diamond', label: t('products.diamond') },
+      { id: 'giftPacks', label: t('products.giftPacks') },
+      { id: 'vouchers', label: t('products.toukaCoin') },
+      { id: 'redeemCode', label: t('redeemCode.title') },
+    ],
+    [t]
   );
+
+  // 商品分类仍按接口数据展示；兑换码作为固定入口追加在最后。
+  const visibleCategories = useMemo(() => {
+    if (loadingProducts) return [];
+    return categories.filter((category) =>
+      category.id === 'redeemCode' || products.some((product) => product.categoryId === category.id)
+    );
+  }, [loadingProducts, products, categories]);
 
   const productsByCategory = useMemo(() => {
     const result: Record<ProductCategory, Product[]> = {
       diamond: [],
       giftPacks: [],
       vouchers: [],
+      redeemCode: [],
     };
     for (const product of products) {
-      const list = result[product.categoryId];
+      const list = result[product.categoryId as ProductCategory];
       if (list) list.push(product);
     }
     return result;
@@ -606,15 +665,18 @@ export const Products: React.FC = () => {
             ...(prev || {}),
             // 具体账号信息以后端 quick-login + user-detail 返回为准
             token: res.data.token,
+            id: res.data.email || prev?.id || '',
+            username: res.data.email || prev?.username || '',
+            gameAccount: res.data.email || prev?.gameAccount,
             email: res.data.email || prev?.email, // 保存登录邮箱
             quickLogin: true,
           } as any);
 
           // 快速登录后，再次请求 gameRoleApi 以确保获取完整的角色列表
-            try {
+          try {
             const roleRes = await gameRoleApi.getGameServerRoleList(appKeys);
-              if (roleRes.success && roleRes.data) {
-                gameRoleStore.setRoles(roleRes.data);
+            if (roleRes.success && roleRes.data) {
+              gameRoleStore.setRoles(roleRes.data);
             }
           } catch (error) {
             // console.error('获取游戏角色列表失败:', error);
@@ -692,6 +754,7 @@ export const Products: React.FC = () => {
       vouchers: t('products.vouchers'),
       diamond: t('products.diamond'),
       giftPacks: t('products.giftPacks'),
+      redeemCode: t('redeemCode.title'),
     };
     
     return {
@@ -749,6 +812,20 @@ export const Products: React.FC = () => {
       } else {
         setShowAccountConfirm(true);
       }
+    });
+  };
+
+  const handleRedeemCodeEntrySubmit = () => {
+    requireLogin(() => {
+      const nextRedeemCode = redeemCodeEntryValue.trim();
+      if (!nextRedeemCode) {
+        messageStore.show(t('redeemCode.messages.enterGiftCode'));
+        return;
+      }
+
+      setRedeemCodeEntryValue(nextRedeemCode);
+      setRedeemInitialCode(nextRedeemCode);
+      setShowRedeemCodeModal(true);
     });
   };
 
@@ -835,6 +912,8 @@ export const Products: React.FC = () => {
       if (currentUser) {
         userStore.setUser({
           ...currentUser,
+          email: userDetail.user_email || currentUser.email,
+          gameAccount: userDetail.user_email || currentUser.gameAccount,
           gameServer: userDetail.game_server_channel, // 使用接口返回的区服ID
           characterName: userDetail.game_user_id, // 存储 game_user_id
           avatar: userDetail.user_avatar, // 更新用户头像
@@ -842,7 +921,7 @@ export const Products: React.FC = () => {
           country: userDetail.country, // 存储国家代码（用于数数上报的#country_code）
           ip: userDetail.ip, // 存储IP地址（用于数数上报的#ip）
           platform: userDetail.platform, // 存储平台（用于数数上报的#os）
-            quickLogin: userDetail.quick_login === true, // 标记是否游戏内直链快速登录
+          quickLogin: userDetail.quick_login === true, // 标记是否游戏内直链快速登录
         });
       }
 
@@ -871,19 +950,28 @@ export const Products: React.FC = () => {
             });
           }
 
-          // 上报登录事件：按 appKey+token 维度仅上报一次
-          trackStoreSdkLoginOnce(appKey, userDetail.sdk_id, user?.token);
+          // 保存当前游戏的角色选择信息和数数配置，后续埋点会按该配置确认 SDK 就绪
+          if (appKey) {
+            saveGameRoleSelection(appKey, {
+              ss_app_id: userDetail.ss_app_id,
+              ss_url: userDetail.ss_url,
+            });
+          }
+
+          // 登录事件在拿到 ss_app_id / ss_url 并成功初始化 SDK 后上报；
+          // 同一次登录里每个 ss_app_id 只上报一次，切换到新的 ss_app_id 会再次上报。
+          trackStoreSdkLoginOnce(currentUser?.token, {
+            ssAppId: userDetail.ss_app_id,
+            accountId: userDetail.sdk_id || '',
+            mailId: userDetail.user_email || currentUser?.email || currentUser?.gameAccount || currentUser?.username || '',
+            country: userDetail.country,
+            platform: userDetail.platform,
+            ip: userDetail.ip,
+            isGameRedirect: userDetail.quick_login === true || currentUser?.quickLogin === true,
+          });
 
           // 上报角色选择事件（确保数数配置已初始化后）
           trackStoreRoleSelect(userDetail.game_server_channel, userDetail.game_user_id);
-        }
-        
-        // 保存当前游戏的角色选择信息和数数配置
-        if (appKey) {
-          saveGameRoleSelection(appKey, {
-            ss_app_id: userDetail.ss_app_id,
-            ss_url: userDetail.ss_url,
-          });
         }
       }
 
@@ -1114,6 +1202,7 @@ export const Products: React.FC = () => {
           serverChannel: orderData.game_server_channel,
           gameUserId: orderData.game_user_id,
           platform: orderData.platform,
+          mailId: orderData.user_email,
         });
         paymentFailTrackedRef.current = true;
 
@@ -1242,6 +1331,7 @@ export const Products: React.FC = () => {
           serverChannel: orderData.game_server_channel,
           gameUserId: orderData.game_user_id,
           platform: orderData.platform,
+          mailId: orderData.user_email,
         });
         paymentFailTrackedRef.current = true;
 
@@ -1423,6 +1513,14 @@ export const Products: React.FC = () => {
                 loading={loadingProducts}
                 t={t}
                 onToukaCoinGuideClick={handleShowToukaCoinGuide}
+                renderRedeemCodeSection={() => (
+                  <RedeemCodeSection
+                    value={redeemCodeEntryValue}
+                    onChange={setRedeemCodeEntryValue}
+                    onSubmit={handleRedeemCodeEntrySubmit}
+                    t={t}
+                  />
+                )}
                 renderProduct={(product) => (
                   <ProductCardWrapper
                     key={product.id}
@@ -1446,6 +1544,14 @@ export const Products: React.FC = () => {
         onClose={handleCloseModal}
         onAddToCart={handleAddToCart}
         preConfirmed
+      />
+
+      <RedeemCodeModal
+        isOpen={showRedeemCodeModal}
+        gameId={gameId}
+        initialRedeemCode={redeemInitialCode}
+        initialGameUserId={user?.characterName}
+        onClose={() => setShowRedeemCodeModal(false)}
       />
 
       {/* 账户确认弹窗（先于商品详情） */}

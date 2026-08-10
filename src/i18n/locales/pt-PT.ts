@@ -82,6 +82,7 @@ export const ptPT = {
     "cancelOrderConfirmTitle": "Confirmar cancelamento do pedido?",
     "cancelOrderConfirmPrimary": "Confirmar",
     "cancelOrderDismiss": "Agora não",
+    "cancelOrderSuccess": "Pedido cancelado",
     "previousPage": "Anterior",
     "nextPage": "Seguinte",
     "status": {
@@ -179,13 +180,60 @@ export const ptPT = {
     "total": "Total:",
     "unitPrice": "Preço unitário: "
   },
+  "redeemCode": {
+    "title": "Código de resgate",
+    "close": "Fechar",
+    "gameIdLabel": "ID do jogo:",
+    "gameIdPlaceholder": "Insira seu ID do jogo",
+    "howToFindGameId": "Como encontrar seu ID do jogo",
+    "giftCodeLabel": "Código do presente:",
+    "giftCodePlaceholder": "Insira seu código do presente",
+    "captchaLabel": "Captcha:",
+    "captchaPlaceholder": "Insira o captcha",
+    "refreshCaptcha": "Atualizar captcha",
+    "submit": "Enviar",
+    "submitting": "Enviando...",
+    "rule": "Cada código de presente só pode ser resgatado uma vez por conta.",
+    "success": {
+      "title": "Resgate realizado",
+      "description": "Resgate sua recompensa na caixa de correio do jogo!",
+      "confirm": "Confirmar"
+    },
+    "guide": {
+      "stepOne": "1. Vá para Configurações",
+      "stepTwo": "2. Copie seu ID do jogo"
+    },
+    "messages": {
+      "enterGiftCode": "Insira primeiro um código de presente",
+      "requiredFields": "Preencha todas as informações de resgate",
+      "captchaLoadFailed": "Falha ao carregar o captcha. Toque para tentar novamente.",
+      "success": "Resgatado com sucesso. As recompensas foram enviadas para sua caixa de correio no jogo.",
+      "redeemFailed": "Falha ao resgatar. Tente novamente mais tarde."
+    },
+    "resultMessages": {
+      "0": "Resgate realizado com sucesso! As recompensas foram enviadas para sua caixa de correio no jogo. Verifique em breve.",
+      "1": "O ID de usuário está incorreto. Confirme e tente novamente.",
+      "2": "O código de resgate está incorreto. Confirme e tente novamente.",
+      "3": "O código de resgate já foi usado.",
+      "4": "O código de resgate expirou.",
+      "5": "O código de resgate está incorreto. Confirme e tente novamente.",
+      "6": "O código de resgate já foi totalmente reivindicado.",
+      "7": "O servidor está ocupado. Tente novamente mais tarde.",
+      "8": "Erro de solicitação. Tente novamente mais tarde.",
+      "9": "As informações de resgate são inválidas. Volte e tente novamente.",
+      "10": "O servidor do personagem não foi encontrado. Confirme as informações do personagem e tente novamente. O servidor atual está temporariamente indisponível. Tente novamente mais tarde.",
+      "11": "O servidor atual está temporariamente indisponível. Tente novamente mais tarde.",
+      "12": "O resgate expirou por tempo limite. Tente novamente mais tarde.",
+      "13": "Falha ao reivindicar. Tente novamente mais tarde."
+    }
+  },
   "products": {
     "giftPacks": "Pacote de brindes ",
     "diamond": "Diamante ",
     "products": "Produto ",
     "vouchers": "Super Diamantes",
     "toukaCoin": "Super Diamantes",
-    "toukaCoinBonusTip": "Compre na TOUKA Store e ganhe 10% extra de recompensa!",
+    "toukaCoinBonusTip": "Ganhe 10% extras na TOUKA Store!",
     "superValue": "Super valor",
     "limitShort": "Limite",
     "remainingShort": "Tempo rest.",

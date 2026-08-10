@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useResponsive } from '@/hooks/useResponsive';
 import { useUser } from '@/hooks/useUser';
 import { Order, OrderStatus, Product } from '@/types';
 import { bmallOrderApi } from '@/utils/api';
@@ -16,6 +17,8 @@ import {
   isGameStoreEntryVisible,
   getDefaultGameStoreAppKey,
   formatServerChannelForDisplay,
+  resolveAnalyticsEnvironment,
+  trackStoreIapFail,
 } from '@/utils';
 import {
   parseProductMultiName,
@@ -33,6 +36,7 @@ import { messageStore } from '@/store/messageStore';
 import emptyOrderImg from '@/assets/img2/pay_order_null.png';
 import logoTextImg from '@/assets/img2/login_modal_logotext.png';
 import homeIcon from '@/assets/img2/touka_web_icon_home_white.png';
+import paginationArrowImg from '@/assets/img2/arrow.png';
 import { HomeBackgroundPattern } from '@/pages/Home/components/HomeBackgroundPattern';
 import styles from './History.module.less';
 
@@ -41,8 +45,47 @@ const ALL_GAMES_APP_KEY = '__all__';
 
 type FilterStatus = 'all' | 'inProgress' | 'completed' | 'closed';
 type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks';
+type HistoryOrder = Order & {
+  appKey?: string;
+  platform?: string;
+  gameServerChannel?: string;
+  gameUserId?: string;
+  userEmail?: string;
+  paymentType?: string;
+  environment?: string;
+};
+type PaginationItem = number | 'ellipsis-left' | 'ellipsis-right';
 const ORDER_AUTO_CANCEL_SECONDS = 30 * 60;
 const ORDERS_PAGE_SIZE = 10;
+
+function getPaginationItems(currentPage: number, totalPages: number): PaginationItem[] {
+  if (totalPages <= 6) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const getRange = (start: number, end: number): number[] =>
+    Array.from({ length: end - start + 1 }, (_, index) => start + index);
+
+  if (safeCurrentPage <= 5) {
+    return [...getRange(1, 5), 'ellipsis-right', totalPages];
+  }
+
+  if (safeCurrentPage >= totalPages - 1) {
+    return [1, 2, 'ellipsis-left', ...getRange(totalPages - 3, totalPages)];
+  }
+
+  const windowStart = safeCurrentPage - 2;
+  const windowEnd = Math.min(safeCurrentPage + 2, totalPages - 1);
+
+  return [
+    1,
+    'ellipsis-left',
+    ...getRange(windowStart, windowEnd),
+    ...(windowEnd < totalPages - 1 ? (['ellipsis-right'] as PaginationItem[]) : []),
+    totalPages,
+  ];
+}
 
 function getOrderItemDisplayImage(product: Product): string | null {
   if (product.categoryId === 'giftPacks') {
@@ -73,8 +116,9 @@ export const History: React.FC = () => {
   const navigate = useNavigate();
   const { gameId: routeGameId } = useParams<{ gameId: string }>();
   const { t, locale } = useLanguage();
-  const { user } = useUser();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const { isDesktop, isTouchLandscape } = useResponsive();
+  const { user, getGameRoleSelection } = useUser();
+  const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [listRefreshToken, setListRefreshToken] = useState(0);
   const [selectedGameAppKey, setSelectedGameAppKey] = useState<string>(() => {
@@ -151,10 +195,7 @@ export const History: React.FC = () => {
   };
 
   // 将后端订单数据转换为前端 Order 格式（使用 useCallback 避免重复创建）
-  const convertOrderDataToOrder = useCallback((orderData: any): Order & { 
-    platform?: string; 
-    gameServerChannel?: string; 
-  } => {
+  const convertOrderDataToOrder = useCallback((orderData: any, sourceAppKey?: string): HistoryOrder => {
     // 将 order_status 映射到 OrderStatus
     const statusMap: Record<string, OrderStatus> = {
       'pending': OrderStatus.PENDING,
@@ -216,6 +257,8 @@ export const History: React.FC = () => {
             stock: 0,
             currency: orderData.currency,
             position: orderData.product_position, // 保存 product_position 字段
+            iap: orderData.iap,
+            iap_id: orderData.iap_id,
             purchase_limit_type: parseGiftPackPurchaseLimitType(orderData.purchase_limit_type),
           },
           quantity: orderData.quantity,
@@ -228,9 +271,18 @@ export const History: React.FC = () => {
       createdAt: displayTime,
       bmallCreatedTime: createdTime || undefined,
       bmallCreatedAtUnix,
+      appKey: sourceAppKey,
       platform: orderData.platform,
       gameServerChannel: orderData.game_server_channel,
-    } as Order & { platform?: string; gameServerChannel?: string };
+      gameUserId: orderData.game_user_id,
+      userEmail: orderData.account_email || orderData.user_email,
+      paymentType: orderData.payment_type,
+      environment: resolveAnalyticsEnvironment(
+        orderData.environment,
+        orderData.payment_environment,
+        orderData.env
+      ),
+    };
   }, [locale, user?.id]);
 
   // URL 中的游戏与下拉选择、本地存储保持一致（刷新后仍停留在当前游戏订单）
@@ -271,8 +323,10 @@ export const History: React.FC = () => {
             )
           );
           if (cancelled) return;
-          const convertedOrders = responses.flatMap((result) =>
-            result.success && result.data ? result.data.items.map(convertOrderDataToOrder) : []
+          const convertedOrders = responses.flatMap((result, index) =>
+            result.success && result.data
+              ? result.data.items.map((item) => convertOrderDataToOrder(item, games[index]?.appKey))
+              : []
           );
           setOrders(convertedOrders);
           return;
@@ -286,7 +340,7 @@ export const History: React.FC = () => {
         if (cancelled) return;
 
         if (result.success && result.data) {
-          const convertedOrders = result.data.items.map(convertOrderDataToOrder);
+          const convertedOrders = result.data.items.map((item) => convertOrderDataToOrder(item, selectedGameAppKey));
           setOrders(convertedOrders);
         } else {
           // console.error('获取订单列表失败:', result.error);
@@ -431,7 +485,7 @@ export const History: React.FC = () => {
     return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
   };
 
-  const formatOrderPlatformLine = (order: Order & { platform?: string; gameServerChannel?: string }): string => {
+  const formatOrderPlatformLine = (order: HistoryOrder): string => {
     const platformText = formatPlatform(order.platform);
     const serverText = formatServerChannelForDisplay(order.gameServerChannel);
     if (platformText && serverText) return `${platformText} / ${serverText}`;
@@ -514,8 +568,9 @@ export const History: React.FC = () => {
 
   const confirmCancelOrder = async () => {
     const orderId = orderIdPendingCancel;
-    const appKey = selectedGameAppKey;
-    if (!orderId || !appKey) return;
+    const orderPendingCancel = orders.find((order) => order.id === orderId);
+    const appKey = orderPendingCancel?.appKey || selectedGameAppKey;
+    if (!orderId || !appKey || appKey === ALL_GAMES_APP_KEY) return;
 
     setCancelRequesting(true);
     try {
@@ -524,6 +579,23 @@ export const History: React.FC = () => {
         orderNo: orderId,
       });
       if (res.success) {
+        if (orderPendingCancel?.items?.[0]?.product) {
+          const product = orderPendingCancel.items[0].product;
+          const savedRoleSelection = getGameRoleSelection(appKey);
+          trackStoreIapFail(
+            product,
+            orderPendingCancel.paymentType,
+            orderPendingCancel.environment,
+            'User cancelled order from order list',
+            {
+              sdkId: savedRoleSelection?.sdkId || user?.sdkId || '',
+              serverChannel: orderPendingCancel.gameServerChannel,
+              gameUserId: orderPendingCancel.gameUserId || orderPendingCancel.userId,
+              platform: orderPendingCancel.platform,
+              mailId: orderPendingCancel.userEmail,
+            }
+          );
+        }
         messageStore.show(t('history.cancelOrderSuccess'));
         setCancelDialogOpen(false);
         setOrderIdPendingCancel(null);
@@ -640,11 +712,14 @@ export const History: React.FC = () => {
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PAGE_SIZE));
   const currentPageSafe = Math.min(currentPage, totalPages);
+  const shouldPaginateOrders = isDesktop && !isTouchLandscape;
   const paginatedOrders = filteredOrders.slice(
     (currentPageSafe - 1) * ORDERS_PAGE_SIZE,
     currentPageSafe * ORDERS_PAGE_SIZE
   );
-  const showPagination = filteredOrders.length > ORDERS_PAGE_SIZE;
+  const visibleOrders = shouldPaginateOrders ? paginatedOrders : filteredOrders;
+  const showPagination = shouldPaginateOrders && filteredOrders.length > ORDERS_PAGE_SIZE;
+  const paginationItems = getPaginationItems(currentPageSafe, totalPages);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -862,7 +937,7 @@ export const History: React.FC = () => {
           </div>
         ) : (
           <>
-          {paginatedOrders.map((order) => {
+          {visibleOrders.map((order) => {
             const firstItem = order.items[0];
             const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
             const pendingAutoCancelUi =
@@ -968,19 +1043,56 @@ export const History: React.FC = () => {
             <div className={styles.pagination}>
               <button
                 type="button"
-                className={styles.paginationButton}
+                className={`${styles.paginationControl} ${styles.paginationArrowButton}`}
                 onClick={() => handlePageChange(currentPageSafe - 1)}
                 disabled={currentPageSafe <= 1}
+                aria-label={t('history.previousPage')}
               >
-                {t('history.previousPage')}
+                <img
+                  src={paginationArrowImg}
+                  alt=""
+                  className={`${styles.paginationArrowIcon} ${styles.paginationArrowIconPrev}`}
+                  aria-hidden="true"
+                />
               </button>
+              {paginationItems.map((item) => {
+                if (typeof item !== 'number') {
+                  return (
+                    <span key={item} className={styles.paginationEllipsis}>
+                      ...
+                    </span>
+                  );
+                }
+
+                const isActive = item === currentPageSafe;
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`${styles.paginationControl} ${styles.paginationPageButton} ${
+                      isActive ? styles.paginationPageButtonActive : ''
+                    }`}
+                    onClick={() => handlePageChange(item)}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={`Page ${item}`}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
               <button
                 type="button"
-                className={styles.paginationButton}
+                className={`${styles.paginationControl} ${styles.paginationArrowButton}`}
                 onClick={() => handlePageChange(currentPageSafe + 1)}
                 disabled={currentPageSafe >= totalPages}
+                aria-label={t('history.nextPage')}
               >
-                {t('history.nextPage')}
+                <img
+                  src={paginationArrowImg}
+                  alt=""
+                  className={styles.paginationArrowIcon}
+                  aria-hidden="true"
+                />
               </button>
             </div>
           )}

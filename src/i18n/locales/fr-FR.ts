@@ -82,6 +82,7 @@ export const frFR = {
     "cancelOrderConfirmTitle": "Annuler la commande ?",
     "cancelOrderConfirmPrimary": "Confirmer",
     "cancelOrderDismiss": "Pas maintenant",
+    "cancelOrderSuccess": "Commande annulée",
     "previousPage": "Précédent",
     "nextPage": "Suivant",
     "status": {
@@ -179,13 +180,60 @@ export const frFR = {
     "total": "Total :",
     "unitPrice": "Prix unitaire :"
   },
+  "redeemCode": {
+    "title": "Code d'échange",
+    "close": "Fermer",
+    "gameIdLabel": "ID de jeu :",
+    "gameIdPlaceholder": "Saisissez votre ID de jeu",
+    "howToFindGameId": "Comment trouver votre ID de jeu",
+    "giftCodeLabel": "Code cadeau :",
+    "giftCodePlaceholder": "Saisissez votre code cadeau",
+    "captchaLabel": "Captcha :",
+    "captchaPlaceholder": "Saisissez le captcha",
+    "refreshCaptcha": "Actualiser le captcha",
+    "submit": "Envoyer",
+    "submitting": "Envoi...",
+    "rule": "Chaque code cadeau ne peut être échangé qu'une seule fois par compte.",
+    "success": {
+      "title": "Échange réussi",
+      "description": "Récupérez votre récompense dans la boîte aux lettres en jeu !",
+      "confirm": "Confirmer"
+    },
+    "guide": {
+      "stepOne": "1. Allez dans les paramètres",
+      "stepTwo": "2. Copiez votre ID de jeu"
+    },
+    "messages": {
+      "enterGiftCode": "Veuillez d'abord saisir un code cadeau",
+      "requiredFields": "Veuillez compléter toutes les informations d'échange",
+      "captchaLoadFailed": "Échec du chargement du captcha. Touchez pour réessayer.",
+      "success": "Échange réussi. Les récompenses ont été envoyées dans votre boîte aux lettres en jeu.",
+      "redeemFailed": "Échec de l'échange. Veuillez réessayer plus tard."
+    },
+    "resultMessages": {
+      "0": "Échange réussi ! Les récompenses ont été envoyées dans votre boîte aux lettres en jeu. Veuillez les consulter bientôt.",
+      "1": "L'ID utilisateur est incorrect. Veuillez vérifier et réessayer.",
+      "2": "Le code d'échange est incorrect. Veuillez vérifier et réessayer.",
+      "3": "Le code d'échange a déjà été utilisé.",
+      "4": "Le code d'échange a expiré.",
+      "5": "Le code d'échange est incorrect. Veuillez vérifier et réessayer.",
+      "6": "Le code d'échange a déjà été entièrement réclamé.",
+      "7": "Le serveur est occupé. Veuillez réessayer plus tard.",
+      "8": "Erreur de requête. Veuillez réessayer plus tard.",
+      "9": "Les informations d'échange sont invalides. Veuillez revenir en arrière et réessayer.",
+      "10": "Le serveur de jeu du personnage est introuvable. Veuillez vérifier les informations du personnage et réessayer. Le serveur actuel est temporairement indisponible. Veuillez réessayer plus tard.",
+      "11": "Le serveur actuel est temporairement indisponible. Veuillez réessayer plus tard.",
+      "12": "La réclamation a expiré. Veuillez réessayer plus tard.",
+      "13": "Échec de la réclamation. Veuillez réessayer plus tard."
+    }
+  },
   "products": {
     "giftPacks": "Pack cadeau",
     "diamond": "Diamant",
     "products": "Produit",
     "vouchers": "Super Diamants",
     "toukaCoin": "Super Diamants",
-    "toukaCoinBonusTip": "Achetez sur TOUKA Store et profitez de 10 % de bonus supplémentaire !",
+    "toukaCoinBonusTip": "Gagnez 10 % de plus sur TOUKA Store !",
     "superValue": "Super offre",
     "limitShort": "Limite",
     "remainingShort": "Temps rest.",

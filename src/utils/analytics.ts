@@ -5,17 +5,30 @@ import { PAYMENT_TYPES, STORAGE_KEYS } from './constants';
 import { storage } from './index';
 import { config } from './config';
 
-// 记录已上报登录的标识（按 token 维度存储，每个 token 下有多个 appKey+token 的组合），支持持久化
+// 记录已上报登录的标识（按 token 维度存储，每个 token 下有多个 ss_app_id 组合），支持持久化
 const SDK_LOGIN_REPORTED_STORAGE_KEY = STORAGE_KEYS.SDK_LOGIN_REPORTED_KEYS;
 
 interface AnalyticsContext {
   serverChannel?: string | number | null;
   gameUserId?: string | null;
   sdkId?: string | null;
+  mailId?: string | null;
   country?: string | null;
   platform?: string | null;
   ip?: string | null;
   isGameRedirect?: boolean;
+  environment?: string | null;
+}
+
+interface LoginTrackOptions {
+  ssAppId?: string | null;
+  accountId?: string | null;
+  mailId?: string | null;
+  country?: string | null;
+  platform?: string | null;
+  ip?: string | null;
+  isGameRedirect?: boolean;
+  environment?: string | null;
 }
 
 const GAME_ID_TO_APP_KEY: Record<string, string> = {
@@ -93,17 +106,13 @@ export const getAnalyticsEnvironment = (): 'production' | 'sandbox' => resolveAn
 
 const ensureThinkingDataReady = (): boolean => {
   const appKey = getCurrentAppKeyForAnalytics();
-  if (appKey && thinkingData.isGameInitialized(appKey)) {
-    return true;
-  }
-
   if (!appKey) {
     return thinkingData.isInitialized();
   }
 
   const selection = userStore.getGameRoleSelection(appKey);
   if (!selection?.ss_app_id || !selection?.ss_url) {
-    return thinkingData.isInitialized();
+    return thinkingData.isGameInitialized(appKey);
   }
 
   const initSuccess = thinkingData.initForGame(appKey, {
@@ -128,6 +137,19 @@ const ensureThinkingDataReady = (): boolean => {
   }
 
   return true;
+};
+
+const resolveMailId = (mailId?: string | null): string => {
+  const explicit = mailId?.trim();
+  if (explicit) return explicit;
+
+  const user = userStore.getUser();
+  return (
+    user?.email ||
+    user?.gameAccount ||
+    user?.username ||
+    ''
+  );
 };
 
 /**
@@ -164,37 +186,50 @@ const saveReportedKeys = (token: string, keys: Set<string>) => {
 };
 
 /**
- * 工具：按 appKey+token 维度，避免重复上报登录事件
- * @param appKey 游戏 appKey
- * @param accountId 账号ID（可选）
+ * 工具：按 token + ss_app_id 维度，避免一次登录里同一个数数应用重复上报登录事件
  * @param token 用户 token（必需，用于区分不同登录）
+ * @param options 登录事件补充字段
  */
-export const trackStoreSdkLoginOnce = (appKey: string | undefined, accountId?: string, token?: string) => {
+export const trackStoreSdkLoginOnce = (
+  token?: string,
+  options: LoginTrackOptions = {}
+): boolean => {
   if (!token) {
     console.warn('trackStoreSdkLoginOnce: token 未提供，无法记录上报状态');
-    return;
+    return false;
+  }
+
+  const ssAppId = options.ssAppId?.trim();
+  if (!ssAppId) {
+    console.warn('trackStoreSdkLoginOnce: ss_app_id 未提供，跳过 store_sdk_login 事件上报');
+    return false;
   }
   
   // 从存储中加载当前 token 的已上报记录
   const reportedKeysArray = loadReportedKeys(token);
   const sdkLoginReportedKeys = new Set<string>(reportedKeysArray);
   
-  const key = `${appKey || 'unknown'}|${token}`;
-  if (sdkLoginReportedKeys.has(key)) return;
+  const key = `login|${ssAppId}`;
+  if (sdkLoginReportedKeys.has(key)) return true;
   
-  trackStoreSdkLogin(accountId);
+  const tracked = trackStoreSdkLogin(options);
+  if (!tracked) return false;
+
   sdkLoginReportedKeys.add(key);
   saveReportedKeys(token, sdkLoginReportedKeys);
+  return true;
 };
 
 /**
  * 获取公共事件属性
  * 包含所有事件共通的参数：
  * - account_id: SDK账号
+ * - mail_id: 登录邮箱
  * - #country_code: 国家地区代码
  * - #os: 操作系统
  * - #ip: IP地址
  * - is_game_redirect: 是否游戏内跳转
+ * - environment: sandbox / production
  * - server_channel: 区服id
  * - #account_id: 账户id/角色id
  */
@@ -208,10 +243,13 @@ const getCommonProperties = (context: AnalyticsContext = {}) => {
   );
   const serverChannel = resolveAnalyticsServerChannel(context.serverChannel ?? user?.gameServer);
   const roleId = context.gameUserId ?? user?.characterName;
+  const sdkAccountId = context.sdkId !== undefined ? (context.sdkId || '') : (user?.sdkId || '');
   
   const properties: Record<string, any> = {
-    account_id: context.sdkId || user?.sdkId || user?.id || user?.gameAccount || '', // 优先使用 sdkId（用户详情接口返回的sdk_id）
+    account_id: sdkAccountId, // SDK账号，未获取到时留空
+    mail_id: resolveMailId(context.mailId),
     is_game_redirect: isGameRedirect,
+    environment: resolveAnalyticsEnvironment(context.environment),
   };
 
   if (serverChannel !== undefined) {
@@ -278,44 +316,47 @@ const extractProductInfo = (product: Product) => {
  * 商城打开登录账号、或从app跳转到商城自动登录后上报
  * 必需参数：
  * - account_id: SDK账号ID（用户详情接口返回的sdk_id）
+ * - mail_id: 登录邮箱
  * - #country_code: 国家代码（用户详情接口返回的country）
  * - #os: 操作系统（用户详情接口返回的platform）
  * - #ip: IP地址（用户详情接口返回的ip）
  * - is_game_redirect: 是否游戏内跳转
- * @param accountId 当前邮箱在当前游戏中对应的账号ID（用户详情接口返回的sdk_id）
+ * - environment: sandbox / production
+ * @param options 登录事件补充字段
  */
-export const trackStoreSdkLogin = (accountId?: string) => {
+export const trackStoreSdkLogin = (options: LoginTrackOptions = {}): boolean => {
   // 检查数数SDK是否已初始化
   if (!ensureThinkingDataReady()) {
     console.warn('数数SDK未初始化，跳过 store_sdk_login 事件上报');
-    return;
+    return false;
   }
 
   const user = userStore.getUser();
   const params = new URLSearchParams(window.location.search);
-  const isGameRedirect = user?.quickLogin === true || params.has('from_app') || params.has('game_redirect') || false;
+  const isGameRedirect = options.isGameRedirect ?? (
+    user?.quickLogin === true || params.has('from_app') || params.has('game_redirect') || false
+  );
   
   const properties: Record<string, any> = {
-    account_id: accountId || user?.sdkId || user?.id || user?.gameAccount || '',
+    account_id: options.accountId ?? '',
+    mail_id: resolveMailId(options.mailId),
     is_game_redirect: isGameRedirect,
+    environment: resolveAnalyticsEnvironment(options.environment),
   };
   
-  // 设置 # 开头的系统属性
-  if (user?.country) {
-    properties['#country_code'] = user.country;
+  // 登录事件只使用本次显式传入的角色详情字段；未拿到时留空，避免误用历史角色平台。
+  if (options.country) {
+    properties['#country_code'] = options.country;
   }
-  if (user?.platform) {
-    properties['#os'] = user.platform;
+  if (options.platform) {
+    properties['#os'] = options.platform;
   }
-  if (user?.ip) {
-    properties['#ip'] = user.ip;
+  if (options.ip) {
+    properties['#ip'] = options.ip;
   }
-  
-  const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-  console.log(`✅ 触发"store_sdk_login"事件，时间：${timestamp}`);
-  console.log('trackStoreSdkLogin properties', properties);
   
   thinkingData.track('store_sdk_login', properties);
+  return true;
 };
 
 /**
@@ -323,10 +364,12 @@ export const trackStoreSdkLogin = (accountId?: string) => {
  * 用户登录商城后选择完角色、或从app跳转到商城自动选择完角色后上报
  * 必需参数：
  * - account_id: SDK账号（用户详情接口返回的sdk_id）
+ * - mail_id: 登录邮箱
  * - #country_code: 国家地区代码（用户详情接口返回的country）
  * - #os: 操作系统（用户详情接口返回的platform）
  * - #ip: IP地址（用户详情接口返回的ip）
  * - is_game_redirect: 是否游戏内跳转
+ * - environment: sandbox / production
  * - server_channel: 区服id
  * - #account_id: 账户id/角色id（用户详情接口返回的game_user_id）
  * @param serverChannel 区服ID
@@ -345,8 +388,10 @@ export const trackStoreRoleSelect = (serverChannel?: string | number, gameUserId
   const resolvedServerChannel = resolveAnalyticsServerChannel(serverChannel ?? user?.gameServer);
   
   const properties: Record<string, any> = {
-    account_id: user?.sdkId || user?.id || user?.gameAccount || '', // SDK账号
+    account_id: user?.sdkId || '', // SDK账号
+    mail_id: resolveMailId(),
     is_game_redirect: isGameRedirect,
+    environment: getAnalyticsEnvironment(),
   };
 
   if (resolvedServerChannel !== undefined) {
@@ -369,9 +414,6 @@ export const trackStoreRoleSelect = (serverChannel?: string | number, gameUserId
     properties['#account_id'] = roleId;
   }
   
-  const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-  console.log(`✅ 触发"store_role_select"事件，时间：${timestamp}`);
-  console.log('trackStoreRoleSelect properties', properties);
   thinkingData.track('store_role_select', properties);
 };
 
@@ -418,6 +460,7 @@ const saveIapShowReportedKeys = (token: string, keys: Set<string>): void => {
  * 一次登录中，一个商品只触发一次
  * 必需参数：
  * - account_id: SDK账号（用户详情接口返回的sdk_id）
+ * - mail_id: 登录邮箱
  * - #country_code: 国家地区代码（用户详情接口返回的country）
  * - #os: 操作系统（用户详情接口返回的platform）
  * - #ip: IP地址（用户详情接口返回的ip）
@@ -428,6 +471,7 @@ const saveIapShowReportedKeys = (token: string, keys: Set<string>): void => {
  * - iap: iap（商品列表详情返回的iap字段）
  * - price: 分成前价格
  * - currency: 货币单位
+ * - environment: sandbox / production
  */
 export const trackStoreIapShow = (product: Product): boolean => {
   // 检查数数SDK是否已初始化
@@ -481,10 +525,6 @@ export const trackStoreIapShow = (product: Product): boolean => {
     currency: product.currency, // 货币单位
   };
   
-  const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-  const productName = product.name || '未知商品';
-  console.log(`✅ 触发"store_iap_show"事件，商品：${productName}，时间：${timestamp}`);
-  console.log('trackStoreIapShow properties', properties);
   thinkingData.track('store_iap_show', properties);
   
   // 记录已上报
@@ -498,6 +538,7 @@ export const trackStoreIapShow = (product: Product): boolean => {
  * 在点击内购项，弹出的弹窗界面，点支付时上报
  * 必需参数：
  * - account_id: SDK账号（用户详情接口返回的sdk_id）
+ * - mail_id: 登录邮箱
  * - #country_code: 国家地区代码（用户详情接口返回的country）
  * - #os: 操作系统（用户详情接口返回的platform）
  * - #ip: IP地址（用户详情接口返回的ip）
@@ -509,6 +550,7 @@ export const trackStoreIapShow = (product: Product): boolean => {
  * - price: 分成前价格
  * - currency: 货币单位
  * - payment_type: 支付方式（stripe_store | stripe_h5store | airwallex_store | airwallex_h5store 等）
+ * - environment: sandbox / production
  */
 export const trackStoreIapClick = (
   product: Product,
@@ -542,12 +584,9 @@ export const trackStoreIapClick = (
     price: product.price, // 分成前价格
     currency: product.currency, // 货币单位
     ...(resolvedPaymentType && { payment_type: resolvedPaymentType }), // 支付方式（仅在有值时添加）
+    environment: resolveAnalyticsEnvironment(environment),
   };
   
-  const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-  const productName = product.name || '未知商品';
-  console.log(`✅ 触发"store_iap_click"事件，商品：${productName}，时间：${timestamp}`);
-  console.log('trackStoreIapClick properties', properties);
   thinkingData.track('store_iap_click', properties);
   
   // 返回 Promise，确保事件上报完成后再继续
@@ -595,13 +634,9 @@ export const trackStoreIapSuccess = (
     price: product.price,
     currency: product.currency,
     ...(resolvedPaymentType && { payment_type: resolvedPaymentType }), // 支付方式（仅在有值时添加）
-    environment, // 环境
+    environment: resolveAnalyticsEnvironment(environment), // 环境
   };
   
-  const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-  const productName = product.name || '未知商品';
-  console.log(`✅ 触发"store_iap_success"事件，商品：${productName}，时间：${timestamp}`);
-  console.log('trackStoreIapSuccess properties', properties);
   thinkingData.track('store_iap_success', properties);
   return true;
 };
@@ -640,14 +675,10 @@ export const trackStoreIapFail = (
     price: product.price,
     currency: product.currency,
     ...(resolvedPaymentType && { payment_type: resolvedPaymentType }), // 支付方式（仅在有值时添加）
-    environment,
+    environment: resolveAnalyticsEnvironment(environment),
     fail_reason: failReason,
   };
   
-  const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-  const productName = product.name || '未知商品';
-  console.log(`✅ 触发"store_iap_fail"事件，商品：${productName}，时间：${timestamp}`);
-  console.log('trackStoreIapFail properties', properties);
   thinkingData.track('store_iap_fail', properties);
   return true;
 };

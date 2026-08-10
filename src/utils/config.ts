@@ -8,6 +8,7 @@
 declare const process: {
   env: {
     REACT_APP_API_URL?: string;
+    REACT_APP_REDEEM_API_URL?: string;
     REACT_APP_STRIPE_PUBLISHABLE_KEY?: string;
     REACT_APP_AIRWALLEX_ENV?: 'demo' | 'prod';
     REACT_APP_THINKINGDATA_APP_ID?: string;
@@ -24,6 +25,8 @@ const BMALL_DOMAINS: Record<'test' | 'prod', string> = {
   test: 'https://tk.dgtverse.cn',
   prod: 'https://sandc.gameztsvc.com',
 };
+
+const REDEEM_API_BASE_URL = 'http://52.76.99.72:9087';
 
 export const config = {
   // DefinePlugin 会在编译时替换 process.env.REACT_APP_API_URL 为实际的字符串值
@@ -43,5 +46,7 @@ export const config = {
     baseDomain: BMALL_DOMAINS[envStage] || BMALL_DOMAINS.test,
     baseUrl: `${BMALL_DOMAINS[envStage] || BMALL_DOMAINS.test}/bmall`,
   },
+  redeem: {
+    baseUrl: process.env.REACT_APP_REDEEM_API_URL || REDEEM_API_BASE_URL,
+  },
 } as const;
-

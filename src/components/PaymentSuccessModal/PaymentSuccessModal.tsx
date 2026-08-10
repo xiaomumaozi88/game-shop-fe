@@ -310,6 +310,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
             serverChannel: orderData.game_server_channel,
             gameUserId: orderData.game_user_id,
             platform: orderData.platform,
+            mailId: orderData.user_email,
           });
         } catch (trackError) {
           // console.error('❌ PaymentSuccessModal: 上报支付成功事件失败:', trackError);
@@ -340,6 +341,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
     context: {
       serverChannel?: string | number | null;
       gameUserId?: string | null;
+      mailId?: string | null;
       platform?: string | null;
     },
     attempt = 0

@@ -7,7 +7,7 @@ import { useGameRole } from '@/hooks/useGameRole';
 import { useLanguage } from '@/hooks/useLanguage';
 import { shouldShowMobileHomeNav } from '@/i18n';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
-import { useFitText, useFitTextGroup } from '@/hooks/useFitText';
+import { useFitTextGroup } from '@/hooks/useFitText';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useProductsUserPanelVisibility } from '@/hooks/useProductsUserPanelVisibility';
 import { storage, STORAGE_KEYS, resolveOrdersListPath, isGameStoreProductsPath, getDefaultAvatarByAppKey } from '@/utils';
@@ -31,15 +31,8 @@ import { LogoutModal } from '../LogoutModal';
 import { ServerSelectModal } from '../ServerSelectModal';
 import { LoginModal } from '../LoginModal';
 import exitIcon from '@/assets/img2/touka_home_ic_exit.png';
-import logoIconImg from '@/assets/img2/login_modal_logo.png';
-import logoTextImg from '@/assets/img2/login_modal_logotext.png';
+import logoImg from '@/assets/img2/Logo.png';
 import styles from './Header.module.less';
-
-const HEADER_LOGO_SUBTITLE_MIN_FONT_SIZE: Record<'mobile' | 'tablet' | 'desktop', number> = {
-  mobile: 7,
-  tablet: 9,
-  desktop: 14,
-};
 
 const HEADER_MOBILE_NAV_MIN_FONT_SIZE: Record<'mobile' | 'tablet' | 'desktop', number> = {
   mobile: 7,
@@ -250,20 +243,11 @@ export const Header: React.FC = () => {
   const productsUserPanelVisible = useProductsUserPanelVisibility();
 
   const showMobileHomeNav = shouldShowMobileHomeNav(locale);
-  const logoSubtitleText = t('header.title');
   const gameListNavText = t('menu.gameList');
   const ordersNavText = t('menu.myOrders');
-  const logoSubtitleRef = useRef<HTMLSpanElement>(null);
   const gameListNavTextRef = useRef<HTMLSpanElement>(null);
   const ordersNavTextRef = useRef<HTMLSpanElement>(null);
   const mobileNavTextRefs = useMemo(() => [gameListNavTextRef, ordersNavTextRef], []);
-
-  useFitText(logoSubtitleRef, logoSubtitleText, {
-    minFontSize: HEADER_LOGO_SUBTITLE_MIN_FONT_SIZE[breakpoint],
-    step: 0.25,
-    allowWrapAtMin: true,
-    wrapClassName: styles.logoSubtitleWrapped,
-  });
 
   useFitTextGroup(mobileNavTextRefs, [gameListNavText, ordersNavText], {
     minFontSize: HEADER_MOBILE_NAV_MIN_FONT_SIZE[breakpoint],
@@ -526,17 +510,7 @@ export const Header: React.FC = () => {
         >
           <div className={styles.logoSection}>
             <Link to="/" className={styles.logo}>
-              <img src={logoIconImg} alt="" className={styles.logoIcon} aria-hidden />
-              <span className={styles.logoTextGroup}>
-                <img src={logoTextImg} alt="TOUKA" className={styles.logoTextImg} />
-                {isMobileInlineNavPage && (
-                  <span className={styles.logoSubtitleWrap}>
-                    <span ref={logoSubtitleRef} className={styles.logoSubtitle}>
-                      {logoSubtitleText}
-                    </span>
-                  </span>
-                )}
-              </span>
+              <img src={logoImg} alt="TOUKA STORE" className={styles.logoImage} />
             </Link>
           </div>
 
@@ -805,10 +779,8 @@ export const Header: React.FC = () => {
         isOpen={serverSelectModalOpen}
         onClose={() => setServerSelectModalOpen(false)}
         onConfirm={async (serverName, characterName, gameUserId, userAvatar) => {
-          console.log('🔵 Header ServerSelectModal onConfirm 被调用', { serverName, characterName, gameUserId, userAvatar });
           // characterName 是角色昵称，gameUserId 是 game_user_id，userAvatar 是角色数据中的头像
           const appKey = currentAppKey;
-          console.log('🔵 Header 获取 appKey', appKey);
           
           if (!appKey || !gameUserId) {
             console.error('缺少 appKey 或 game_user_id', { appKey, gameUserId });
@@ -849,12 +821,13 @@ export const Header: React.FC = () => {
             }
 
             const userDetail = res.data;
-            console.log('🔵 Header 获取用户详情', userDetail);
             
             // 更新用户信息（接口返回的数据会覆盖之前设置的头像，如果接口返回了更新的头像）
             if (user) {
               setUser({
                 ...user,
+                email: userDetail.user_email || user.email,
+                gameAccount: userDetail.user_email || user.gameAccount,
                 gameServer: userDetail.game_server_channel, // 使用接口返回的区服ID
                 characterName: gameUserId, // 使用传入的 game_user_id
                 avatar: userDetail.user_avatar || userAvatar || user.avatar, // 优先使用接口返回的头像，否则使用传入的头像，最后使用原有头像
@@ -868,13 +841,11 @@ export const Header: React.FC = () => {
 
             // 使用返回的数数配置初始化数数SDK
             // 使用 appKey 作为游戏标识
-            console.log('🔵 Header 准备初始化数数SDK', { ss_app_id: userDetail.ss_app_id, ss_url: userDetail.ss_url, appKey });
             if (userDetail.ss_app_id && userDetail.ss_url && appKey) {
               const initSuccess = thinkingData.initForGame(appKey, {
                 appId: userDetail.ss_app_id,
                 serverUrl: userDetail.ss_url,
               });
-              console.log('🔵 Header 数数SDK初始化结果', initSuccess);
 
               if (initSuccess) {
                 // 设置当前游戏（使用 appKey）
@@ -895,24 +866,28 @@ export const Header: React.FC = () => {
                   });
                 }
 
-                // 上报登录事件：按 appKey+token 维度仅上报一次
-                console.log('🔵 Header 准备上报登录事件', { appKey, sdk_id: userDetail.sdk_id, token: user?.token });
-                trackStoreSdkLoginOnce(appKey, userDetail.sdk_id, user?.token);
-
-                // 上报角色选择事件（确保数数配置已初始化后）
-                console.log('🔵 Header 准备上报角色选择事件', {
-                  serverChannel: userDetail.game_server_channel,
-                  game_user_id: userDetail.game_user_id,
-                });
-                trackStoreRoleSelect(userDetail.game_server_channel, userDetail.game_user_id);
-                
-                // 保存当前游戏的角色选择信息和数数配置
+                // 保存当前游戏的角色选择信息和数数配置，后续埋点会按该配置确认 SDK 就绪
                 if (appKey) {
                   saveGameRoleSelection(appKey, {
                     ss_app_id: userDetail.ss_app_id,
                     ss_url: userDetail.ss_url,
                   });
                 }
+
+                // 登录事件在拿到 ss_app_id / ss_url 并成功初始化 SDK 后上报；
+                // 同一次登录里每个 ss_app_id 只上报一次，切换到新的 ss_app_id 会再次上报。
+                trackStoreSdkLoginOnce(user?.token, {
+                  ssAppId: userDetail.ss_app_id,
+                  accountId: userDetail.sdk_id || '',
+                  mailId: userDetail.user_email || user?.email || user?.gameAccount || user?.username || '',
+                  country: userDetail.country,
+                  platform: userDetail.platform,
+                  ip: userDetail.ip,
+                  isGameRedirect: user?.quickLogin === true,
+                });
+
+                // 上报角色选择事件（确保数数配置已初始化后）
+                trackStoreRoleSelect(userDetail.game_server_channel, userDetail.game_user_id);
               } else {
                 console.warn('🔵 Header 数数SDK初始化失败，无法上报事件');
               }

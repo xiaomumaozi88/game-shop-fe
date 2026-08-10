@@ -82,6 +82,7 @@ export const esES = {
     "cancelOrderConfirmTitle": "¿Cancelar pedido?",
     "cancelOrderConfirmPrimary": "Confirmar",
     "cancelOrderDismiss": "Ahora no",
+    "cancelOrderSuccess": "Pedido cancelado",
     "previousPage": "Anterior",
     "nextPage": "Siguiente",
     "status": {
@@ -179,13 +180,60 @@ export const esES = {
     "total": "Total:",
     "unitPrice": "Precio unitario:"
   },
+  "redeemCode": {
+    "title": "Código de canje",
+    "close": "Cerrar",
+    "gameIdLabel": "ID del juego:",
+    "gameIdPlaceholder": "Introduce tu ID del juego",
+    "howToFindGameId": "Cómo encontrar tu ID del juego",
+    "giftCodeLabel": "Código de regalo:",
+    "giftCodePlaceholder": "Introduce tu código de regalo",
+    "captchaLabel": "Captcha:",
+    "captchaPlaceholder": "Introduce el captcha",
+    "refreshCaptcha": "Actualizar captcha",
+    "submit": "Enviar",
+    "submitting": "Enviando...",
+    "rule": "Cada código de regalo solo se puede canjear una vez por cuenta.",
+    "success": {
+      "title": "Canje realizado",
+      "description": "¡Reclama tu recompensa en el buzón del juego!",
+      "confirm": "Confirmar"
+    },
+    "guide": {
+      "stepOne": "1. Ve a Ajustes",
+      "stepTwo": "2. Copia tu ID del juego"
+    },
+    "messages": {
+      "enterGiftCode": "Introduce primero un código de regalo",
+      "requiredFields": "Completa toda la información de canje",
+      "captchaLoadFailed": "No se pudo cargar el captcha. Toca para reintentar.",
+      "success": "Canje realizado con éxito. Las recompensas se enviaron a tu buzón del juego.",
+      "redeemFailed": "Error al canjear. Inténtalo más tarde."
+    },
+    "resultMessages": {
+      "0": "¡Canje realizado con éxito! Las recompensas se enviaron a tu buzón del juego. Revísalo pronto.",
+      "1": "El ID de usuario es incorrecto. Confírmalo e inténtalo de nuevo.",
+      "2": "El código de canje es incorrecto. Confírmalo e inténtalo de nuevo.",
+      "3": "El código de canje ya se ha usado.",
+      "4": "El código de canje ha caducado.",
+      "5": "El código de canje es incorrecto. Confírmalo e inténtalo de nuevo.",
+      "6": "El código de canje ya se ha agotado.",
+      "7": "El servidor está ocupado. Inténtalo más tarde.",
+      "8": "Error de solicitud. Inténtalo más tarde.",
+      "9": "La información de canje no es válida. Vuelve atrás e inténtalo de nuevo.",
+      "10": "No se encontró el servidor del personaje. Confirma la información del personaje e inténtalo de nuevo. El servidor actual no está disponible temporalmente. Inténtalo más tarde.",
+      "11": "El servidor actual no está disponible temporalmente. Inténtalo más tarde.",
+      "12": "La reclamación ha agotado el tiempo de espera. Inténtalo más tarde.",
+      "13": "Error al reclamar. Inténtalo más tarde."
+    }
+  },
   "products": {
     "giftPacks": "Paquete de regalo",
     "diamond": "Diamante",
     "products": "Producto",
     "vouchers": "Superdiamantes",
     "toukaCoin": "Superdiamantes",
-    "toukaCoinBonusTip": "¡Compra en TOUKA Store y disfruta de un 10 % extra de recompensa!",
+    "toukaCoinBonusTip": "¡Obtén un 10% extra en TOUKA Store!",
     "superValue": "Gran valor",
     "limitShort": "Límite",
     "remainingShort": "Tiempo rest.",

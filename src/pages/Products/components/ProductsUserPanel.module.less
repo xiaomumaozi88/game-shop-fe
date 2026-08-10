@@ -39,6 +39,10 @@
     animation: productsPanelFadeInUp 0.5s ease both;
   });
 
+  @media (min-width: 1168px) and (max-width: 1728px) {
+    right: calc(@products-panel-right-desktop + 7.5rem) !important;
+  }
+
   .mobile({
     display: block;
     position: fixed;

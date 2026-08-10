@@ -82,6 +82,7 @@ export const koKR = {
     "cancelOrderConfirmTitle": "주문을 취소할까요?",
     "cancelOrderConfirmPrimary": "취소 확인",
     "cancelOrderDismiss": "지금은 취소 안 함",
+    "cancelOrderSuccess": "주문이 취소되었습니다",
     "previousPage": "이전 페이지",
     "nextPage": "다음 페이지",
     "status": {
@@ -179,13 +180,60 @@ export const koKR = {
     "total": "총계:",
     "unitPrice": "단가:"
   },
+  "redeemCode": {
+    "title": "교환 코드",
+    "close": "닫기",
+    "gameIdLabel": "게임 ID:",
+    "gameIdPlaceholder": "게임 ID를 입력하세요",
+    "howToFindGameId": "게임 ID 찾는 방법",
+    "giftCodeLabel": "쿠폰 코드:",
+    "giftCodePlaceholder": "쿠폰 코드를 입력하세요",
+    "captchaLabel": "인증 코드:",
+    "captchaPlaceholder": "인증 코드를 입력하세요",
+    "refreshCaptcha": "인증 코드 새로고침",
+    "submit": "제출",
+    "submitting": "제출 중...",
+    "rule": "각 쿠폰 코드는 계정당 한 번만 교환할 수 있습니다.",
+    "success": {
+      "title": "교환 성공",
+      "description": "게임 내 우편함에서 보상을 받아 주세요!",
+      "confirm": "확인"
+    },
+    "guide": {
+      "stepOne": "1. 설정 페이지로 이동",
+      "stepTwo": "2. 게임 ID 복사"
+    },
+    "messages": {
+      "enterGiftCode": "먼저 쿠폰 코드를 입력해 주세요",
+      "requiredFields": "교환 정보를 모두 입력해 주세요",
+      "captchaLoadFailed": "인증 코드를 불러오지 못했습니다. 눌러서 다시 시도하세요.",
+      "success": "교환이 완료되었습니다. 보상이 게임 내 우편함으로 발송되었습니다.",
+      "redeemFailed": "교환에 실패했습니다. 나중에 다시 시도해 주세요."
+    },
+    "resultMessages": {
+      "0": "교환 성공! 보상이 게임 내 우편함으로 발송되었습니다. 꼭 확인해 주세요.",
+      "1": "사용자 ID가 올바르지 않습니다. 확인 후 다시 시도해 주세요.",
+      "2": "교환 코드가 올바르지 않습니다. 확인 후 다시 시도해 주세요.",
+      "3": "교환 코드가 이미 사용되었습니다.",
+      "4": "교환 코드가 만료되었습니다.",
+      "5": "교환 코드가 올바르지 않습니다. 확인 후 다시 시도해 주세요.",
+      "6": "교환 코드가 모두 소진되었습니다.",
+      "7": "서버가 혼잡합니다. 나중에 다시 시도해 주세요.",
+      "8": "요청 오류입니다. 나중에 다시 시도해 주세요.",
+      "9": "교환 정보가 올바르지 않습니다. 돌아가서 다시 시도해 주세요.",
+      "10": "캐릭터가 속한 게임 서버를 찾을 수 없습니다. 캐릭터 정보를 확인한 후 다시 시도해 주세요. 현재 서버를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.",
+      "11": "현재 서버를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.",
+      "12": "수령 시간이 초과되었습니다. 나중에 다시 시도해 주세요.",
+      "13": "수령에 실패했습니다. 나중에 다시 시도해 주세요."
+    }
+  },
   "products": {
     "giftPacks": "패키지",
     "diamond": "다이아",
     "products": "상품",
     "vouchers": "슈퍼 다이아몬드",
     "toukaCoin": "슈퍼 다이아몬드",
-    "toukaCoinBonusTip": "TOUKA Store에서 구매 시 추가 10% 보상을 받으세요!",
+    "toukaCoinBonusTip": "TOUKA Store에서 10% 추가 획득!",
     "superValue": "초특가",
     "limitShort": "제한",
     "remainingShort": "남은 시간",

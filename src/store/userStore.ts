@@ -10,6 +10,7 @@ interface GameRoleSelection {
   gameServer?: string;
   characterName?: string;
   avatar?: string;
+  sdkId?: string;
   ss_app_id?: string; // 数数上报 App ID
   ss_url?: string; // 数数上报服务器地址
 }
@@ -115,6 +116,7 @@ class UserStore {
       gameServer: this.state.user.gameServer,
       characterName: this.state.user.characterName,
       avatar: this.state.user.avatar,
+      sdkId: this.state.user.sdkId,
       // 如果传入了新的数数配置，使用新的；否则保留之前保存的数数配置
       ss_app_id: thinkingDataConfig?.ss_app_id ?? previousSelection.ss_app_id,
       ss_url: thinkingDataConfig?.ss_url ?? previousSelection.ss_url,
@@ -173,13 +175,14 @@ class UserStore {
         this.state.user.gameServer = selection.gameServer;
         this.state.user.characterName = selection.characterName;
         this.state.user.avatar = selection.avatar;
+        this.state.user.sdkId = selection.sdkId;
         
         // 如果有数数配置，自动初始化 SDK（在组件中调用，这里只返回配置信息）
         // 实际初始化会在组件中进行
       }
     }
 
-    // 注意：不清除 sdkId, country, ip, platform，因为这些是全局的
+    // 注意：不清除 country, ip, platform，因为这些是全局的
     storage.set(USER_STORAGE_KEY, this.state.user);
     this.notify();
   }
@@ -229,4 +232,3 @@ class UserStore {
 }
 
 export const userStore = new UserStore();
-

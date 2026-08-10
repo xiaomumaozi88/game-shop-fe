@@ -6,7 +6,7 @@ import purchaseTokenItemImg from '@/assets/img2/purchase-token-item.png';
 import toukaCoinGuideArrowIcon from '@/assets/img2/touka-coin-guide-arrow.png';
 import styles from '../Products.module.less';
 
-export type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks';
+export type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks' | 'redeemCode';
 
 export const getCategorySectionId = (categoryId: ProductCategory): string =>
   `products-category-${categoryId}`;
@@ -23,6 +23,7 @@ interface ProductsCatalogSectionsProps {
   t: (key: string) => string;
   renderProduct: (product: Product) => React.ReactNode;
   onToukaCoinGuideClick: () => void;
+  renderRedeemCodeSection: () => React.ReactNode;
 }
 
 const SectionTitle: React.FC<{ categoryId: ProductCategory; label: string }> = ({
@@ -45,7 +46,11 @@ const ToukaCoinGuideEntry: React.FC<{ label: string; onClick: () => void }> = ({
   label,
   onClick,
 }) => (
-  <button type="button" className={styles.toukaCoinGuideEntry} onClick={onClick}>
+  <button
+    type="button"
+    className={styles.toukaCoinGuideEntry}
+    onClick={onClick}
+  >
     <span className={styles.toukaCoinGuideEntryBgMiddle} aria-hidden />
     <span className={styles.toukaCoinGuideEntryContent}>
       <span className={styles.toukaCoinGuideEntryLabel}>
@@ -64,6 +69,7 @@ export const ProductsCatalogSections: React.FC<ProductsCatalogSectionsProps> = (
   t,
   renderProduct,
   onToukaCoinGuideClick,
+  renderRedeemCodeSection,
 }) => {
   if (loading) {
     return (
@@ -81,18 +87,15 @@ export const ProductsCatalogSections: React.FC<ProductsCatalogSectionsProps> = (
     <div className={styles.productsCatalogAll}>
       {visibleCategories.map((category) => {
         const categoryProducts = productsByCategory[category.id] ?? [];
-
-        return (
-          <section
-            key={category.id}
-            id={getCategorySectionId(category.id)}
-            className={styles.categorySection}
-            data-category-section={category.id}
-            aria-labelledby={`${getCategorySectionId(category.id)}-title`}
-          >
-            <SectionTitle categoryId={category.id} label={category.label} />
+        const shouldShowSectionTitle = visibleCategories.length > 1;
+        const sectionContent = category.id === 'redeemCode' ? (
+          renderRedeemCodeSection()
+        ) : (
+          <>
             {category.id === 'vouchers' && (
-              <p className={styles.toukaCoinBonusTip}>{t('products.toukaCoinBonusTip')}</p>
+              <p className={styles.toukaCoinBonusTip}>
+                {t('products.toukaCoinBonusTip')}
+              </p>
             )}
             {category.id === 'giftPacks' ? (
               <GiftPackProductSections
@@ -120,6 +123,23 @@ export const ProductsCatalogSections: React.FC<ProductsCatalogSectionsProps> = (
                 )}
               </>
             )}
+          </>
+        );
+
+        return (
+          <section
+            key={category.id}
+            id={getCategorySectionId(category.id)}
+            className={styles.categorySection}
+            data-category-section={category.id}
+            {...(shouldShowSectionTitle
+              ? { 'aria-labelledby': `${getCategorySectionId(category.id)}-title` }
+              : { 'aria-label': category.label })}
+          >
+            {shouldShowSectionTitle && (
+              <SectionTitle categoryId={category.id} label={category.label} />
+            )}
+            {sectionContent}
           </section>
         );
       })}

@@ -188,13 +188,60 @@ export const enUS = {
     "total": "Total:",
     "unitPrice": "Unit Price:"
   },
+  "redeemCode": {
+    "title": "Redeem Code",
+    "close": "Close",
+    "gameIdLabel": "Game ID:",
+    "gameIdPlaceholder": "Enter your Game ID",
+    "howToFindGameId": "How to find your Game ID",
+    "giftCodeLabel": "Gift Code:",
+    "giftCodePlaceholder": "Enter your gift code",
+    "captchaLabel": "Captcha:",
+    "captchaPlaceholder": "Enter captcha",
+    "refreshCaptcha": "Refresh captcha",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "rule": "Each gift code can only be redeemed once per account.",
+    "success": {
+      "title": "Redeemed",
+      "description": "Please claim your reward from the in-game mailbox!",
+      "confirm": "Confirm"
+    },
+    "guide": {
+      "stepOne": "1. Go to Settings",
+      "stepTwo": "2. Copy your Game ID"
+    },
+    "messages": {
+      "enterGiftCode": "Please enter a gift code first",
+      "requiredFields": "Please complete all redeem information",
+      "captchaLoadFailed": "Captcha failed to load. Tap to retry.",
+      "success": "Redeemed successfully. Rewards have been sent to your in-game mailbox.",
+      "redeemFailed": "Redeem failed. Please try again later."
+    },
+    "resultMessages": {
+      "0": "Redemption successful! Rewards have been sent to your in-game mailbox. Please check them soon.",
+      "1": "User ID is incorrect. Please confirm and try again.",
+      "2": "Redeem code is incorrect. Please confirm and try again.",
+      "3": "Redeem code has already been used.",
+      "4": "Redeem code has expired.",
+      "5": "Redeem code is incorrect. Please confirm and try again.",
+      "6": "Redeem code has been fully claimed.",
+      "7": "Server is busy. Please try again later.",
+      "8": "Request error. Please try again later.",
+      "9": "Redemption information is invalid. Please go back and try again.",
+      "10": "The player game server was not found. Please confirm the character information and try again. The current server is temporarily unavailable. Please try again later.",
+      "11": "The current server is temporarily unavailable. Please try again later.",
+      "12": "Claim timed out. Please try again later.",
+      "13": "Claim failed. Please try again later."
+    }
+  },
   "products": {
     "giftPacks": "Gift Packs",
     "diamond": "Diamond",
     "products": "Products",
     "vouchers": "Super Diamonds",
     "toukaCoin": "Super Diamonds",
-    "toukaCoinBonusTip": "Shop at TOUKA Store and get an extra 10% bonus!",
+    "toukaCoinBonusTip": "Earn 10% extra at TOUKA Store!",
     "superValue": "Great Value",
     "limitShort": "Limit",
     "remainingShort": "Time left",

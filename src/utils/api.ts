@@ -9,6 +9,7 @@ import {
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 const BMALL_BASE_URL = config.bmall.baseUrl;
+const REDEEM_BASE_URL = config.redeem.baseUrl;
 
 const AUTH_TOKEN_STORAGE_KEY = 'game-shop-auth-token';
 
@@ -458,6 +459,147 @@ export const authApi = {
   },
 };
 
+// 兑换码相关 API - 与 game-redeem-code-fe 的 /gmCodeCaptcha 与 /gmRedeemCode 逻辑保持一致
+const REDEEM_CAPTCHA_PATH = '/gmCodeCaptcha';
+const REDEEM_CODE_PATH = '/gmRedeemCode';
+
+export interface RedeemCodeCaptchaData {
+  captcha_id: string;
+  captcha_image: string;
+}
+
+interface RedeemCodeCaptchaResponse {
+  code: number;
+  msg?: string;
+  biz_code?: number;
+  data?: RedeemCodeCaptchaData;
+  ts?: number;
+}
+
+interface RedeemCodeApiResponse {
+  code?: number;
+  msg?: string;
+  biz_code?: number | string;
+  error_code?: number | string;
+  err_code?: number | string;
+  data?: {
+    biz_code?: number | string;
+    error_code?: number | string;
+  } | null;
+  ts?: number;
+}
+
+export interface RedeemCodeResultData {
+  resultCode: number | null;
+}
+
+const getRedeemCodeResultCode = (payload: RedeemCodeApiResponse | null | undefined): number | null => {
+  if (payload?.code === 0) return 0;
+
+  const candidates = [
+    payload?.biz_code,
+    payload?.error_code,
+    payload?.err_code,
+    payload?.data?.biz_code,
+    payload?.data?.error_code,
+  ];
+
+  for (const candidate of candidates) {
+    const resultCode = Number(candidate);
+    if (Number.isInteger(resultCode) && resultCode >= 0) {
+      return resultCode;
+    }
+  }
+
+  return null;
+};
+
+const requestRedeemJson = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
+  const response = await fetch(`${REDEEM_BASE_URL}${path}`, {
+    cache: 'no-store',
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+
+export const redeemCodeApi = {
+  async getCaptcha(): Promise<ApiResponse<RedeemCodeCaptchaData>> {
+    try {
+      const json = await requestRedeemJson<RedeemCodeCaptchaResponse>(REDEEM_CAPTCHA_PATH);
+
+      if (json?.code === 0 && json.data?.captcha_id && json.data?.captcha_image) {
+        return {
+          success: true,
+          data: json.data,
+          message: json.msg,
+          bizCode: json.biz_code,
+        };
+      }
+
+      return {
+        success: false,
+        error: json?.msg || getDefaultApiErrorMessage(),
+        bizCode: json?.biz_code,
+      };
+    } catch {
+      return {
+        success: false,
+        error: getDefaultApiErrorMessage(),
+      };
+    }
+  },
+
+  async redeem(params: {
+    gameUserId: string;
+    redeemCode: string;
+    captchaId: string;
+    captchaCode: string;
+    language: string;
+  }): Promise<ApiResponse<RedeemCodeResultData>> {
+    try {
+      const json = await requestRedeemJson<RedeemCodeApiResponse>(REDEEM_CODE_PATH, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          game_user_id: params.gameUserId,
+          redeem_code: params.redeemCode,
+          captcha_id: params.captchaId,
+          captcha_code: params.captchaCode,
+          language: params.language,
+        }),
+      });
+      const resultCode = getRedeemCodeResultCode(json);
+
+      if (resultCode === 0) {
+        return {
+          success: true,
+          data: { resultCode },
+          message: json.msg,
+        };
+      }
+
+      return {
+        success: false,
+        data: { resultCode },
+        error: json?.msg || getDefaultApiErrorMessage(),
+        bizCode: resultCode ?? undefined,
+      };
+    } catch {
+      return {
+        success: false,
+        error: getDefaultApiErrorMessage(),
+      };
+    }
+  },
+};
+
 // 游戏区服角色列表相关 API
 export interface GameServerRoleItem {
   game_user_id: string; // 游戏用户ID
@@ -710,7 +852,8 @@ export interface BmallOrderQueryData {
   game_server_channel: string;
   platform: string;
   unit_price: number;
-  user_email: string;
+  user_email?: string;
+  account_email?: string;
   iap: string;
   iap_id: string;
   order_status: 'pending' | 'completed' | 'closed';

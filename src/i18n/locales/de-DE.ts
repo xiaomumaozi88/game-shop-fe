@@ -82,6 +82,7 @@ export const deDE = {
     "cancelOrderConfirmTitle": "Bestellung stornieren?",
     "cancelOrderConfirmPrimary": "Bestätigen",
     "cancelOrderDismiss": "Vorerst nicht",
+    "cancelOrderSuccess": "Bestellung storniert",
     "previousPage": "Zurück",
     "nextPage": "Weiter",
     "status": {
@@ -179,13 +180,60 @@ export const deDE = {
     "total": "Gesamt:",
     "unitPrice": "Stückpreis:"
   },
+  "redeemCode": {
+    "title": "Einlösecode",
+    "close": "Schließen",
+    "gameIdLabel": "Spiel-ID:",
+    "gameIdPlaceholder": "Geben Sie Ihre Spiel-ID ein",
+    "howToFindGameId": "So finden Sie Ihre Spiel-ID",
+    "giftCodeLabel": "Geschenkcode:",
+    "giftCodePlaceholder": "Geben Sie Ihren Geschenkcode ein",
+    "captchaLabel": "Captcha:",
+    "captchaPlaceholder": "Captcha eingeben",
+    "refreshCaptcha": "Captcha aktualisieren",
+    "submit": "Absenden",
+    "submitting": "Wird gesendet...",
+    "rule": "Jeder Geschenkcode kann pro Konto nur einmal eingelöst werden.",
+    "success": {
+      "title": "Erfolgreich eingelöst",
+      "description": "Bitte holen Sie Ihre Belohnung im In-Game-Postfach ab!",
+      "confirm": "OK"
+    },
+    "guide": {
+      "stepOne": "1. Zur Einstellungsseite gehen",
+      "stepTwo": "2. Spiel-ID kopieren"
+    },
+    "messages": {
+      "enterGiftCode": "Bitte geben Sie zuerst einen Geschenkcode ein",
+      "requiredFields": "Bitte füllen Sie alle Einlöseinformationen aus",
+      "captchaLoadFailed": "Captcha konnte nicht geladen werden. Tippen Sie zum Wiederholen.",
+      "success": "Erfolgreich eingelöst. Die Belohnungen wurden an Ihr In-Game-Postfach gesendet.",
+      "redeemFailed": "Einlösen fehlgeschlagen. Bitte versuchen Sie es später erneut."
+    },
+    "resultMessages": {
+      "0": "Einlösung erfolgreich! Die Belohnungen wurden an Ihr In-Game-Postfach gesendet. Bitte prüfen Sie es bald.",
+      "1": "Die Benutzer-ID ist falsch. Bitte prüfen und erneut versuchen.",
+      "2": "Der Einlösecode ist falsch. Bitte prüfen und erneut versuchen.",
+      "3": "Der Einlösecode wurde bereits verwendet.",
+      "4": "Der Einlösecode ist abgelaufen.",
+      "5": "Der Einlösecode ist falsch. Bitte prüfen und erneut versuchen.",
+      "6": "Der Einlösecode wurde vollständig eingelöst.",
+      "7": "Der Server ist ausgelastet. Bitte versuchen Sie es später erneut.",
+      "8": "Anfragefehler. Bitte versuchen Sie es später erneut.",
+      "9": "Die Einlöseinformationen sind ungültig. Bitte gehen Sie zurück und versuchen Sie es erneut.",
+      "10": "Der Spielserver des Charakters wurde nicht gefunden. Bitte prüfen Sie die Charakterinformationen und versuchen Sie es erneut. Der aktuelle Server ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
+      "11": "Der aktuelle Server ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
+      "12": "Abholung zeitüberschreitung. Bitte versuchen Sie es später erneut.",
+      "13": "Abholung fehlgeschlagen. Bitte versuchen Sie es später erneut."
+    }
+  },
   "products": {
     "giftPacks": "Paket",
     "diamond": "Diamant",
     "products": "Artikel",
     "vouchers": "Super-Diamanten",
     "toukaCoin": "Super-Diamanten",
-    "toukaCoinBonusTip": "Shoppen Sie im TOUKA Store und erhalten Sie 10 % extra Belohnung!",
+    "toukaCoinBonusTip": "Erhalte 10 % extra im TOUKA Store!",
     "superValue": "Top-Angebot",
     "limitShort": "Limit",
     "remainingShort": "Restzeit",

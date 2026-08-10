@@ -82,6 +82,7 @@ export const viVN = {
     "cancelOrderConfirmTitle": "Xác nhận hủy đơn hàng?",
     "cancelOrderConfirmPrimary": "Xác nhận hủy",
     "cancelOrderDismiss": "Để sau",
+    "cancelOrderSuccess": "Đơn hàng đã bị hủy",
     "previousPage": "Trang trước",
     "nextPage": "Trang sau",
     "status": {
@@ -179,13 +180,60 @@ export const viVN = {
     "total": "Tổng cộng:",
     "unitPrice": "Đơn giá:"
   },
+  "redeemCode": {
+    "title": "Mã đổi thưởng",
+    "close": "Đóng",
+    "gameIdLabel": "ID game:",
+    "gameIdPlaceholder": "Nhập ID game của bạn",
+    "howToFindGameId": "Cách tìm ID game",
+    "giftCodeLabel": "Mã quà:",
+    "giftCodePlaceholder": "Nhập mã quà của bạn",
+    "captchaLabel": "Captcha:",
+    "captchaPlaceholder": "Nhập captcha",
+    "refreshCaptcha": "Làm mới captcha",
+    "submit": "Gửi",
+    "submitting": "Đang gửi...",
+    "rule": "Mỗi mã quà chỉ có thể đổi một lần cho mỗi tài khoản.",
+    "success": {
+      "title": "Đổi thành công",
+      "description": "Vui lòng nhận phần thưởng trong hộp thư trong game!",
+      "confirm": "Xác nhận"
+    },
+    "guide": {
+      "stepOne": "1. Vào trang Cài đặt",
+      "stepTwo": "2. Sao chép ID game của bạn"
+    },
+    "messages": {
+      "enterGiftCode": "Vui lòng nhập mã quà trước",
+      "requiredFields": "Vui lòng điền đầy đủ thông tin đổi thưởng",
+      "captchaLoadFailed": "Tải captcha thất bại. Chạm để thử lại.",
+      "success": "Đổi thành công. Phần thưởng đã được gửi đến hộp thư trong game.",
+      "redeemFailed": "Đổi thất bại. Vui lòng thử lại sau."
+    },
+    "resultMessages": {
+      "0": "Đổi thành công! Phần thưởng đã được gửi đến hộp thư trong game. Vui lòng kiểm tra sớm.",
+      "1": "ID người dùng không chính xác. Vui lòng kiểm tra và thử lại.",
+      "2": "Mã đổi thưởng không chính xác. Vui lòng kiểm tra và thử lại.",
+      "3": "Mã đổi thưởng đã được sử dụng.",
+      "4": "Mã đổi thưởng đã hết hạn.",
+      "5": "Mã đổi thưởng không chính xác. Vui lòng kiểm tra và thử lại.",
+      "6": "Mã đổi thưởng đã được nhận hết.",
+      "7": "Máy chủ đang bận. Vui lòng thử lại sau.",
+      "8": "Lỗi yêu cầu. Vui lòng thử lại sau.",
+      "9": "Thông tin đổi thưởng không hợp lệ. Vui lòng quay lại và thử lại.",
+      "10": "Không tìm thấy máy chủ game của nhân vật. Vui lòng kiểm tra thông tin nhân vật và thử lại. Máy chủ hiện tại tạm thời không khả dụng. Vui lòng thử lại sau.",
+      "11": "Máy chủ hiện tại tạm thời không khả dụng. Vui lòng thử lại sau.",
+      "12": "Nhận thưởng quá thời gian. Vui lòng thử lại sau.",
+      "13": "Nhận thưởng thất bại. Vui lòng thử lại sau."
+    }
+  },
   "products": {
     "giftPacks": "Gói quà",
     "diamond": "Kim cương",
     "products": "Sản phẩm",
     "vouchers": "Siêu Kim Cương",
     "toukaCoin": "Siêu Kim Cương",
-    "toukaCoinBonusTip": "Mua sắm tại TOUKA Store và nhận thêm 10% phần thưởng!",
+    "toukaCoinBonusTip": "Nhận thêm 10% tại TOUKA Store!",
     "superValue": "Siêu hời",
     "limitShort": "Giới hạn",
     "remainingShort": "Còn lại",

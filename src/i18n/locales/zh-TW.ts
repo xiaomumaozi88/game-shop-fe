@@ -82,6 +82,7 @@ export const zhTW = {
     "cancelOrderConfirmTitle": "確認取消訂單？",
     "cancelOrderConfirmPrimary": "確認取消",
     "cancelOrderDismiss": "暫不取消",
+    "cancelOrderSuccess": "訂單已取消",
     "previousPage": "上一頁",
     "nextPage": "下一頁",
     "status": {
@@ -179,13 +180,60 @@ export const zhTW = {
     "total": "全部：",
     "unitPrice": "單價："
   },
+  "redeemCode": {
+    "title": "兌換碼",
+    "close": "關閉",
+    "gameIdLabel": "遊戲ID：",
+    "gameIdPlaceholder": "請輸入您的遊戲ID",
+    "howToFindGameId": "如何找到你的遊戲ID",
+    "giftCodeLabel": "禮包碼：",
+    "giftCodePlaceholder": "請輸入您的禮包碼",
+    "captchaLabel": "驗證碼：",
+    "captchaPlaceholder": "請輸入驗證碼",
+    "refreshCaptcha": "刷新驗證碼",
+    "submit": "提交",
+    "submitting": "提交中...",
+    "rule": "每個禮包碼每個帳戶只能兌換一次",
+    "success": {
+      "title": "兌換成功",
+      "description": "請到遊戲內信箱領取獎勵！",
+      "confirm": "確定"
+    },
+    "guide": {
+      "stepOne": "1. 前往設定頁",
+      "stepTwo": "2. 複製你的遊戲ID"
+    },
+    "messages": {
+      "enterGiftCode": "請先輸入禮包碼",
+      "requiredFields": "請填寫完整兌換資訊",
+      "captchaLoadFailed": "驗證碼載入失敗，請點擊重試",
+      "success": "兌換成功，獎勵已發送至遊戲內信箱，請及時查收。",
+      "redeemFailed": "兌換失敗，請稍後重試。"
+    },
+    "resultMessages": {
+      "0": "兌換成功！獎勵已發送至遊戲內信箱，請及時查收。",
+      "1": "使用者 ID 錯誤，請確認後重試。",
+      "2": "兌換碼錯誤，請確認後重試。",
+      "3": "兌換碼已使用。",
+      "4": "兌換碼已過期。",
+      "5": "兌換碼錯誤，請確認後重試。",
+      "6": "兌換碼已領完。",
+      "7": "伺服器繁忙，請稍後重試。",
+      "8": "請求異常，請稍後重試。",
+      "9": "兌換資訊有誤，請返回後重新嘗試。",
+      "10": "未找到角色所在伺服器，請確認角色資訊後重試。當前伺服器暫時不可用，請稍後重試。",
+      "11": "當前伺服器暫時不可用，請稍後重試。",
+      "12": "領取逾時，請稍後重試。",
+      "13": "領取失敗，請稍後重試。"
+    }
+  },
   "products": {
     "giftPacks": "禮包",
     "diamond": "鑽石",
     "products": "商品",
     "vouchers": "超級鑽石",
     "toukaCoin": "超級鑽石",
-    "toukaCoinBonusTip": "在TOUKA Store購物，享受額外10%的獎勵！",
+    "toukaCoinBonusTip": "在TOUKA Store額外獲得10%！",
     "superValue": "超值",
     "limitShort": "限購",
     "remainingShort": "剩餘時間",

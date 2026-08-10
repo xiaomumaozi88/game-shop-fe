@@ -1,4 +1,5 @@
 import ta from 'thinkingdata-browser';
+import { config } from './config';
 
 /**
  * ThinkingData 配置接口
@@ -7,6 +8,29 @@ export interface ThinkingDataConfig {
   appId: string;
   serverUrl: string;
 }
+
+const shouldLogThinkingDataTrack = (): boolean => config.envStage === 'test';
+
+const pickTrackLogProperties = (properties: Record<string, any> = {}): Record<string, any> => {
+  const keys = [
+    'account_id',
+    'mail_id',
+    '#account_id',
+    'server_channel',
+    'product_id',
+    'iap',
+    'payment_type',
+    'environment',
+    'fail_reason',
+  ];
+
+  return keys.reduce<Record<string, any>>((result, key) => {
+    if (properties[key] !== undefined && properties[key] !== null && properties[key] !== '') {
+      result[key] = properties[key];
+    }
+    return result;
+  }, {});
+};
 
 /**
  * ThinkingData 分析工具类
@@ -27,7 +51,12 @@ class ThinkingData {
    * @returns 是否初始化成功
    */
   initForGame(appKey: string, config: ThinkingDataConfig): boolean {
-    if (this.currentAppKey === appKey && this.initialized) {
+    if (
+      this.currentAppKey === appKey &&
+      this.initialized &&
+      this.currentConfig?.appId === config.appId &&
+      this.currentConfig?.serverUrl === config.serverUrl
+    ) {
       return true;
     }
 
@@ -144,8 +173,9 @@ class ThinkingData {
     }
 
     try {
-      // 调试输出当次上报的事件名与参数
-      // console.log('[ThinkingData track]', eventName, properties || {});
+      if (shouldLogThinkingDataTrack()) {
+        console.info('[TA]', eventName, pickTrackLogProperties(properties));
+      }
       ta.track(eventName, properties || {});
     } catch (error) {
       console.error('[ThinkingData track failed]', {

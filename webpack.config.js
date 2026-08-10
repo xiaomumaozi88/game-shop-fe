@@ -11,6 +11,8 @@ const name = '游戏商店';
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   const analyze = process.env.ANALYZE === 'true';
+  const envStage = process.env.REACT_APP_ENV_STAGE || 'test';
+  const enableVConsole = envStage === 'test';
 
   return {
     entry: './src/index.tsx',
@@ -114,6 +116,7 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: './public/index.html',
         title: name,
+        enableVConsole,
         inject: true,
         minify: isProduction
           ? {
@@ -218,4 +221,3 @@ module.exports = (env, argv) => {
     },
   };
 };
-

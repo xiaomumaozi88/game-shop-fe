@@ -188,13 +188,60 @@ export const zhCN = {
     "total": "全部:",
     "unitPrice": "单价:"
   },
+  "redeemCode": {
+    "title": "兑换码",
+    "close": "关闭",
+    "gameIdLabel": "游戏ID:",
+    "gameIdPlaceholder": "请输入您的游戏ID",
+    "howToFindGameId": "如何找到你的游戏ID",
+    "giftCodeLabel": "礼包码:",
+    "giftCodePlaceholder": "请输入您的礼包码",
+    "captchaLabel": "验证码:",
+    "captchaPlaceholder": "请输入验证码",
+    "refreshCaptcha": "刷新验证码",
+    "submit": "提交",
+    "submitting": "提交中...",
+    "rule": "每个礼包码每个账户只能兑换一次",
+    "success": {
+      "title": "兑换成功",
+      "description": "请到游戏内邮箱领取奖励！",
+      "confirm": "确定"
+    },
+    "guide": {
+      "stepOne": "1. 前往设置页",
+      "stepTwo": "2. 复制你的游戏ID"
+    },
+    "messages": {
+      "enterGiftCode": "请先输入礼包码",
+      "requiredFields": "请填写完整兑换信息",
+      "captchaLoadFailed": "验证码加载失败，请点击重试",
+      "success": "兑换成功，奖励已发放至游戏内邮箱，请及时查收。",
+      "redeemFailed": "兑换失败，请稍后重试。"
+    },
+    "resultMessages": {
+      "0": "兑换成功！奖励已发送至游戏内邮箱，请及时查收。",
+      "1": "用户ID错误，请确认后重试。",
+      "2": "兑换码错误，请确认后重试。",
+      "3": "兑换码已使用。",
+      "4": "兑换码已过期。",
+      "5": "兑换码错误，请确认后重试。",
+      "6": "兑换码已领完。",
+      "7": "服务器繁忙，请稍后重试。",
+      "8": "请求异常，请稍后重试。",
+      "9": "兑换信息有误，请返回后重新尝试。",
+      "10": "未找到角色所在服务器，请确认角色信息后重试。当前服务器暂时不可用，请稍后重试。",
+      "11": "当前服务器暂时不可用，请稍后重试。",
+      "12": "领取超时，请稍后重试。",
+      "13": "领取失败，请稍后重试。"
+    }
+  },
   "products": {
     "giftPacks": "礼包",
     "diamond": "钻石",
     "products": "商品",
     "vouchers": "超级钻石",
     "toukaCoin": "超级钻石",
-    "toukaCoinBonusTip": "在TOUKA Store购物，享受额外10%的奖励！",
+    "toukaCoinBonusTip": "在TOUKA Store额外获得10%！",
     "superValue": "超值",
     "limitShort": "限购",
     "remainingShort": "剩余时间",

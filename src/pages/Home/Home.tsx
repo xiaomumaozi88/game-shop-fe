@@ -594,7 +594,7 @@ export const Home: React.FC = () => {
                     className={styles.bannerImage}
                     loading={index === currentIndex ? 'eager' : 'lazy'}
                     decoding={index === currentIndex ? 'sync' : 'async'}
-                    fetchPriority={index === currentIndex ? 'high' : 'low'}
+                    fetchpriority={index === currentIndex ? 'high' : 'low'}
                     onClick={handleBannerClick}
                   />
                 ))}
