@@ -131,6 +131,7 @@ export const zhCN = {
     "bindGameGuide": "绑定游戏须知",
     "bindGameGuideContent": "打开任意一款Touka游戏，\n前往游戏内设置页面，绑定\n你的邮箱，即可享受特价商\n品优惠！",
     "captchaPlaceholder": "验证码",
+    "captchaRequired": "请输入验证码",
     "invalidCaptcha": "请输入4位数字验证码",
     "email": "邮箱",
     "emailNotBound": "未检索成功,请输入游戏内绑定的邮箱哦~",
@@ -194,14 +195,14 @@ export const zhCN = {
     "gameIdLabel": "游戏ID:",
     "gameIdPlaceholder": "请输入您的游戏ID",
     "howToFindGameId": "如何找到你的游戏ID",
-    "giftCodeLabel": "礼包码:",
-    "giftCodePlaceholder": "请输入您的礼包码",
+    "giftCodeLabel": "兑换码",
+    "giftCodePlaceholder": "请输入您的兑换码",
     "captchaLabel": "验证码:",
     "captchaPlaceholder": "请输入验证码",
     "refreshCaptcha": "刷新验证码",
     "submit": "提交",
     "submitting": "提交中...",
-    "rule": "每个礼包码每个账户只能兑换一次",
+    "rule": "每个兑换码每个账户只能兑换一次",
     "success": {
       "title": "兑换成功",
       "description": "请到游戏内邮箱领取奖励！",
@@ -212,7 +213,7 @@ export const zhCN = {
       "stepTwo": "2. 复制你的游戏ID"
     },
     "messages": {
-      "enterGiftCode": "请先输入礼包码",
+      "enterGiftCode": "请先输入兑换码",
       "requiredFields": "请填写完整兑换信息",
       "captchaLoadFailed": "验证码加载失败，请点击重试",
       "success": "兑换成功，奖励已发放至游戏内邮箱，请及时查收。",
@@ -228,7 +229,7 @@ export const zhCN = {
       "6": "兑换码已领完。",
       "7": "服务器繁忙，请稍后重试。",
       "8": "请求异常，请稍后重试。",
-      "9": "兑换信息有误，请返回后重新尝试。",
+      "9": "校验码错误或已过期，请确认后重试。",
       "10": "未找到角色所在服务器，请确认角色信息后重试。当前服务器暂时不可用，请稍后重试。",
       "11": "当前服务器暂时不可用，请稍后重试。",
       "12": "领取超时，请稍后重试。",
@@ -277,10 +278,16 @@ export const zhCN = {
     "serverPlaceholder": "请输入区服名字进行搜索",
     "title": "选择游戏区组"
   },
-  "orientation": {
-    "bestExperience": "请切换为竖屏以获得最佳体验"
+ "orientation": {
+   "bestExperience": "请切换为竖屏以获得最佳体验"
+ },
+  "pendingOrder": {
+    "title": "温馨提示",
+    "message": "您当前已经有一笔正在进行中的订单，是否前往查看？",
+    "goToOrders": "前往",
+    "cancel": "取消"
   },
-  "support": {
+ "support": {
     "cancel": "取消",
     "copied": "已复制",
     "copy": "一键复制",

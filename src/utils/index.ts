@@ -187,6 +187,7 @@ export * from './defaultAvatar';
 export * from './thinkingData';
 export * from './analytics';
 export * from './productPurchaseLimit';
+export * from './orderCategory';
 export * from './serverDisplay';
 
 /**

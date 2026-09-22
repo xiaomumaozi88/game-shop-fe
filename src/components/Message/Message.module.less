@@ -1,33 +1,57 @@
+@import '@/styles/variables.less';
+@import '@/styles/mixins.less';
+
 .messageContainer {
   position: fixed;
-  top: 0;
+  top: calc(@layout-header-height-desktop + 1rem);
   left: 50%;
-  transform: translateX(-50%) translateY(-100%);
   z-index: 10000;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
+  display: flex;
+  justify-content: center;
   width: fit-content;
-  max-width: calc(100vw - 32px);
-  padding: 0 16px;
+  max-width: calc(100vw - 2rem);
+  padding: 0 1rem;
   box-sizing: border-box;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(-0.5rem);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .tablet({
+    top: calc(@layout-header-height-tablet + 0.875rem);
+  });
+
+  .mobile({
+    top: calc(@layout-header-height-mobile + 0.75rem);
+    max-width: calc(100vw - 1.5rem);
+    padding: 0 0.75rem;
+  });
 }
 
 .messageContainer.visible {
-  transform: translateX(-50%) translateY(20px);
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .message {
-  background: rgba(0, 0, 0, 0.85);
-  color: #ffffff;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.4;
-  text-align: center;
   width: max-content;
   max-width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  padding: 0.875rem 1.25rem;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 1rem;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-align: center;
+  word-break: break-word;
+
+  .desktop({
+    font-size: 1rem;
+  });
 }

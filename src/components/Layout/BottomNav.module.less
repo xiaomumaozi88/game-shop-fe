@@ -3,23 +3,22 @@
 
 .bottomNav {
   position: fixed;
-  bottom: 3.75rem; // 60px
-  left: 0;
-  right: 0;
+  left: 50%;
+  bottom: 20vh;
+  right: auto;
+  transform: translateX(-50%) translateY(0);
   background: @white;
-  border: 1px solid @border-color; // border-width 保持 px
-  border-radius: 10vw;
+  border: 1px solid rgba(35, 41, 54, 0.08);
+  border-radius: 999px;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  padding: @spacing-xs 0;
-  // padding-bottom: calc(@spacing-xs + env(safe-area-inset-bottom, 0px)); // 考虑安全区域（iOS等）
-  z-index: @z-index-dropdown;
-  height: auto;
-  min-height: 3.5rem; // 56px 确保有足够的高度
-  width: 70vw;
-  margin: 0 auto;
-  transform: translateY(0);
+  gap: 0.5rem;
+  padding: 0.1rem 0.875rem;
+  z-index: @z-index-dropdown + 1;
+  min-height: 4rem;
+  width: min(calc(100vw - 2rem), 21rem);
+  box-shadow: 0 0.5rem 1.5rem rgba(22, 22, 22, 0.18);
   opacity: 1;
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   pointer-events: auto;
@@ -30,7 +29,7 @@
 }
 
 .bottomNavHidden {
-  transform: translateY(calc(100% + 1.25rem)); // 20px
+  transform: translateX(-50%) translateY(calc(100% + 1.25rem));
   opacity: 0;
   pointer-events: none;
 }
@@ -39,12 +38,13 @@
   .button-reset();
   .flex-center();
   flex-direction: column;
-  gap: @spacing-xs;
-  padding: @spacing-xs @spacing-md;
-  color: @text-color-secondary;
-  transition: color 0.2s ease;
+  gap: 0.5rem;
+  flex: 1 1 0;
+  padding: 0.125rem 0.5rem;
+  color: #cfcfcf;
+  transition: color 0.2s ease, opacity 0.2s ease;
   .touch-friendly();
-  min-width: 3.75rem; // 60px
+  min-width: 0;
 
   &:active {
     opacity: 0.7;
@@ -52,15 +52,15 @@
 }
 
 .navItemActive {
-  color: @primary-color;
+  color: #111111;
 }
 
 .icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem; // 24px
-  height: 1.5rem; // 24px
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .iconImg {
@@ -70,7 +70,9 @@
 }
 
 .label {
-  font-size: @font-size-xs;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
 }
-

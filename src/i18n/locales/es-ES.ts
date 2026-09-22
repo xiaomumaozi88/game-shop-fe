@@ -126,6 +126,7 @@ export const esES = {
     "bindGameGuide": "Aviso de vinculación del juego",
     "bindGameGuideContent": "Abre cualquier juego Touka,\nve a Ajustes dentro del juego,\nvincula tu correo\ny disfruta de ofertas especiales en la tienda.",
     "captchaPlaceholder": "Código de verificación",
+    "captchaRequired": "Por favor, introduce el captcha",
     "invalidCaptcha": "Por favor, ingrese un código de verificación de 4 dígitos",
     "email": "Correo electrónico",
     "emailNotBound": "No pudimos encontrar la cuenta. Ingresa el correo vinculado a tu cuenta del juego~",
@@ -186,14 +187,14 @@ export const esES = {
     "gameIdLabel": "ID del juego:",
     "gameIdPlaceholder": "Introduce tu ID del juego",
     "howToFindGameId": "Cómo encontrar tu ID del juego",
-    "giftCodeLabel": "Código de regalo:",
-    "giftCodePlaceholder": "Introduce tu código de regalo",
+    "giftCodeLabel": "Código de canje",
+    "giftCodePlaceholder": "Introduce tu código de canje",
     "captchaLabel": "Captcha:",
     "captchaPlaceholder": "Introduce el captcha",
     "refreshCaptcha": "Actualizar captcha",
     "submit": "Enviar",
     "submitting": "Enviando...",
-    "rule": "Cada código de regalo solo se puede canjear una vez por cuenta.",
+    "rule": "Cada código de canje solo se puede canjear una vez por cuenta.",
     "success": {
       "title": "Canje realizado",
       "description": "¡Reclama tu recompensa en el buzón del juego!",
@@ -204,7 +205,7 @@ export const esES = {
       "stepTwo": "2. Copia tu ID del juego"
     },
     "messages": {
-      "enterGiftCode": "Introduce primero un código de regalo",
+      "enterGiftCode": "Introduce primero un código de canje",
       "requiredFields": "Completa toda la información de canje",
       "captchaLoadFailed": "No se pudo cargar el captcha. Toca para reintentar.",
       "success": "Canje realizado con éxito. Las recompensas se enviaron a tu buzón del juego.",
@@ -220,7 +221,7 @@ export const esES = {
       "6": "El código de canje ya se ha agotado.",
       "7": "El servidor está ocupado. Inténtalo más tarde.",
       "8": "Error de solicitud. Inténtalo más tarde.",
-      "9": "La información de canje no es válida. Vuelve atrás e inténtalo de nuevo.",
+      "9": "El código de verificación es inválido o ha expirado. Confírmalo e inténtalo de nuevo.",
       "10": "No se encontró el servidor del personaje. Confirma la información del personaje e inténtalo de nuevo. El servidor actual no está disponible temporalmente. Inténtalo más tarde.",
       "11": "El servidor actual no está disponible temporalmente. Inténtalo más tarde.",
       "12": "La reclamación ha agotado el tiempo de espera. Inténtalo más tarde.",
@@ -272,7 +273,12 @@ export const esES = {
   "orientation": {
     "bestExperience": "Cambia al modo vertical para obtener la mejor experiencia"
   },
-  "support": {
+  "pendingOrder": {
+    "title": "Aviso",
+    "message": "Tiene un pedido en curso. ¿Desea verlo?",
+    "goToOrders": "Ir a pedidos",
+    "cancel": "Cancelar"
+  },  "support": {
     "cancel": "Cancelar",
     "copied": "Copiado",
     "copy": "Copiar con un clic",

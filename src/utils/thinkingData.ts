@@ -15,13 +15,19 @@ const pickTrackLogProperties = (properties: Record<string, any> = {}): Record<st
   const keys = [
     'account_id',
     'mail_id',
+    '#country_code',
+    '#os',
+    '#ip',
     '#account_id',
+    'is_game_redirect',
     'server_channel',
     'product_id',
     'iap',
     'payment_type',
     'environment',
     'fail_reason',
+    'reward_code',
+    'reward_code_type',
   ];
 
   return keys.reduce<Record<string, any>>((result, key) => {
@@ -125,6 +131,7 @@ class ThinkingData {
     try {
       ta.login(accountId);
     } catch (error) {
+      void error;
     }
   }
 

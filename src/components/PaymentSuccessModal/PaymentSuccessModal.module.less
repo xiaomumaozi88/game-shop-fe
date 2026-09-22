@@ -7,25 +7,10 @@
 @payment-success-value: #333333;
 @payment-success-modal-width: 34rem;
 @payment-success-modal-width-mobile: 28rem;
-@payment-success-total-stroke: #8d5727;
 
 .paymentSuccessTotalStrokeText(@stroke-width: 0.13rem) {
-  @shadow-offset: (@stroke-width * 0.45);
-  @shadow-blur: (@stroke-width * 0.24);
-  -webkit-text-stroke: @stroke-width @payment-success-total-stroke;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  paint-order: stroke fill;
-  text-shadow:
-    0 0 @shadow-blur @payment-success-total-stroke,
-    @shadow-offset 0 @shadow-blur @payment-success-total-stroke,
-    (-@shadow-offset) 0 @shadow-blur @payment-success-total-stroke,
-    0 @shadow-offset @shadow-blur @payment-success-total-stroke,
-    0 (-@shadow-offset) @shadow-blur @payment-success-total-stroke,
-    @shadow-offset @shadow-offset @shadow-blur @payment-success-total-stroke,
-    (-@shadow-offset) @shadow-offset @shadow-blur @payment-success-total-stroke,
-    @shadow-offset (-@shadow-offset) @shadow-blur @payment-success-total-stroke,
-    (-@shadow-offset) (-@shadow-offset) @shadow-blur @payment-success-total-stroke;
 }
 
 .overlay {
@@ -49,7 +34,7 @@
   max-width: 96vw;
   animation: slideUp 0.3s ease;
   overflow: visible;
-  font-family: @font-family-sans;
+  
 
   .mobile({
     width: min(@payment-success-modal-width-mobile, 96vw);
@@ -514,37 +499,23 @@
 .celebrationTitle {
   flex-shrink: 0;
   margin: 0;
-  font-family: @font-family-sans;
+  
   font-size: clamp(1.25rem, 4.5vw, 2.125rem);
   font-weight: 700;
   line-height: 1;
   color: #ffe156;
   white-space: nowrap;
-  -webkit-text-stroke: 0.09rem #121212;
-  paint-order: stroke fill;
-  text-shadow:
-    0.08rem 0 0 #121212,
-    -0.08rem 0 0 #121212,
-    0 0.08rem 0 #121212,
-    0 -0.08rem 0 #121212,
-    0.1rem 0.1rem 0 #121212,
-    -0.1rem 0.1rem 0 #121212,
-    0.1rem -0.1rem 0 #121212,
-    -0.1rem -0.1rem 0 #121212;
 
   .mobile({
     font-size: clamp(1rem, 6vw, 1.75rem);
-    -webkit-text-stroke-width: 0.07rem;
   });
 }
 
 .celebrationTitleCompact {
   font-size: clamp(0.875rem, 3.25vw, 1.5rem);
-  -webkit-text-stroke-width: 0.07rem;
 
   .mobile({
     font-size: clamp(0.75rem, 5vw, 1.25rem);
-    -webkit-text-stroke-width: 0.06rem;
   });
 }
 

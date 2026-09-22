@@ -198,7 +198,7 @@
 }
 
 .imageSectionGiftPack {
-  overflow: hidden;
+  overflow: visible;
   min-height: 0;
   padding-top: 0.5rem;
 
@@ -215,7 +215,7 @@
 }
 
 .productShowcaseGiftPack {
-  overflow: hidden;
+  overflow: visible;
   align-items: flex-start;
   padding: 0 0.25rem;
   width: 100%;
@@ -249,9 +249,9 @@
 
   .productName {
     max-width: 9rem;
-    overflow: hidden;
+    overflow: visible;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
 
     .mobile({
       max-width: 6.5rem;
@@ -441,7 +441,7 @@
   position: relative;
   z-index: 4;
   margin-top: 1rem;
-  overflow: hidden;
+  overflow: visible;
   max-height: 4rem;
   opacity: 1;
   transition:
@@ -704,7 +704,7 @@
   gap: 0.375rem;
   padding: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   color: @buy-modal-text-muted;
   font-size: @font-size-md;
 
@@ -750,10 +750,12 @@
 .detailsContent {
   display: grid;
   grid-template-rows: 1fr;
+  min-height: 0;
   transition: grid-template-rows @buy-details-transition;
 
   &.detailsCollapsed {
     grid-template-rows: 0fr;
+    overflow: hidden;
   }
 }
 
@@ -969,5 +971,77 @@
     font-size: @font-size-md;
     padding: 0.5625rem @spacing-sm;
     line-height: 1.2;
+  }
+}
+
+@media (max-width: 480px) {
+  .productImageGiftPack {
+    .productNamePlate {
+      right: -10%;
+      bottom: -5%;
+      min-width: 6.5rem;
+      min-height: 2.75rem;
+      padding: 0.2rem 0.7rem 0.3rem;
+    }
+
+    .productName {
+      max-width: 6rem;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// 待支付订单提示弹窗 - 与 LogoutModal 样式保持一致
+.pendingOrderOverlay {
+  composes: overlay from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderModal {
+  composes: modal from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderCloseButton {
+  composes: closeButton from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderCloseButtonImg {
+  composes: closeButtonImg from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderTitle {
+  composes: title from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderDescription {
+  composes: description from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderActions {
+  composes: actions from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderGoButton {
+  composes: confirmButton from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+.pendingOrderCancelButton {
+  composes: cancelButton from '../../components/LogoutModal/LogoutModal.module.less';
+}
+
+@media (max-width: 389px) {
+  .productImageGiftPack {
+    .productNamePlate {
+      right: -12%;
+      bottom: -5%;
+      min-width: 5.5rem;
+      min-height: 2.3rem;
+      padding: 0.15rem 0.5rem 0.2rem;
+    }
+
+    .productName {
+      max-width: 5rem;
+      font-size: 0.75rem;
+      line-height: 1.05;
+    }
   }
 }

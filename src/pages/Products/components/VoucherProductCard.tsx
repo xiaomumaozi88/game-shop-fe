@@ -9,6 +9,7 @@ import styles from '../Products.module.less';
 interface VoucherProductCardProps {
   cardRef: React.RefObject<HTMLDivElement | null>;
   product: Product;
+  isGray: boolean;
   onProductClick: (product: Product) => void;
   t: (key: string) => string;
   formatCountdown: (seconds: number) => string;
@@ -18,6 +19,7 @@ interface VoucherProductCardProps {
 export const VoucherProductCard: React.FC<VoucherProductCardProps> = ({
   cardRef,
   product,
+  isGray,
   onProductClick,
   t,
   formatCountdown,
@@ -38,7 +40,9 @@ export const VoucherProductCard: React.FC<VoucherProductCardProps> = ({
   return (
     <div
       ref={cardRef}
-      className={`${styles.productCard} ${styles.productCardVoucher}`}
+      className={`${styles.productCard} ${styles.productCardVoucher} ${
+        isGray ? styles.productCardUnavailable : ''
+      }`}
       style={{ backgroundImage: `url(${voucherCardBg})` }}
       onClick={() => onProductClick(product)}
     >

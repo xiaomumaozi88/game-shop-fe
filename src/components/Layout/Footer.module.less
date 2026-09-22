@@ -1,5 +1,6 @@
 @import '@/styles/variables.less';
 @import '@/styles/mixins.less';
+@import '@/pages/Products/productsPageLayoutVars.less';
 
 .footer {
   background: #2c2c2c; // 深灰色背景
@@ -29,10 +30,29 @@
 
 .container {
   margin: 0 auto;
-  padding: 0 @spacing-xl;
+  width: calc(100% - @products-page-padding-x-mobile-total);
+  max-width: @products-catalog-max-width;
+  padding: 0;
 
   .mobile({
-    padding: 0 @spacing-sm;
+    width: calc(100% - @products-page-padding-x-mobile-total);
+    max-width: @products-catalog-max-width;
+    padding: 0;
+    box-sizing: border-box;
+  });
+
+  .tablet({
+    width: calc(100% - @products-page-padding-x-tablet-total);
+    max-width: @products-catalog-max-width;
+    padding: 0;
+    box-sizing: border-box;
+  });
+
+  .desktop({
+    width: calc(100% - @products-page-padding-x-desktop-total);
+    max-width: @products-catalog-max-width;
+    padding: 0;
+    box-sizing: border-box;
   });
 }
 
@@ -40,6 +60,8 @@
   margin-bottom: @spacing-md;
   gap: @spacing-sm;
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
 
   .mobile({
     gap: @spacing-sm;
@@ -47,6 +69,10 @@
   .desktop({
     margin: 1.5rem 0;
   });
+}
+
+.footerActionDropdown {
+  position: relative;
 }
 
 // 下载按钮区域
@@ -140,8 +166,8 @@
   gap: @spacing-xs;
   padding: 0 @spacing-md;
   background: #000;
-  border: 1px solid @white;
-  border-radius: 999px;
+  border: 1px solid #ffffff57;
+  border-radius: 4px;
   color: @white;
   font-size: @font-size-sm;
   text-decoration: none;
@@ -171,7 +197,6 @@
   height: 1.5rem;
   flex-shrink: 0;
   object-fit: contain;
-
 }
 
 .languageButton {
@@ -183,11 +208,12 @@
   font-size: @font-size-xs;
   padding: 0 @spacing-sm;
   background: #000; // 黑色背景
-  border: 1px solid @white; // 白色边框
-  border-radius: 999px; // 药丸形状
+  border: 1px solid #ffffff57;
+  border-radius: 4px;
   transition: all 0.2s ease;
   height: 2rem;
   padding: 0 0.7rem 0 0.5rem;
+  min-width: 9rem;
 
   &:hover {
     background: rgba(0, 0, 0, 0.8);
@@ -201,7 +227,58 @@
   .desktop({
     height: 2.5rem;
     font-size: @font-size-md;
-  })
+  });
+}
+
+.supportEntryButton {
+  .button-reset();
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-xs;
+  height: 2rem;
+  padding: 0 0.7rem 0 0.5rem;
+  background: #000;
+  border: 1px solid #ffffff57;
+  border-radius: 4px;
+  color: @white;
+  transition: all 0.2s ease;
+  min-width: 8.25rem;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .mobile({
+    min-width: 7.5rem;
+  });
+
+  .desktop({
+    height: 2.5rem;
+    min-width: 8.75rem;
+  });
+}
+
+.supportEntryText {
+  font-size: @font-size-xs;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+
+  .desktop({
+    font-size: @font-size-md;
+  });
+}
+
+.supportEntryArrow {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin-left: auto;
+
+  .mobile({
+    width: 0.875rem;
+    height: 0.875rem;
+  });
 }
 
 .buttonIcon {
@@ -243,7 +320,7 @@
   box-shadow: @box-shadow-md;
   min-width: 150px;
   overflow: hidden;
-  z-index: @z-index-dropdown;
+  z-index: @z-index-dropdown + 2;
 }
 
 .languageOption {
@@ -293,7 +370,7 @@
   });
   .desktop({
     font-size: @font-size-md;
-  })
+  });
 }
 
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) {

@@ -35,11 +35,11 @@ export const ProductsUserPanelRoleRow: React.FC<ProductsUserPanelRoleRowProps> =
   return (
     <div className={styles.roleRow}>
       <div className={styles.roleRowTextGroup}>
-        <button type="button" className={styles.roleName} onClick={onSwitchServer}>
+        <div className={styles.roleName}>
           <span ref={roleNameRef} className={styles.roleNameText}>
             {roleName}
           </span>
-        </button>
+        </div>
         <span className={styles.serverTextWrap}>
           <span ref={serverTextRef} className={styles.serverText}>
             {serverText}

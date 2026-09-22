@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useUser } from '@/hooks/useUser';
@@ -17,13 +17,11 @@ import {
   isGameStoreEntryVisible,
   getDefaultGameStoreAppKey,
   formatServerChannelForDisplay,
+  resolveOrderCategoryId,
   resolveAnalyticsEnvironment,
   trackStoreIapFail,
 } from '@/utils';
-import {
-  parseProductMultiName,
-  resolveOrderProductFallbackName,
-} from '@/utils/productMultiName';
+import { parseProductMultiName, resolveOrderProductFallbackName } from '@/utils/productMultiName';
 import {
   getGiftPackOrderThumbnail,
   parseGiftPackPurchaseLimitType,
@@ -40,11 +38,9 @@ import paginationArrowImg from '@/assets/img2/arrow.png';
 import { HomeBackgroundPattern } from '@/pages/Home/components/HomeBackgroundPattern';
 import styles from './History.module.less';
 
-
 const ALL_GAMES_APP_KEY = '__all__';
 
 type FilterStatus = 'all' | 'inProgress' | 'completed' | 'closed';
-type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks';
 type HistoryOrder = Order & {
   appKey?: string;
   platform?: string;
@@ -88,9 +84,12 @@ function getPaginationItems(currentPage: number, totalPages: number): Pagination
 }
 
 function getOrderItemDisplayImage(product: Product): string | null {
-  if (product.categoryId === 'giftPacks') {
+  const resolvedCategoryId = resolveOrderCategoryId(product.position, product.purchase_limit_type);
+
+  if (resolvedCategoryId === 'giftPacks' || product.categoryId === 'giftPacks') {
     return getGiftPackOrderThumbnail(product.purchase_limit_type);
   }
+
   return product.image?.trim() ? product.image : null;
 }
 
@@ -103,7 +102,7 @@ function normalizeCreatedAtUnixToMs(unix: number): number {
 const games = [
   { id: 'bam-bam-squad', appKey: 'f6594168ce3a9cc57ab7ed74426e25e1' },
   { id: 'oopsie-croco', appKey: '45a56d38bbdd60353438aa25d1ccff20' },
-].filter((game) => isGameStoreEntryVisible(game.id));
+].filter(game => isGameStoreEntryVisible(game.id));
 
 function appKeyFromRouteGameId(id: string | undefined): string | undefined {
   if (!id) return undefined;
@@ -115,7 +114,7 @@ function appKeyFromRouteGameId(id: string | undefined): string | undefined {
 export const History: React.FC = () => {
   const navigate = useNavigate();
   const { gameId: routeGameId } = useParams<{ gameId: string }>();
-  const { t, locale } = useLanguage();
+  const [searchParams] = useSearchParams();  const { t, locale } = useLanguage();
   const { isDesktop, isTouchLandscape } = useResponsive();
   const { user, getGameRoleSelection } = useUser();
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
@@ -129,6 +128,7 @@ export const History: React.FC = () => {
   });
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPageInput, setJumpPageInput] = useState('');
   const [filterGameDropdownOpen, setFilterGameDropdownOpen] = useState(false);
   const filterGameDropdownMobileRef = useRef<HTMLDivElement>(null);
   const filterGameDropdownDesktopRef = useRef<HTMLDivElement>(null);
@@ -180,112 +180,114 @@ export const History: React.FC = () => {
     return langMap[locale] || locale.split('-')[0] || 'en';
   };
 
-  // 根据position映射到categoryId
-  const mapPositionToCategoryId = (position: string | undefined): ProductCategory => {
-    if (!position) return 'vouchers';
-    const positionMap: Record<string, ProductCategory> = {
-      'coupon': 'vouchers',
-      'voucher': 'vouchers',
-      'luxury': 'diamond',
-      'diamond': 'diamond',
-      'gift': 'giftPacks',
-      'giftpack': 'giftPacks',
-    };
-    return positionMap[position.toLowerCase()] || 'vouchers';
-  };
-
   // 将后端订单数据转换为前端 Order 格式（使用 useCallback 避免重复创建）
-  const convertOrderDataToOrder = useCallback((orderData: any, sourceAppKey?: string): HistoryOrder => {
-    // 将 order_status 映射到 OrderStatus
-    const statusMap: Record<string, OrderStatus> = {
-      'pending': OrderStatus.PENDING,
-      'completed': OrderStatus.COMPLETED,
-      'closed': OrderStatus.CANCELLED,
-    };
+  const convertOrderDataToOrder = useCallback(
+    (orderData: any, sourceAppKey?: string): HistoryOrder => {
+      // 将 order_status 映射到 OrderStatus
+      const statusMap: Record<string, OrderStatus> = {
+        pending: OrderStatus.PENDING,
+        completed: OrderStatus.COMPLETED,
+        closed: OrderStatus.CANCELLED,
+      };
 
-    // 解析商品名称：multi_name 仅匹配当前语言键，未命中则用 name
-    const productName = parseProductMultiName(
-      orderData.multi_name,
-      locale,
-      resolveOrderProductFallbackName(orderData)
-    );
+      // 解析商品名称：multi_name 仅匹配当前语言键，未命中则用 name
+      const productName = parseProductMultiName(
+        orderData.multi_name,
+        locale,
+        resolveOrderProductFallbackName(orderData)
+      );
 
-    // 根据 product_position 或默认值确定 categoryId
-    const categoryId = orderData.product_position 
-      ? mapPositionToCategoryId(orderData.product_position)
-      : 'vouchers'; // 默认超级钻石
+      // 根据礼包特征优先确定 categoryId，避免礼包单被默认归为超级钻石
+      const categoryId = resolveOrderCategoryId(
+        orderData.product_position,
+        orderData.purchase_limit_type
+      );
 
-    const paySuccess = orderData.pay_success_time?.trim() || '';
-    const createdTime = orderData.created_time?.trim() || '';
-    const displayTime = paySuccess || createdTime || new Date().toISOString();
+      const paySuccess = orderData.pay_success_time?.trim() || '';
+      const createdTime = orderData.created_time?.trim() || '';
+      const displayTime = paySuccess || createdTime || new Date().toISOString();
 
-    let bmallCreatedAtUnix: number | undefined;
-    const rawUnix = orderData.created_at_unix;
-    if (typeof rawUnix === 'number' && Number.isFinite(rawUnix) && rawUnix > 0) {
-      bmallCreatedAtUnix = rawUnix;
-    } else if (typeof rawUnix === 'string' && rawUnix.trim()) {
-      const parsed = Number(rawUnix.trim());
-      if (Number.isFinite(parsed) && parsed > 0) {
-        bmallCreatedAtUnix = parsed;
+      let bmallCreatedAtUnix: number | undefined;
+      const rawUnix = orderData.created_at_unix;
+      if (typeof rawUnix === 'number' && Number.isFinite(rawUnix) && rawUnix > 0) {
+        bmallCreatedAtUnix = rawUnix;
+      } else if (typeof rawUnix === 'string' && rawUnix.trim()) {
+        const parsed = Number(rawUnix.trim());
+        if (Number.isFinite(parsed) && parsed > 0) {
+          bmallCreatedAtUnix = parsed;
+        }
       }
-    }
 
-    let payStatus: number | undefined;
-    const rawPayStatus = orderData.pay_status;
-    if (typeof rawPayStatus === 'number' && Number.isFinite(rawPayStatus)) {
-      payStatus = rawPayStatus;
-    } else if (typeof rawPayStatus === 'string' && rawPayStatus.trim()) {
-      const parsed = Number(rawPayStatus.trim());
-      if (Number.isFinite(parsed)) {
-        payStatus = parsed;
+      let payStatus: number | undefined;
+      const rawPayStatus = orderData.pay_status;
+      if (typeof rawPayStatus === 'number' && Number.isFinite(rawPayStatus)) {
+        payStatus = rawPayStatus;
+      } else if (typeof rawPayStatus === 'string' && rawPayStatus.trim()) {
+        const parsed = Number(rawPayStatus.trim());
+        if (Number.isFinite(parsed)) {
+          payStatus = parsed;
+        }
       }
-    }
 
-    return {
-      id: orderData.order_no,
-      userId: orderData.game_user_id || user?.id || '',
-      items: [
-        {
-          product: {
-            id: orderData.product_id,
-            name: productName,
-            description: productName,
-            price: orderData.unit_price,
-            image: orderData.product_image || '', // 后端返回的图片链接
-            category: categoryId === 'giftPacks' ? 'giftPacks' : categoryId === 'diamond' ? 'diamond' : 'vouchers',
-            categoryId: categoryId,
-            stock: 0,
-            currency: orderData.currency,
-            position: orderData.product_position, // 保存 product_position 字段
-            iap: orderData.iap,
-            iap_id: orderData.iap_id,
-            purchase_limit_type: parseGiftPackPurchaseLimitType(orderData.purchase_limit_type),
+      return {
+        id: orderData.order_no,
+        userId: orderData.game_user_id || user?.id || '',
+        items: [
+          {
+            product: {
+              id: orderData.product_id,
+              name: productName,
+              description: productName,
+              price: orderData.unit_price,
+              image: orderData.product_image || '', // 后端返回的图片链接
+              category:
+                categoryId === 'giftPacks'
+                  ? 'giftPacks'
+                  : categoryId === 'diamond'
+                    ? 'diamond'
+                    : 'vouchers',
+              categoryId: categoryId,
+              stock: 0,
+              currency: orderData.currency,
+              position: orderData.product_position, // 保存 product_position 字段
+              iap: orderData.iap,
+              iap_id: orderData.iap_id,
+              purchase_limit_type: parseGiftPackPurchaseLimitType(orderData.purchase_limit_type),
+            },
+            quantity: orderData.quantity,
           },
-          quantity: orderData.quantity,
-        },
-      ],
-      totalAmount: orderData.price,
-      currency: orderData.currency,
-      status: statusMap[orderData.order_status] || OrderStatus.PENDING,
-      payStatus,
-      createdAt: displayTime,
-      bmallCreatedTime: createdTime || undefined,
-      bmallCreatedAtUnix,
-      appKey: sourceAppKey,
-      platform: orderData.platform,
-      gameServerChannel: orderData.game_server_channel,
-      gameUserId: orderData.game_user_id,
-      userEmail: orderData.account_email || orderData.user_email,
-      paymentType: orderData.payment_type,
-      environment: resolveAnalyticsEnvironment(
-        orderData.environment,
-        orderData.payment_environment,
-        orderData.env
-      ),
-    };
-  }, [locale, user?.id]);
+        ],
+        totalAmount: orderData.price,
+        currency: orderData.currency,
+        status: statusMap[orderData.order_status] || OrderStatus.PENDING,
+        payStatus,
+        createdAt: displayTime,
+        bmallCreatedTime: createdTime || undefined,
+        bmallCreatedAtUnix,
+        appKey: sourceAppKey,
+        platform: orderData.platform,
+        gameServerChannel: orderData.game_server_channel,
+        gameUserId: orderData.game_user_id,
+        userEmail: orderData.account_email || orderData.user_email,
+        paymentType: orderData.payment_type,
+        environment: resolveAnalyticsEnvironment(
+          orderData.environment,
+          orderData.payment_environment,
+          orderData.env
+        ),
+      };
+    },
+    [locale, user?.id]
+  );
 
   // URL 中的游戏与下拉选择、本地存储保持一致（刷新后仍停留在当前游戏订单）
+  // 从 URL 参数读取默认筛选状态（如从商品页跳转过来的 pendingOrder 提示）
+  useEffect(() => {
+    const statusParam = searchParams.get('status');
+    if (statusParam === 'inProgress') {
+      setFilterStatus('inProgress');
+    }
+  }, [searchParams]);
   useEffect(() => {
     const key = appKeyFromRouteGameId(routeGameId);
     if (key) {
@@ -315,7 +317,7 @@ export const History: React.FC = () => {
 
         if (selectedGameAppKey === ALL_GAMES_APP_KEY) {
           const responses = await Promise.all(
-            games.map((game) =>
+            games.map(game =>
               bmallOrderApi.queryOrderList({
                 appKey: game.appKey,
                 language,
@@ -325,7 +327,7 @@ export const History: React.FC = () => {
           if (cancelled) return;
           const convertedOrders = responses.flatMap((result, index) =>
             result.success && result.data
-              ? result.data.items.map((item) => convertOrderDataToOrder(item, games[index]?.appKey))
+              ? result.data.items.map(item => convertOrderDataToOrder(item, games[index]?.appKey))
               : []
           );
           setOrders(convertedOrders);
@@ -340,7 +342,9 @@ export const History: React.FC = () => {
         if (cancelled) return;
 
         if (result.success && result.data) {
-          const convertedOrders = result.data.items.map((item) => convertOrderDataToOrder(item, selectedGameAppKey));
+          const convertedOrders = result.data.items.map(item =>
+            convertOrderDataToOrder(item, selectedGameAppKey)
+          );
           setOrders(convertedOrders);
         } else {
           // console.error('获取订单列表失败:', result.error);
@@ -365,7 +369,7 @@ export const History: React.FC = () => {
   }, [selectedGameAppKey, locale, convertOrderDataToOrder, listRefreshToken]);
 
   const requestOrdersRefresh = () => {
-    setListRefreshToken((n) => n + 1);
+    setListRefreshToken(n => n + 1);
   };
 
   // 点击外部关闭游戏下拉菜单（移动端 / PC 端各一处）
@@ -431,7 +435,7 @@ export const History: React.FC = () => {
   // 根据 categoryId 获取本地化的类别名称
   const getCategoryName = (categoryId: string | undefined): string => {
     if (!categoryId) return t('products.toukaCoin');
-    
+
     switch (categoryId) {
       case 'vouchers':
         return t('products.toukaCoin');
@@ -492,6 +496,19 @@ export const History: React.FC = () => {
     return platformText || serverText;
   };
 
+  const formatTotalQuantity = (quantity: number): string => {
+    if (locale.startsWith('zh')) return `共${quantity}件`;
+    return quantity === 1 ? '1 item' : `${quantity} items`;
+  };
+
+  const formatOrderAmount = (amount: number, currency: string): string => {
+    const hasFraction = Math.abs(amount % 1) > Number.EPSILON;
+    const formattedAmount = hasFraction
+      ? amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : amount.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    return formattedAmount;
+  };
+
   const formatDuration = (totalSeconds: number): string => {
     const safeSeconds = Math.max(0, totalSeconds);
     const hours = String(Math.floor(safeSeconds / 3600)).padStart(2, '0');
@@ -505,7 +522,9 @@ export const History: React.FC = () => {
    * - 有 created_at_unix：倒计时与「是否已过 30 分钟」均以时间戳为准（无时区问题）
    * - 无时间戳：回退 created_time / 展示时间字符串（兼容旧数据）
    */
-  const getPendingAutoCancelUi = (order: Order): { remainingSeconds: number; showCountdownAndCancel: boolean } => {
+  const getPendingAutoCancelUi = (
+    order: Order
+  ): { remainingSeconds: number; showCountdownAndCancel: boolean } => {
     const unixRaw = order.bmallCreatedAtUnix;
     if (unixRaw != null && Number.isFinite(unixRaw) && unixRaw > 0) {
       const createdMs = normalizeCreatedAtUnixToMs(unixRaw);
@@ -549,7 +568,9 @@ export const History: React.FC = () => {
     return 'web';
   };
 
-  const normalizeOrderPaymentPlatform = (platform: string | undefined | null): 'ios' | 'android' | undefined => {
+  const normalizeOrderPaymentPlatform = (
+    platform: string | undefined | null
+  ): 'ios' | 'android' | undefined => {
     const value = platform?.trim().toLowerCase();
     if (value === 'ios' || value === 'android') return value;
     return undefined;
@@ -568,7 +589,7 @@ export const History: React.FC = () => {
 
   const confirmCancelOrder = async () => {
     const orderId = orderIdPendingCancel;
-    const orderPendingCancel = orders.find((order) => order.id === orderId);
+    const orderPendingCancel = orders.find(order => order.id === orderId);
     const appKey = orderPendingCancel?.appKey || selectedGameAppKey;
     if (!orderId || !appKey || appKey === ALL_GAMES_APP_KEY) return;
 
@@ -693,7 +714,7 @@ export const History: React.FC = () => {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = orders.filter(order => {
     const effectiveStatus = getEffectiveOrderStatus(order);
     if (filterStatus === 'all') return true;
     if (filterStatus === 'inProgress') {
@@ -720,6 +741,10 @@ export const History: React.FC = () => {
   const visibleOrders = shouldPaginateOrders ? paginatedOrders : filteredOrders;
   const showPagination = shouldPaginateOrders && filteredOrders.length > ORDERS_PAGE_SIZE;
   const paginationItems = getPaginationItems(currentPageSafe, totalPages);
+  const paginationTotalText = locale.startsWith('zh') ? `共${totalPages}页` : `${totalPages} pages`;
+  const paginationJumpPrefix = locale.startsWith('zh') ? '到第' : 'Go to';
+  const paginationJumpSuffix = locale.startsWith('zh') ? '页' : 'page';
+  const paginationJumpAriaLabel = locale.startsWith('zh') ? '跳转页码' : 'Go to page';
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -730,6 +755,7 @@ export const History: React.FC = () => {
   const handleFilterStatusSelect = (nextStatus: FilterStatus) => {
     setFilterStatus(nextStatus);
     setCurrentPage(1);
+    setJumpPageInput('');
     requestOrdersRefresh();
   };
 
@@ -738,14 +764,38 @@ export const History: React.FC = () => {
     if (boundedPage === currentPageSafe) return;
 
     setCurrentPage(boundedPage);
+    setJumpPageInput('');
     window.setTimeout(() => {
       historyPageRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 0);
   };
 
+  const handleJumpPageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setJumpPageInput(event.target.value.replace(/\D/g, ''));
+  };
+
+  const handleJumpPageSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!jumpPageInput) return;
+
+    const nextPage = Number(jumpPageInput);
+    if (!Number.isFinite(nextPage)) return;
+    handlePageChange(nextPage);
+  };
+
+  const handleJumpPageInputBlur = () => {
+    if (!jumpPageInput) return;
+
+    const nextPage = Number(jumpPageInput);
+    if (!Number.isFinite(nextPage)) return;
+    handlePageChange(nextPage);
+  };
+
   useEffect(() => {
-    const hasPendingOrders = filteredOrders.some((order) => getEffectiveOrderStatus(order) === OrderStatus.PENDING);
+    const hasPendingOrders = filteredOrders.some(
+      order => getEffectiveOrderStatus(order) === OrderStatus.PENDING
+    );
     if (!hasPendingOrders) return;
 
     const timer = window.setInterval(() => {
@@ -758,7 +808,7 @@ export const History: React.FC = () => {
   }, [filteredOrders]);
 
   useEffect(() => {
-    const newlyExpiredPendingOrders = orders.filter((order) => {
+    const newlyExpiredPendingOrders = orders.filter(order => {
       if (order.status !== OrderStatus.PENDING) return false;
       if (expiredPendingOrderRefreshRef.current.has(order.id)) return false;
       return getPendingAutoCancelUi(order).remainingSeconds <= 0;
@@ -766,7 +816,7 @@ export const History: React.FC = () => {
 
     if (newlyExpiredPendingOrders.length === 0) return;
 
-    newlyExpiredPendingOrders.forEach((order) => {
+    newlyExpiredPendingOrders.forEach(order => {
       expiredPendingOrderRefreshRef.current.add(order.id);
     });
     requestOrdersRefresh();
@@ -774,9 +824,9 @@ export const History: React.FC = () => {
 
   return (
     <div className={styles.history} ref={historyPageRef}>
-      <div className={styles.historyPagePattern} aria-hidden>
+      {/* <div className={styles.historyPagePattern} aria-hidden>
         <HomeBackgroundPattern />
-      </div>
+      </div> */}
 
       <div className={styles.filterSection}>
         {/* 移动端：顶部居中游戏筛选 */}
@@ -792,7 +842,9 @@ export const History: React.FC = () => {
                 onClick={() => setFilterGameDropdownOpen(!filterGameDropdownOpen)}
                 aria-expanded={filterGameDropdownOpen}
               >
-                <span className={styles.filterGameName}>{getLocalizedGameName(selectedGameAppKey)}</span>
+                <span className={styles.filterGameName}>
+                  {getLocalizedGameName(selectedGameAppKey)}
+                </span>
                 <ChevronDownIcon
                   className={`${styles.filterDropdownIcon} ${filterGameDropdownOpen ? styles.filterDropdownIconOpen : ''}`}
                   color="#b5b5b5"
@@ -810,7 +862,7 @@ export const History: React.FC = () => {
                 >
                   {t('history.allGames')}
                 </button>
-                {games.map((game) => (
+                {games.map(game => (
                   <button
                     key={game.id}
                     type="button"
@@ -832,11 +884,6 @@ export const History: React.FC = () => {
           <div className={styles.filterSectionInner}>
             <div className={styles.filterTabsRow}>
               <div className={styles.filterTabsLeft}>
-                <div className={styles.filterTabsBarBg} aria-hidden>
-                  <span className={styles.filterTabsBarBgLeft} />
-                  <span className={styles.filterTabsBarBgMiddle} />
-                  <span className={styles.filterTabsBarBgRight} />
-                </div>
                 <div className={styles.filterTabs}>
                   <button
                     type="button"
@@ -870,7 +917,11 @@ export const History: React.FC = () => {
               </div>
 
               <div className={styles.filterTabsRight}>
-                <button type="button" className={styles.backToProductsButton} onClick={handleBackToProducts}>
+                <button
+                  type="button"
+                  className={styles.backToProductsButton}
+                  onClick={handleBackToProducts}
+                >
                   <img src={homeIcon} alt="" className={styles.backToProductsIcon} />
                   <span>{t('history.backToGameZone')}</span>
                 </button>
@@ -884,7 +935,9 @@ export const History: React.FC = () => {
                     onClick={() => setFilterGameDropdownOpen(!filterGameDropdownOpen)}
                     aria-expanded={filterGameDropdownOpen}
                   >
-                    <span className={styles.filterGameName}>{getLocalizedGameName(selectedGameAppKey)}</span>
+                    <span className={styles.filterGameName}>
+                      {getLocalizedGameName(selectedGameAppKey)}
+                    </span>
                     <ChevronDownIcon
                       className={`${styles.filterDropdownIcon} ${filterGameDropdownOpen ? styles.filterDropdownIconOpen : ''}`}
                       color="#585858"
@@ -895,18 +948,22 @@ export const History: React.FC = () => {
                       <button
                         type="button"
                         className={`${styles.filterDropdownItem} ${
-                          selectedGameAppKey === ALL_GAMES_APP_KEY ? styles.filterDropdownItemActive : ''
+                          selectedGameAppKey === ALL_GAMES_APP_KEY
+                            ? styles.filterDropdownItemActive
+                            : ''
                         }`}
                         onClick={() => handleFilterGameSelect(ALL_GAMES_APP_KEY)}
                       >
                         {t('history.allGames')}
                       </button>
-                      {games.map((game) => (
+                      {games.map(game => (
                         <button
                           key={game.id}
                           type="button"
                           className={`${styles.filterDropdownItem} ${
-                            selectedGameAppKey === game.appKey ? styles.filterDropdownItemActive : ''
+                            selectedGameAppKey === game.appKey
+                              ? styles.filterDropdownItemActive
+                              : ''
                           }`}
                           onClick={() => handleFilterGameSelect(game.appKey)}
                         >
@@ -924,180 +981,218 @@ export const History: React.FC = () => {
 
       <div className={styles.historyContent}>
         <div className={styles.ordersList}>
-        {loading ? (
-          <div className={`${styles.empty} ${styles.emptyLoading}`}>
-            <Loading />
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyCard}>
-              <img src={emptyOrderImg} alt="" className={styles.emptyImage} aria-hidden />
-              <p className={styles.emptyText}>{t('history.empty')}</p>
+          {loading ? (
+            <div className={`${styles.empty} ${styles.emptyLoading}`}>
+              <Loading />
             </div>
-          </div>
-        ) : (
-          <>
-          {visibleOrders.map((order) => {
-            const firstItem = order.items[0];
-            const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
-            const pendingAutoCancelUi =
-              order.status === OrderStatus.PENDING ? getPendingAutoCancelUi(order) : null;
-            const effectiveStatus = getEffectiveOrderStatus(order);
-            const orderExt = order as Order & { platform?: string; gameServerChannel?: string };
-            const platformLine = formatOrderPlatformLine(orderExt);
-            const orderItemDisplayImage = getOrderItemDisplayImage(firstItem.product);
+          ) : filteredOrders.length === 0 ? (
+            <div className={styles.empty}>
+              <div className={styles.emptyCard}>
+                <img src={emptyOrderImg} alt="" className={styles.emptyImage} aria-hidden />
+                <p className={styles.emptyText}>{t('history.empty')}</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {visibleOrders.map(order => {
+                const firstItem = order.items[0];
+                const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                const pendingAutoCancelUi =
+                  order.status === OrderStatus.PENDING ? getPendingAutoCancelUi(order) : null;
+                const effectiveStatus = getEffectiveOrderStatus(order);
+                const orderExt = order as Order & { platform?: string; gameServerChannel?: string };
+                const platformLine = formatOrderPlatformLine(orderExt);
+                const orderItemDisplayImage = getOrderItemDisplayImage(firstItem.product);
 
-            return (
-              <div key={order.id} className={styles.orderCard}>
-                {/* 订单头部 */}
-                <div className={styles.orderHeader}>
-                  <span className={styles.orderId}>{t('paymentSuccess.orderId')} {order.id}</span>
-                  <span className={styles.orderStatus}>{getStatusText(effectiveStatus, order)}</span>
-                </div>
+                return (
+                  <div key={order.id} className={styles.orderCard}>
+                    {/* 订单头部 */}
+                    <div className={styles.orderHeader}>
+                      <span className={styles.orderId}>
+                        {t('paymentSuccess.orderId')} {order.id}
+                      </span>
+                      <span className={styles.orderStatus}>
+                        {getStatusText(effectiveStatus, order)}
+                      </span>
+                    </div>
 
-                {/* 订单内容 */}
-                <div className={styles.orderContent}>
-                  <img
+                    {/* 订单内容 */}
+                    <div className={styles.orderContent}>
+                      {/* <img
                     src={logoTextImg}
                     alt=""
                     className={styles.orderWatermark}
                     aria-hidden
-                  />
-                  {/* 左侧：商品图标 */}
-                  <div className={styles.orderItemIcon}>
-                    <div className={styles.iconWrapper}>
-                      {orderItemDisplayImage ? (
-                        <div className={styles.orderImageContainer}>
-                          <div className={styles.voucherImageBg} aria-hidden />
-                          <img
-                            src={orderItemDisplayImage}
-                            alt={firstItem.product.name}
-                            className={styles.voucherImageMain}
-                          />
+                  /> */}
+                      {/* 左侧：商品图标 */}
+                      <div className={styles.orderItemIcon}>
+                        <div className={styles.iconWrapper}>
+                          {orderItemDisplayImage ? (
+                            <div className={styles.orderImageContainer}>
+                              <div className={styles.voucherImageBg} aria-hidden />
+                              <img
+                                src={orderItemDisplayImage}
+                                alt={firstItem.product.name}
+                                className={styles.voucherImageMain}
+                              />
+                            </div>
+                          ) : (
+                            // 没有图片时的占位符
+                            <div className={styles.productPlaceholder}>{/* 商品图片占位符 */}</div>
+                          )}
                         </div>
-                      ) : (
-                        // 没有图片时的占位符
-                        <div className={styles.productPlaceholder}>
-                          {/* 商品图片占位符 */}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
 
-                  {/* 右侧：商品详情 */}
-                  <div className={styles.orderItemDetails}>
-                    <div className={styles.itemName}>{firstItem.product.name}*{totalQuantity}</div>
-                    <div className={styles.orderTime}>{t('history.orderTime')} {formatDate(order.createdAt)}</div>
-                    <div className={styles.itemInfo}>
-                      <span className={styles.voucherTag}>{getCategoryName(firstItem.product.categoryId)}</span>
-                      <span className={styles.itemInfoExtra}>
-                        {firstItem.product.name}*{totalQuantity}
-                      </span>
+                      {/* 右侧：商品详情 */}
+                      <div className={styles.orderItemDetails}>
+                        <div className={styles.itemName}>{firstItem.product.name}</div>
+                        <div className={styles.orderTime}>
+                          {t('history.orderTime')} {formatDate(order.createdAt)}
+                        </div>
+                        <div className={styles.itemInfo}>
+                          <span className={styles.voucherTag}>
+                            {getCategoryName(firstItem.product.categoryId)}
+                          </span>
+                        </div>
+                        {platformLine && <div className={styles.platformInfo}>{platformLine}</div>}
+                      </div>
+                      <div className={styles.orderAmountSummary}>
+                        {platformLine && (
+                          <div className={styles.orderAmountPlatform}>{platformLine}</div>
+                        )}
+                        <div className={styles.orderAmountValue}>
+                          <span className={styles.orderAmountAmount}>
+                            {formatOrderAmount(order.totalAmount, order.currency)}
+                          </span>
+                          {order.currency ? (
+                            <span className={styles.orderAmountCurrency}>{order.currency}</span>
+                          ) : null}
+                        </div>
+                        <div className={styles.orderAmountQuantity}>
+                          {formatTotalQuantity(totalQuantity)}
+                        </div>
+                      </div>
                     </div>
-                    {platformLine && (
-                      <div className={styles.platformInfo}>{platformLine}</div>
-                    )}
-                  </div>
-                </div>
-                {effectiveStatus === OrderStatus.PENDING && (
-                  <div className={styles.pendingActionsSection}>
-                    {pendingAutoCancelUi?.showCountdownAndCancel && (
-                      <div className={styles.pendingAutoCancelText}>
-                        <span>{t('history.pendingAutoCancelPrefix')}</span>
-                        <span className={styles.pendingAutoCancelTime}>
-                          {formatDuration(Math.max(0, pendingAutoCancelUi.remainingSeconds))}
-                        </span>
-                        <span>{t('history.pendingAutoCancelSuffix')}</span>
+                    {effectiveStatus === OrderStatus.PENDING && (
+                      <div className={styles.pendingActionsSection}>
+                        {pendingAutoCancelUi?.showCountdownAndCancel && (
+                          <div className={styles.pendingAutoCancelText}>
+                            <span>{t('history.pendingAutoCancelPrefix')}</span>
+                            <span className={styles.pendingAutoCancelTime}>
+                              {formatDuration(Math.max(0, pendingAutoCancelUi.remainingSeconds))}
+                            </span>
+                            <span>{t('history.pendingAutoCancelSuffix')}</span>
+                          </div>
+                        )}
+                        <div
+                          className={`${styles.pendingActions} ${
+                            !pendingAutoCancelUi?.showCountdownAndCancel
+                              ? styles.pendingActionsPayOnly
+                              : ''
+                          }`}
+                        >
+                          {pendingAutoCancelUi?.showCountdownAndCancel && (
+                            <button
+                              type="button"
+                              className={styles.cancelOrderButton}
+                              onClick={() => openCancelOrderDialog(order.id)}
+                              disabled={payingOrderId === order.id || cancelRequesting}
+                            >
+                              {t('history.cancelOrder')}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className={styles.payOrderButton}
+                            onClick={() => handlePayOrder(order)}
+                            disabled={payingOrderId === order.id || cancelRequesting}
+                          >
+                            {payingOrderId === order.id
+                              ? t('common.loading')
+                              : t('history.payOrder')}
+                          </button>
+                        </div>
                       </div>
                     )}
-                    <div
-                      className={`${styles.pendingActions} ${
-                        !pendingAutoCancelUi?.showCountdownAndCancel ? styles.pendingActionsPayOnly : ''
-                      }`}
-                    >
-                      {pendingAutoCancelUi?.showCountdownAndCancel && (
-                        <button
-                          type="button"
-                          className={styles.cancelOrderButton}
-                          onClick={() => openCancelOrderDialog(order.id)}
-                          disabled={payingOrderId === order.id || cancelRequesting}
-                        >
-                          {t('history.cancelOrder')}
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className={styles.payOrderButton}
-                        onClick={() => handlePayOrder(order)}
-                        disabled={payingOrderId === order.id || cancelRequesting}
-                      >
-                        {payingOrderId === order.id ? t('common.loading') : t('history.payOrder')}
-                      </button>
-                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-          {showPagination && (
-            <div className={styles.pagination}>
-              <button
-                type="button"
-                className={`${styles.paginationControl} ${styles.paginationArrowButton}`}
-                onClick={() => handlePageChange(currentPageSafe - 1)}
-                disabled={currentPageSafe <= 1}
-                aria-label={t('history.previousPage')}
-              >
-                <img
-                  src={paginationArrowImg}
-                  alt=""
-                  className={`${styles.paginationArrowIcon} ${styles.paginationArrowIconPrev}`}
-                  aria-hidden="true"
-                />
-              </button>
-              {paginationItems.map((item) => {
-                if (typeof item !== 'number') {
-                  return (
-                    <span key={item} className={styles.paginationEllipsis}>
-                      ...
-                    </span>
-                  );
-                }
-
-                const isActive = item === currentPageSafe;
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`${styles.paginationControl} ${styles.paginationPageButton} ${
-                      isActive ? styles.paginationPageButtonActive : ''
-                    }`}
-                    onClick={() => handlePageChange(item)}
-                    aria-current={isActive ? 'page' : undefined}
-                    aria-label={`Page ${item}`}
-                  >
-                    {item}
-                  </button>
                 );
               })}
-              <button
-                type="button"
-                className={`${styles.paginationControl} ${styles.paginationArrowButton}`}
-                onClick={() => handlePageChange(currentPageSafe + 1)}
-                disabled={currentPageSafe >= totalPages}
-                aria-label={t('history.nextPage')}
-              >
-                <img
-                  src={paginationArrowImg}
-                  alt=""
-                  className={styles.paginationArrowIcon}
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
+              {showPagination && (
+                <div className={styles.pagination}>
+                  <button
+                    type="button"
+                    className={`${styles.paginationControl} ${styles.paginationArrowButton}`}
+                    onClick={() => handlePageChange(currentPageSafe - 1)}
+                    disabled={currentPageSafe <= 1}
+                    aria-label={t('history.previousPage')}
+                  >
+                    <img
+                      src={paginationArrowImg}
+                      alt=""
+                      className={`${styles.paginationArrowIcon} ${styles.paginationArrowIconPrev}`}
+                      aria-hidden="true"
+                    />
+                    <span>{t('history.previousPage')}</span>
+                  </button>
+                  {paginationItems.map(item => {
+                    if (typeof item !== 'number') {
+                      return (
+                        <span key={item} className={styles.paginationEllipsis}>
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const isActive = item === currentPageSafe;
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`${styles.paginationControl} ${styles.paginationPageButton} ${
+                          isActive ? styles.paginationPageButtonActive : ''
+                        }`}
+                        onClick={() => handlePageChange(item)}
+                        aria-current={isActive ? 'page' : undefined}
+                        aria-label={`Page ${item}`}
+                      >
+                        {item}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    className={`${styles.paginationControl} ${styles.paginationArrowButton}`}
+                    onClick={() => handlePageChange(currentPageSafe + 1)}
+                    disabled={currentPageSafe >= totalPages}
+                    aria-label={t('history.nextPage')}
+                  >
+                    <span>{t('history.nextPage')}</span>
+                    <img
+                      src={paginationArrowImg}
+                      alt=""
+                      className={styles.paginationArrowIcon}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <span className={styles.paginationTotal}>{paginationTotalText}</span>
+                  <form className={styles.paginationJump} onSubmit={handleJumpPageSubmit}>
+                    <span className={styles.paginationJumpText}>{paginationJumpPrefix}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className={styles.paginationJumpInput}
+                      value={jumpPageInput}
+                      onChange={handleJumpPageInputChange}
+                      onBlur={handleJumpPageInputBlur}
+                      aria-label={paginationJumpAriaLabel}
+                    />
+                    <span className={styles.paginationJumpText}>{paginationJumpSuffix}</span>
+                  </form>
+                </div>
+              )}
+            </>
           )}
-          </>
-        )}
         </div>
       </div>
 
@@ -1105,7 +1200,9 @@ export const History: React.FC = () => {
         isOpen={cancelDialogOpen}
         onClose={closeCancelOrderDialog}
         title={t('history.cancelOrderConfirmTitle')}
-        confirmText={cancelRequesting ? t('common.loading') : t('history.cancelOrderConfirmPrimary')}
+        confirmText={
+          cancelRequesting ? t('common.loading') : t('history.cancelOrderConfirmPrimary')
+        }
         dismissText={t('history.cancelOrderDismiss')}
         onDismiss={closeCancelOrderDialog}
         onPrimary={confirmCancelOrder}

@@ -126,6 +126,7 @@ export const jaJP = {
     "bindGameGuide": "ゲーム連携について",
     "bindGameGuideContent": "任意のToukaゲームを開き、\nゲーム内の設定画面で\nメールアドレスを連携すると、\n特価商品をお楽しみいただけます！",
     "captchaPlaceholder": "認証コード",
+    "captchaRequired": "認証コードを入力してください",
     "invalidCaptcha": "4桁の認証コードを入力してください",
     "email": "メールアドレス",
     "emailNotBound": "取得に失敗しました。ゲーム内で連携したメールアドレスを入力してください〜",
@@ -186,14 +187,14 @@ export const jaJP = {
     "gameIdLabel": "ゲームID：",
     "gameIdPlaceholder": "ゲームIDを入力してください",
     "howToFindGameId": "ゲームIDの確認方法",
-    "giftCodeLabel": "ギフトコード：",
-    "giftCodePlaceholder": "ギフトコードを入力してください",
+    "giftCodeLabel": "交換コード：",
+    "giftCodePlaceholder": "交換コードを入力してください",
     "captchaLabel": "認証コード：",
     "captchaPlaceholder": "認証コードを入力してください",
     "refreshCaptcha": "認証コードを更新",
     "submit": "送信",
     "submitting": "送信中...",
-    "rule": "各ギフトコードは各アカウントで1回のみ交換できます。",
+    "rule": "各交換コードは各アカウントで1回のみ交換できます。",
     "success": {
       "title": "交換成功",
       "description": "ゲーム内メールから報酬を受け取ってください！",
@@ -204,7 +205,7 @@ export const jaJP = {
       "stepTwo": "2. ゲームIDをコピー"
     },
     "messages": {
-      "enterGiftCode": "先にギフトコードを入力してください",
+      "enterGiftCode": "先に交換コードを入力してください",
       "requiredFields": "交換情報をすべて入力してください",
       "captchaLoadFailed": "認証コードの読み込みに失敗しました。タップして再試行してください。",
       "success": "交換に成功しました。報酬はゲーム内メールに送信されました。",
@@ -220,7 +221,7 @@ export const jaJP = {
       "6": "交換コードは配布上限に達しました。",
       "7": "サーバーが混み合っています。後でもう一度お試しください。",
       "8": "リクエスト異常です。後でもう一度お試しください。",
-      "9": "交換情報に誤りがあります。戻ってもう一度お試しください。",
+      "9": "確認コードが間違っているか期限切れです。確認してもう一度お試しください。",
       "10": "キャラクターの所属サーバーが見つかりません。キャラクター情報を確認してもう一度お試しください。現在サーバーは一時的に利用できません。後でもう一度お試しください。",
       "11": "現在サーバーは一時的に利用できません。後でもう一度お試しください。",
       "12": "受け取りがタイムアウトしました。後でもう一度お試しください。",
@@ -269,10 +270,16 @@ export const jaJP = {
     "serverPlaceholder": "サーバー名を入力して検索してください",
     "title": "ゲームサーバーを選択"
   },
-  "orientation": {
-    "bestExperience": "最適な体験のため、縦向きでご利用ください"
+ "orientation": {
+   "bestExperience": "最適な体験のため、縦向きでご利用ください"
+ },
+  "pendingOrder": {
+    "title": "お知らせ",
+    "message": "進行中の注文があります。確認しますか？",
+    "goToOrders": "注文を見る",
+    "cancel": "キャンセル"
   },
-  "support": {
+ "support": {
     "cancel": "キャンセル",
     "copied": "コピー済み",
     "copy": "ワンクリックでコピー",

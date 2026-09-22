@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
 import productListBgItem from '@/assets/img2/product-list-bg-item.png';
-import productListBannerTopDefault from '@/assets/img2/product_list_banner_top_oopsie.png';
-import productListBannerTop1714 from '@/assets/img2/product_list_banner_top_1714x268.png';
-import productListBannerTop2544 from '@/assets/img2/product_list_banner_top_2544x400.png';
-import productListBannerBottomDefault from '@/assets/img2/product_list_banner_bottom_1920x260.png';
+import productListBannerTop from '@/assets/img2/banner.png';
 import styles from './ProductsPageBackground.module.less';
 
 /** 水平平铺单元宽 */
@@ -33,19 +30,7 @@ const preloadProductBackgroundImages = () => {
 
   const imageHints = [
     {
-      href: productListBannerTopDefault,
-      media: '(max-width: 1713px)',
-    },
-    {
-      href: productListBannerTop1714,
-      media: '(min-width: 1714px) and (max-width: 2543px)',
-    },
-    {
-      href: productListBannerTop2544,
-      media: '(min-width: 2544px)',
-    },
-    {
-      href: productListBannerBottomDefault,
+      href: productListBannerTop,
     },
   ];
 
@@ -53,7 +38,7 @@ const preloadProductBackgroundImages = () => {
     document.head.querySelectorAll<HTMLLinkElement>('link[rel="preload"][as="image"]'),
   );
 
-  imageHints.forEach(({ href, media }) => {
+  imageHints.forEach(({ href }) => {
     const absoluteHref = new URL(href, document.baseURI).href;
     const alreadyExists = existingPreloads.some((link) => link.href === absoluteHref);
     if (alreadyExists) return;
@@ -63,7 +48,6 @@ const preloadProductBackgroundImages = () => {
     link.as = 'image';
     link.href = href;
     link.setAttribute('fetchpriority', 'high');
-    if (media) link.media = media;
     document.head.appendChild(link);
     existingPreloads.push(link);
   });
@@ -79,7 +63,6 @@ export const ProductsPageBackground: React.FC = () => {
     <div className={styles.productsPageBg} aria-hidden>
       <div className={styles.productsPageBgTop}>
         <div className={styles.productsPageBgTopMain} />
-        <div className={styles.productsPageBgTopBottom} />
       </div>
       <div className={styles.productsPageBgBottom}>
         <svg

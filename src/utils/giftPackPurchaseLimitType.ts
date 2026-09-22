@@ -1,24 +1,24 @@
 import type { Product } from '@/types';
-import giftRedBg from '@/assets/img2/gift-red-bg.png';
-import giftYellowBg from '@/assets/img2/gift-yellow-bg.png';
-import giftBlueBg from '@/assets/img2/gift-blue-bg.png';
+import giftLifetimeBg from '@/assets/img2/终身特惠-背景图.png';
+import giftMonthBg from '@/assets/img2/month-bg.png';
+import giftWeekBg from '@/assets/img2/week-bg.png';
 import packDetailBlue from '@/assets/img2/pack-detail-blue.png';
 import packDetailOrange from '@/assets/img2/pack-detail-orange.png';
 import packDetailRed from '@/assets/img2/pack-detail-red.png';
 import boxBlue from '@/assets/img2/box-blue.png';
 import boxPink from '@/assets/img2/box-pink.png';
 import boxOrange from '@/assets/img2/box-orange.png';
-import giftBannerLifetime from '@/assets/img2/pay_item_gift_banner_Lifetime.png';
-import giftBannerMonth from '@/assets/img2/pay_item_gift_banner_month.png';
-import giftBannerWeek from '@/assets/img2/pay_item_gift_banner_week.png';
+import giftBannerLifetime from '@/assets/img2/终身特惠- banner图.png';
+import giftBannerMonth from '@/assets/img2/month-banner.png';
+import giftBannerWeek from '@/assets/img2/week-banner.png';
 
 export type GiftPackPurchaseLimitType = 1 | 2 | 3;
 
 /** 礼包卡片背景：1 终身特惠 2 周特惠 3 月特惠 */
 const GIFT_PACK_CARD_BG: Record<GiftPackPurchaseLimitType, string> = {
-  1: giftRedBg,
-  2: giftBlueBg,
-  3: giftYellowBg,
+  1: giftLifetimeBg,
+  2: giftWeekBg,
+  3: giftMonthBg,
 };
 
 /** 礼包详情弹窗横幅：1 终身 2 周特惠 3 月特惠 */
@@ -30,9 +30,9 @@ const GIFT_PACK_DETAIL_BANNER: Record<GiftPackPurchaseLimitType, string> = {
 
 /** 订单页礼包示意：1 终身 2 周特惠 3 月特惠 */
 const GIFT_PACK_ORDER_THUMBNAIL: Record<GiftPackPurchaseLimitType, string> = {
-  1: boxOrange,
+  1: boxPink,
   2: boxBlue,
-  3: boxPink,
+  3: boxOrange,
 };
 
 /** 商品列表礼包横幅：1 终身 2 周特惠 3 月特惠 */

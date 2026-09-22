@@ -6,8 +6,10 @@ export const useLanguage = () => {
   const [locale, setLocale] = useState<Locale>(languageStore.getLocale());
 
   useEffect(() => {
+    document.documentElement.lang = languageStore.getLocale();
     const unsubscribe = languageStore.subscribe(() => {
       setLocale(languageStore.getLocale());
+      document.documentElement.lang = languageStore.getLocale();
     });
 
     return unsubscribe;
@@ -19,6 +21,7 @@ export const useLanguage = () => {
 
   const setLanguage = (newLocale: Locale) => {
     languageStore.setLocale(newLocale);
+    document.documentElement.lang = newLocale;
   };
 
   return {

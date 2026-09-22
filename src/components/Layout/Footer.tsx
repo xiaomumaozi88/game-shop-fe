@@ -2,10 +2,14 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Locale, selectableLocales } from '@/i18n';
 import { useLocation, useParams } from 'react-router-dom';
-import { parseURLParams, storage, STORAGE_KEYS, isGameStoreProductsPath, isGameStoreEntryVisible } from '@/utils';
+import { useResponsive } from '@/hooks/useResponsive';
+import { storage, STORAGE_KEYS, isGameStoreProductsPath, isGameStoreEntryVisible } from '@/utils';
+import { SupportModal } from '@/components/SupportModal';
 import { ChevronDownIcon } from '../Icons/ChevronDownIcon';
+import { ChevronRightIcon } from '../Icons/ChevronRightIcon';
 import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
 import languageIcon from '@/assets/img2/touka_home_ic_Language.png';
+import supportIcon from '@/assets/img2/touka_home_ic_mail.png';
 import appIcon from '@/assets/img2/touka_home_ic_app.png';
 import googleIcon from '@/assets/img2/touka_home_ic_google.png';
 import BAM_ICON from '@/assets/img2/bam_icon.png';
@@ -59,10 +63,18 @@ const LANGUAGE_NAMES: Record<Locale, string> = {
   'fr-FR': 'Français',
 };
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onLanguageDropdownVisibilityChange?: (visible: boolean) => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({
+  onLanguageDropdownVisibilityChange,
+}) => {
   const { locale, t, setLanguage } = useLanguage();
+  const { isMobile } = useResponsive();
   const location = useLocation();
   const { gameId } = useParams<{ gameId?: string }>();
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -81,28 +93,6 @@ export const Footer: React.FC = () => {
   }, [location.pathname]);
 
   // 根据 gameId 或 appKey 获取本地化的游戏名称
-  const getLocalizedGameName = (id: string | undefined, appKey?: string): string => {
-    // 优先使用 gameId
-    if (id) {
-      if (id === 'bam-bam-squad') {
-        return t('games.bamBamSquad');
-      } else if (id === 'oopsie-croco' || id === 'oopsie') {
-        return t('games.oopsieCroco');
-      }
-    }
-    
-    // 如果没有 gameId，使用 appKey 判断
-    if (appKey) {
-      if (appKey === 'f6594168ce3a9cc57ab7ed74426e25e1') {
-        return t('games.bamBamSquad');
-      } else if (appKey === '45a56d38bbdd60353438aa25d1ccff20') {
-        return t('games.oopsieCroco');
-      }
-    }
-    
-    return '';
-  };
-
   // 获取当前游戏信息（名称、图标和下载链接）
   const currentGameInfo = useMemo(() => {
     if (!isProductsPage) return { name: '', icon: '', downloadLinks: null };
@@ -130,14 +120,20 @@ export const Footer: React.FC = () => {
     if (!gameInfo) return { name: '', icon: '', downloadLinks: null };
     
     // 获取游戏名称
-    const gameName = getLocalizedGameName(finalGameId);
+    let gameName = '';
+
+    if (finalGameId === 'bam-bam-squad') {
+      gameName = t('games.bamBamSquad');
+    } else if (finalGameId === 'oopsie-croco' || finalGameId === 'oopsie') {
+      gameName = t('games.oopsieCroco');
+    }
     
     return { 
       name: gameName, 
       icon: gameInfo.icon,
       downloadLinks: gameInfo.downloadLinks,
     };
-  }, [isProductsPage, gameId, location.pathname, locale]);
+  }, [gameId, isProductsPage, location.pathname, t]);
 
   // 点击外部区域关闭语言选择下拉框
   useEffect(() => {
@@ -156,6 +152,11 @@ export const Footer: React.FC = () => {
     };
   }, [showLanguageDropdown]);
 
+  useEffect(() => {
+    if (!onLanguageDropdownVisibilityChange) return;
+    onLanguageDropdownVisibilityChange(isMobile && showLanguageDropdown);
+  }, [isMobile, onLanguageDropdownVisibilityChange, showLanguageDropdown]);
+
   // 判断是否显示下载按钮
   const showDownloadSection = isProductsPage && currentGameInfo.name;
 
@@ -163,13 +164,13 @@ export const Footer: React.FC = () => {
     <footer className={`${styles.footer} ${showDownloadSection ? styles.footerWithDownload : ''}`}>
       <div className={styles.container}>
         <div className={styles.topSection}>
-          <div ref={languageDropdownRef} style={{ position: 'relative' }}>
-          <button
-            className={styles.languageButton}
-            onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-          >
-            <img src={languageIcon} alt="Language" className={styles.buttonIcon} />
-            <span>{getLanguageLabel(locale)}</span>
+          <div ref={languageDropdownRef} className={styles.footerActionDropdown}>
+            <button
+              className={styles.languageButton}
+              onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+            >
+              <img src={languageIcon} alt="Language" className={styles.buttonIcon} />
+              <span>{getLanguageLabel(locale)}</span>
               {showLanguageDropdown ? (
                 <ChevronUpIcon
                   className={styles.chevronIcon}
@@ -199,7 +200,16 @@ export const Footer: React.FC = () => {
               </div>
             )}
           </div>
-
+          <button
+            type="button"
+            className={styles.supportEntryButton}
+            onClick={() => setSupportModalOpen(true)}
+            aria-label={t('support.title')}
+          >
+            <img src={supportIcon} alt="" className={styles.buttonIcon} />
+            <span className={styles.supportEntryText}>{t('support.title')}</span>
+            <ChevronRightIcon className={styles.supportEntryArrow} color="#ffffff" />
+          </button>
         </div>
 
         {/* 下载按钮区域 - 仅在商品页面显示 */}
@@ -253,7 +263,7 @@ export const Footer: React.FC = () => {
           </a>
         </div>
       </div>
-
+      <SupportModal isOpen={supportModalOpen} onClose={() => setSupportModalOpen(false)} />
     </footer>
   );
 };

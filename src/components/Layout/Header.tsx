@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useCart } from '@/hooks/useCart';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '@/hooks/useUser';
 import { useGameRole } from '@/hooks/useGameRole';
 import { useLanguage } from '@/hooks/useLanguage';
-import { shouldShowMobileHomeNav } from '@/i18n';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
-import { useFitTextGroup } from '@/hooks/useFitText';
-import { useResponsive } from '@/hooks/useResponsive';
 import { useProductsUserPanelVisibility } from '@/hooks/useProductsUserPanelVisibility';
 import { storage, STORAGE_KEYS, resolveOrdersListPath, isGameStoreProductsPath, getDefaultAvatarByAppKey } from '@/utils';
 import { logoutUser } from '@/utils/auth';
@@ -31,20 +27,27 @@ import { LogoutModal } from '../LogoutModal';
 import { ServerSelectModal } from '../ServerSelectModal';
 import { LoginModal } from '../LoginModal';
 import exitIcon from '@/assets/img2/touka_home_ic_exit.png';
-import logoImg from '@/assets/img2/Logo.png';
+import logoImg from '@/assets/img2/new-logo.png';
 import styles from './Header.module.less';
 
-const HEADER_MOBILE_NAV_MIN_FONT_SIZE: Record<'mobile' | 'tablet' | 'desktop', number> = {
-  mobile: 7,
-  tablet: 9,
-  desktop: 10,
+const getPlatformLabel = (platform: string | undefined): string => {
+  if (!platform) return '';
+  const lower = platform.toLowerCase();
+  if (lower === 'ios') return 'iOS';
+  return platform;
+};
+
+const formatServerDisplay = (channel: string | undefined, platform: string | undefined): string => {
+  if (!channel) return '';
+  const platformLabel = getPlatformLabel(platform);
+  return platformLabel ? `${channel}-${platformLabel}` : channel;
 };
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser, saveGameRoleSelection, getGameRoleSelection } = useUser();
-  const { getAllRoles, getRolesByAppKey, roles } = useGameRole(); // 获取所有角色列表和按游戏获取角色
+  const { getRolesByAppKey } = useGameRole(); // 获取所有角色列表和按游戏获取角色
   
   // 从 localStorage 读取当前游戏的 appKey，使用 state 确保响应式更新
   const [currentAppKey, setCurrentAppKey] = useState<string | undefined>(
@@ -72,7 +75,7 @@ export const Header: React.FC = () => {
           if (initSuccess) {
             thinkingData.setCurrentGame(newAppKey);
             if (user.sdkId) {
-              thinkingData.login(user.sdkId);
+              thinkingData.login(user.characterName || user.sdkId);
               // 设置用户属性
               thinkingData.userSet({
                 username: user.username || user.gameAccount || '',
@@ -171,20 +174,6 @@ export const Header: React.FC = () => {
     loadGameRoles();
   }, [user?.token]);
 
-  // 平台展示文案
-  const getPlatformLabel = (platform: string | undefined): string => {
-    if (!platform) return '';
-    const lower = platform.toLowerCase();
-    if (lower === 'ios') return 'iOS';
-    return platform;
-  };
-
-  const formatServerDisplay = (channel: string | undefined, platform: string | undefined): string => {
-    if (!channel) return '';
-    const platformLabel = getPlatformLabel(platform);
-    return platformLabel ? `${channel}-${platformLabel}` : channel;
-  };
-
   // 根据 game_user_id 获取"昵称-平台"展示（只查找当前游戏的角色）
   // 使用 useMemo 确保角色列表变化时重新计算
   const characterDisplayName = useMemo(() => {
@@ -195,7 +184,7 @@ export const Header: React.FC = () => {
     if (!role) return '';
     const platformLabel = getPlatformLabel(role.platform);
     return platformLabel ? `${role.nick_name}-${platformLabel}` : role.nick_name;
-  }, [user?.characterName, currentAppKey, roles]);
+  }, [user?.characterName, currentAppKey, getRolesByAppKey]);
 
   // 根据 game_server_channel 和 game_user_id 构建区服显示格式（channel + platform）（只查找当前游戏的角色）
   // 使用 useMemo 确保角色列表变化时重新计算
@@ -236,22 +225,10 @@ export const Header: React.FC = () => {
     
     // 如果都没找到，使用用户信息兜底拼接展示
     return formatServerDisplay(user?.gameServer, user?.platform);
-  }, [user?.gameServer, user?.characterName, currentAppKey, roles]);
+  }, [user?.gameServer, user?.platform, user?.characterName, currentAppKey, getRolesByAppKey]);
 
-  const { t, locale } = useLanguage();
-  const { breakpoint, isTouchLandscape } = useResponsive();
+  const { t } = useLanguage();
   const productsUserPanelVisible = useProductsUserPanelVisibility();
-
-  const showMobileHomeNav = shouldShowMobileHomeNav(locale);
-  const gameListNavText = t('menu.gameList');
-  const ordersNavText = t('menu.myOrders');
-  const gameListNavTextRef = useRef<HTMLSpanElement>(null);
-  const ordersNavTextRef = useRef<HTMLSpanElement>(null);
-  const mobileNavTextRefs = useMemo(() => [gameListNavTextRef, ordersNavTextRef], []);
-
-  useFitTextGroup(mobileNavTextRefs, [gameListNavText, ordersNavText], {
-    minFontSize: HEADER_MOBILE_NAV_MIN_FONT_SIZE[breakpoint],
-  });
   
   // 根据 appKey 获取游戏名称（使用本地化）
   const getGameNameByAppKey = (appKey: string | undefined): string => {
@@ -288,23 +265,13 @@ export const Header: React.FC = () => {
   const isHistoryPage = location.pathname.includes('/history');
   // 判断是否为home页面
   const isHomePage = location.pathname === '/';
-  const isMobileInlineNavPage = isHomePage || isProductsPage || isHistoryPage;
-  const isMobileHomeNoInlineNav = isMobileInlineNavPage && !showMobileHomeNav;
+  const isMobileInlineNavPage = isHomePage || isHistoryPage;
   const isHomeGuestMobile = isHomePage && !user;
   const isHomeAuthedMobile = isHomePage && !!user;
   const isHistoryAuthedMobile = isHistoryPage && !!user;
-  const useInlineNavProductsSizing = showMobileHomeNav && isMobileInlineNavPage;
-  const useProductsMobileUserDropdown =
-    isProductsPage ||
-    (showMobileHomeNav && (isHomeAuthedMobile || isHistoryAuthedMobile));
-  const shouldUseProductsCompactPanelToggle =
-    isProductsPage && (breakpoint === 'mobile' || breakpoint === 'tablet' || isTouchLandscape);
+  const useProductsMobileUserDropdown = isProductsPage;
+  const shouldUseProductsPanelToggle = isProductsPage;
   const isHomeMobileDark = isHomePage || isHistoryPage;
-  const normalizedPathname = (location.pathname.replace(/\/+$/, '') || '/');
-  const isGameListNavActive = normalizedPathname === '/';
-  const isOrdersNavActive =
-    normalizedPathname === '/history' || /^\/game\/[^/]+\/history$/.test(normalizedPathname);
-  const hasActiveMobileHomeNavItem = isGameListNavActive || isOrdersNavActive;
   const shouldHideMenuButton = isHomePage || ((isProductsPage || isHistoryPage) && !!user);
 
   const handleLoginClick = () => {
@@ -351,7 +318,7 @@ export const Header: React.FC = () => {
 
   const handleUserDropdownToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (shouldUseProductsCompactPanelToggle) {
+    if (shouldUseProductsPanelToggle) {
       productsUserPanelStore.toggle();
       setUserDropdownOpen(false);
       return;
@@ -382,10 +349,10 @@ export const Header: React.FC = () => {
   }, [isMobileInlineNavPage]);
 
   useEffect(() => {
-    if (shouldUseProductsCompactPanelToggle && userDropdownOpen) {
+    if (shouldUseProductsPanelToggle && userDropdownOpen) {
       setUserDropdownOpen(false);
     }
-  }, [shouldUseProductsCompactPanelToggle, userDropdownOpen]);
+  }, [shouldUseProductsPanelToggle, userDropdownOpen]);
 
   useLayoutEffect(() => {
     if (!userDropdownOpen || !useMobileDropdownPortal || !userDropdownTriggerRef.current) {
@@ -497,58 +464,18 @@ export const Header: React.FC = () => {
       <header
         className={`${styles.header} ${
           isHomeMobileDark ? styles.headerHomeMobileDark : ''
-        } ${isMobileInlineNavPage && !isHomeMobileDark ? styles.headerHomeMobile : ''} ${
-          isHomeGuestMobile ? styles.headerHomeGuestMobile : ''
-        } ${isMobileInlineNavPage && showMobileHomeNav ? styles.headerWithMobileHomeNav : ''} ${
-          isMobileHomeNoInlineNav ? styles.headerHomeMobileNoInlineNav : ''
-        }`}
+        } ${isHomeGuestMobile ? styles.headerHomeGuestMobile : ''}`}
       >
         <div
           className={`${styles.container} ${isMobileInlineNavPage ? styles.containerHomeMobile : ''} ${
-            isHomeMobileDark && !useInlineNavProductsSizing ? styles.containerHomeMobileDark : ''
-          } ${isMobileHomeNoInlineNav ? styles.containerHomeMobileNoInlineNav : ''}`}
+            isHomeMobileDark ? styles.containerHomeMobileDark : ''
+          }`}
         >
           <div className={styles.logoSection}>
             <Link to="/" className={styles.logo}>
               <img src={logoImg} alt="TOUKA STORE" className={styles.logoImage} />
             </Link>
           </div>
-
-          {isMobileInlineNavPage && showMobileHomeNav && (
-            <nav
-              className={`${styles.mobileHomeNav} ${
-                hasActiveMobileHomeNavItem ? '' : styles.mobileHomeNavNoActive
-              }`}
-              aria-label={t('menu.gameList')}
-            >
-              <Link
-                to="/"
-                className={`${styles.mobileHomeNavItem} ${
-                  isGameListNavActive ? styles.mobileHomeNavItemActive : ''
-                }`}
-              >
-                <span ref={gameListNavTextRef} className={styles.mobileHomeNavItemText}>
-                  {gameListNavText}
-                </span>
-              </Link>
-              <span className={styles.mobileHomeNavDivider} aria-hidden />
-              <button
-                type="button"
-                className={`${styles.mobileHomeNavItem} ${
-                  isOrdersNavActive ? styles.mobileHomeNavItemActive : ''
-                }`}
-                onClick={() => {
-                  requireLogin(() => {
-                    navigate(resolveOrdersListPath(location.pathname));
-                  });
-                }}
-              >
-                <span ref={ordersNavTextRef} className={styles.mobileHomeNavItemText}>
-                  {ordersNavText}
-                </span>
-              </button>
-            </nav>
-          )}
 
           {/* PC端导航 */}
           <nav className={styles.desktopNav}>
@@ -564,7 +491,7 @@ export const Header: React.FC = () => {
             >
               {t('menu.gameList')}
             </Link>
-            <span className={styles.desktopNavDivider} aria-hidden />
+            {/* <span className={styles.desktopNavDivider} aria-hidden /> */}
             <button
               className={`${styles.desktopNavItem} ${styles.desktopNavItemTab} ${location.pathname.includes('/history') ? styles.desktopNavItemActive : ''}`}
               onClick={() => {
@@ -577,7 +504,7 @@ export const Header: React.FC = () => {
             </button>
           </nav>
 
-          <div className={styles.actions}>
+          <div className={`${styles.actions} ${user ? styles.actionsWithUserDropdown : ''}`}>
             {/* PC端登录按钮或用户下拉菜单 */}
             {!user ? (
               <button
@@ -607,11 +534,11 @@ export const Header: React.FC = () => {
                   </span>
                   <ChevronDownIcon
                     className={`${styles.chevronIcon} ${
-                      (shouldUseProductsCompactPanelToggle ? productsUserPanelVisible : userDropdownOpen)
+                      (shouldUseProductsPanelToggle ? productsUserPanelVisible : userDropdownOpen)
                         ? styles.chevronIconOpen
                         : ''
                     }`}
-                    color="#9c8466"
+                    color="#fff"
                   />
                 </button>
                 {renderUserDropdownMenuLayer()}
@@ -853,7 +780,7 @@ export const Header: React.FC = () => {
                 
                 // 设置账号ID（使用 sdk_id）
                 if (userDetail.sdk_id) {
-                  thinkingData.login(userDetail.sdk_id);
+                  thinkingData.login(userDetail.game_user_id || userDetail.sdk_id);
                   
                   // 设置用户属性
                   thinkingData.userSet({

@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUser } from '@/hooks/useUser';
 import { useGameRole } from '@/hooks/useGameRole';
-import { useResponsive } from '@/hooks/useResponsive';
 import { useProductsUserPanelVisibility } from '@/hooks/useProductsUserPanelVisibility';
 import { storage, STORAGE_KEYS } from '@/utils';
 import exitIcon from '@/assets/img2/touka_home_ic_exit.png';
@@ -50,10 +49,8 @@ export const ProductsUserPanel: React.FC<ProductsUserPanelProps> = ({
   onLogout,
 }) => {
   const { t, locale } = useLanguage();
-  const { isMobile, isTablet, isTouchLandscape } = useResponsive();
   const panelVisible = useProductsUserPanelVisibility();
-  const shouldUseCompactPanelToggle = isMobile || isTablet || isTouchLandscape;
-  const effectivePanelVisible = !shouldUseCompactPanelToggle || panelVisible;
+  const effectivePanelVisible = panelVisible;
   const isTightGreetingLocale =
     locale === 'ja-JP' || locale === 'ko-KR' || locale === 'ru-RU' || locale === 'vi-VN';
   const { user } = useUser();

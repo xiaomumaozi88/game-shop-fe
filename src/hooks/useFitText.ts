@@ -4,6 +4,7 @@ interface UseFitTextOptions {
   minFontSize?: number;
   maxFontSize?: number;
   step?: number;
+  fitHeight?: boolean;
   allowWrapAtMin?: boolean;
   wrapClassName?: string;
 }
@@ -16,6 +17,7 @@ function fitElementsToWidth(
     minFontSize = 10,
     maxFontSize,
     step = 0.5,
+    fitHeight = false,
     allowWrapAtMin = false,
     wrapClassName,
   } = options;
@@ -45,7 +47,9 @@ function fitElementsToWidth(
     const allFit = elements.every((el) => {
       const container = el.parentElement;
       if (!container) return true;
-      return el.scrollWidth <= container.clientWidth;
+      const fitsWidth = el.scrollWidth <= container.clientWidth;
+      const fitsHeight = !fitHeight || el.scrollHeight <= container.clientHeight;
+      return fitsWidth && fitsHeight;
     });
     if (allFit) break;
     size = Math.max(size - step, minFontSize);
@@ -67,7 +71,14 @@ export function useFitText(
   text: string,
   options: UseFitTextOptions = {}
 ) {
-  const { minFontSize = 10, maxFontSize, step = 0.5, allowWrapAtMin, wrapClassName } = options;
+  const {
+    minFontSize = 10,
+    maxFontSize,
+    step = 0.5,
+    fitHeight,
+    allowWrapAtMin,
+    wrapClassName,
+  } = options;
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -80,6 +91,7 @@ export function useFitText(
         minFontSize,
         maxFontSize,
         step,
+        fitHeight,
         allowWrapAtMin,
         wrapClassName,
       });
@@ -116,7 +128,7 @@ export function useFitText(
         el.classList.remove(wrapClassName);
       }
     };
-  }, [text, minFontSize, maxFontSize, step, allowWrapAtMin, wrapClassName]);
+  }, [ref, text, minFontSize, maxFontSize, step, fitHeight, allowWrapAtMin, wrapClassName]);
 }
 
 export function useFitTextGroup(
@@ -124,7 +136,14 @@ export function useFitTextGroup(
   texts: readonly string[],
   options: UseFitTextOptions = {}
 ) {
-  const { minFontSize = 10, maxFontSize, step = 0.5, allowWrapAtMin, wrapClassName } = options;
+  const {
+    minFontSize = 10,
+    maxFontSize,
+    step = 0.5,
+    fitHeight,
+    allowWrapAtMin,
+    wrapClassName,
+  } = options;
   const textKey = texts.join('\u0000');
 
   useLayoutEffect(() => {
@@ -140,6 +159,7 @@ export function useFitTextGroup(
         minFontSize,
         maxFontSize,
         step,
+        fitHeight,
         allowWrapAtMin,
         wrapClassName,
       });
@@ -182,5 +202,5 @@ export function useFitTextGroup(
         }
       });
     };
-  }, [textKey, minFontSize, maxFontSize, step, allowWrapAtMin, wrapClassName]);
+  }, [refs, textKey, minFontSize, maxFontSize, step, fitHeight, allowWrapAtMin, wrapClassName]);
 }

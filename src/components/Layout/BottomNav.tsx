@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
-import { shouldShowMobileHomeNav } from '@/i18n';
+import { useResponsive } from '@/hooks/useResponsive';
 import { useLoginGuard } from '@/hooks/useLoginGuard';
 import { resolveOrdersListPath, isGameStoreProductsPath } from '@/utils';
 import { LoginModal } from '@/components/LoginModal';
@@ -11,23 +11,24 @@ import orderSelectImg from '@/assets/img2/touka_home_BotomInf_OrderSelect.png';
 import orderUnSelectImg from '@/assets/img2/touka_home_BotomInf_OrderUnSelect.png';
 import styles from './BottomNav.module.less';
 
-export const BottomNav: React.FC = () => {
+interface BottomNavProps {
+  hideOnMobile?: boolean;
+}
+
+export const BottomNav: React.FC<BottomNavProps> = ({ hideOnMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
+  const { isMobile } = useResponsive();
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const [isVisible, setIsVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  const ticking = useRef(false);
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ordersPath = resolveOrdersListPath(location.pathname);
   const isHomePage = location.pathname === '/';
   const isProductsPage = isGameStoreProductsPath(location.pathname);
   const isHistoryPage = location.pathname.includes('/history');
-  const showMobileHomeNav = shouldShowMobileHomeNav(locale);
-  // 首页不展示 BottomNav；顶栏有 mobileHomeNav 时也不展示，避免与顶栏导航重复
-  const hideBottomNav =
-    isHomePage || (showMobileHomeNav && (isProductsPage || isHistoryPage));
+  const shouldRenderNav = isHomePage || isProductsPage || isHistoryPage;
 
   const navItems = [
     {
@@ -46,72 +47,64 @@ export const BottomNav: React.FC = () => {
     },
   ];
 
-  const isActive = (path: string, id: string) => {
+  const isActive = (_path: string, id: string) => {
     if (id === 'home') {
-      return location.pathname === '/';
+      return isHomePage || isProductsPage;
     }
-    return location.pathname.includes('/history');
+    return isHistoryPage;
   };
 
   const handleNavClick = (path: string, id: string) => {
-    // 主页不需要登录检查
     if (id === 'home') {
       navigate(path);
       return;
     }
-    // 其他页面需要登录检查
+
     requireLogin(() => {
-      navigate(resolveOrdersListPath(location.pathname));
+      navigate(ordersPath);
     });
   };
 
   useEffect(() => {
+    if (!isMobile || !shouldRenderNav) {
+      return;
+    }
+
     const handleScroll = () => {
-      if (!ticking.current) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY || window.pageYOffset;
-          
-          // 如果滚动距离很小（小于10px），不改变状态，避免频繁切换
-          if (Math.abs(currentScrollY - lastScrollY.current) < 10) {
-            ticking.current = false;
-            return;
-          }
+      setIsVisible(false);
 
-          // 在页面顶部时始终显示
-          if (currentScrollY <= 50) {
-            setIsVisible(true);
-          } else {
-            // 向下滚动时隐藏，向上滚动时显示
-            if (currentScrollY > lastScrollY.current) {
-              // 向下滚动时隐藏
-              setIsVisible(false);
-            } else if (currentScrollY < lastScrollY.current) {
-              // 向上滚动时显示
-              setIsVisible(true);
-            }
-          }
-
-          lastScrollY.current = currentScrollY;
-          ticking.current = false;
-        });
-
-        ticking.current = true;
+      if (showTimer.current) {
+        clearTimeout(showTimer.current);
       }
+
+      showTimer.current = setTimeout(() => {
+        setIsVisible(true);
+      }, 200);
     };
 
-    // 监听滚动事件
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const scrollTargets = new Set<EventTarget>([window]);
+    const layoutScroller = document.querySelector<HTMLElement>('[data-ios-scroll-fix]');
 
-    // 初始化滚动位置和可见性
-    lastScrollY.current = window.scrollY || window.pageYOffset;
-    setIsVisible(lastScrollY.current <= 50);
+    if (layoutScroller) {
+      scrollTargets.add(layoutScroller);
+    }
+
+    scrollTargets.forEach((target) => {
+      target.addEventListener('scroll', handleScroll, { passive: true });
+    });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+      scrollTargets.forEach((target) => {
+        target.removeEventListener('scroll', handleScroll);
+      });
 
-  if (hideBottomNav) {
+      if (showTimer.current) {
+        clearTimeout(showTimer.current);
+      }
+    };
+  }, [isMobile, shouldRenderNav]);
+
+  if (!isMobile || !shouldRenderNav) {
     return (
       <LoginModal
         isOpen={showLoginModal}
@@ -122,7 +115,11 @@ export const BottomNav: React.FC = () => {
 
   return (
     <>
-      <nav className={`${styles.bottomNav} ${!isVisible ? styles.bottomNavHidden : ''}`}>
+      <nav
+        className={`${styles.bottomNav} ${
+          !isVisible || hideOnMobile ? styles.bottomNavHidden : ''
+        }`}
+      >
         {navItems.map((item) => {
           const active = isActive(item.path, item.id);
           return (
@@ -153,4 +150,3 @@ export const BottomNav: React.FC = () => {
     </>
   );
 };
-

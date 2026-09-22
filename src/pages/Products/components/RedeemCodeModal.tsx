@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import { settleIOSViewportAfterKeyboardClose } from '@/hooks/useViewportHeightFix';
 import { redeemCodeApi } from '@/utils/api';
-import { messageStore } from '@/store/messageStore';
-import loginModalClose from '@/assets/img2/login_modal_close.png';
+import { trackStoreRewardCode } from '@/utils/analytics';
+
+import redeemClose from '@/assets/img2/redeem-close.png';
 import payLoginTipsIcon from '@/assets/img2/pay_login_tips.png';
 import redeemSuccessIcon from '@/assets/img2/redeem-success-icon.png';
 import bamGameIcon from '@/assets/img2/bam_icon.png';
 import oopsieGameIcon from '@/assets/img2/oopsie_icon.png';
+import redeemGuideInfoEntryImg from '@/assets/img2/guide-info-entry.jpg';
+import redeemGuideCopyGameIdImg from '@/assets/img2/guide-copy-game-id.jpg';
 import styles from '../Products.module.less';
 
 interface RedeemCodeModalProps {
@@ -24,6 +28,14 @@ type RedeemCodeMessage = {
 };
 
 const REDEEM_CODE_MOBILE_CLOSE_ANIMATION_MS = 260;
+const GAME_USER_ID_MAX_LENGTH = 10;
+const REDEEM_CODE_KEYBOARD_SAFE_GAP = 20;
+const REDEEM_CODE_KEYBOARD_OFFSET_MAX = 220;
+
+function isIOSLikeBrowser(): boolean {
+  const { userAgent, platform, maxTouchPoints } = window.navigator;
+  return /iP(ad|hone|od)/.test(userAgent) || (platform === 'MacIntel' && maxTouchPoints > 1);
+}
 
 const getGameIconByGameId = (gameId: string | undefined): string | null => {
   if (gameId === 'bam-bam-squad') return bamGameIcon;
@@ -78,12 +90,18 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const guideWrapRef = useRef<HTMLDivElement>(null);
   const guidePanelRef = useRef<HTMLDivElement>(null);
   const guideIconRef = useRef<HTMLSpanElement>(null);
+  const gameUserIdInputRef = useRef<HTMLInputElement>(null);
+  const redeemCodeInputRef = useRef<HTMLInputElement>(null);
+  const captchaInputRef = useRef<HTMLInputElement>(null);
+  const keyboardOffsetRef = useRef(0);
   const ignoreNextGuideWrapClickRef = useRef(false);
   const closeTimeoutRef = useRef<number | null>(null);
-
+  const [errorToast, setErrorToast] = useState<string | null>(null);
+  const errorToastTimerRef = useRef<number | null>(null);
   const gameIcon = getGameIconByGameId(gameId);
   const captchaLoadFailedText = t('redeemCode.messages.captchaLoadFailed');
 
@@ -144,8 +162,107 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
       if (closeTimeoutRef.current !== null) {
         window.clearTimeout(closeTimeoutRef.current);
       }
+      if (errorToastTimerRef.current !== null) {
+        window.clearTimeout(errorToastTimerRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    keyboardOffsetRef.current = keyboardOffset;
+  }, [keyboardOffset]);
+
+  useEffect(() => {
+    if (!isOpen || !isIOSLikeBrowser()) {
+      setKeyboardOffset(0);
+      return;
+    }
+
+    const visualViewport = window.visualViewport;
+    let frameId: number | null = null;
+
+    const syncKeyboardOffset = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+
+        const activeElement = document.activeElement;
+        const inputElements = [
+          gameUserIdInputRef.current,
+          redeemCodeInputRef.current,
+          captchaInputRef.current,
+        ].filter((el): el is HTMLInputElement => el !== null);
+
+        if (!inputElements.includes(activeElement as HTMLInputElement)) {
+          setKeyboardOffset(0);
+          return;
+        }
+
+        const viewportBottom = visualViewport
+          ? visualViewport.offsetTop + visualViewport.height
+          : window.innerHeight;
+        const activeRect = (activeElement as HTMLInputElement).getBoundingClientRect();
+        const inputBottomWithoutCurrentOffset = activeRect.bottom + keyboardOffsetRef.current;
+        const keyboardOffsetMax = Math.max(
+          REDEEM_CODE_KEYBOARD_OFFSET_MAX,
+          Math.round(window.innerHeight * 0.35)
+        );
+        const nextOffset = Math.min(
+          Math.max(
+            0,
+            inputBottomWithoutCurrentOffset + REDEEM_CODE_KEYBOARD_SAFE_GAP - viewportBottom
+          ),
+          keyboardOffsetMax
+        );
+
+        setKeyboardOffset(nextOffset);
+      });
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (
+        target === gameUserIdInputRef.current ||
+        target === redeemCodeInputRef.current ||
+        target === captchaInputRef.current
+      ) {
+        window.requestAnimationFrame(() => {
+          (target as HTMLElement).scrollIntoView({
+            block: 'center',
+            inline: 'nearest',
+          });
+          syncKeyboardOffset();
+        });
+      }
+    };
+
+    const handleFocusOut = () => {
+      syncKeyboardOffset();
+    };
+
+    syncKeyboardOffset();
+    visualViewport?.addEventListener('resize', syncKeyboardOffset);
+    visualViewport?.addEventListener('scroll', syncKeyboardOffset);
+    window.addEventListener('resize', syncKeyboardOffset);
+    document.addEventListener('focusin', handleFocusIn, true);
+    document.addEventListener('focusout', handleFocusOut, true);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      setKeyboardOffset(0);
+      visualViewport?.removeEventListener('resize', syncKeyboardOffset);
+      visualViewport?.removeEventListener('scroll', syncKeyboardOffset);
+      window.removeEventListener('resize', syncKeyboardOffset);
+      document.removeEventListener('focusin', handleFocusIn, true);
+      document.removeEventListener('focusout', handleFocusOut, true);
+    };
+  }, [isOpen]);
 
   const syncGuideArrowPosition = useCallback(() => {
     const icon = guideIconRef.current;
@@ -202,6 +319,8 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
   const requestClose = useCallback(() => {
     if (isClosing || closeTimeoutRef.current !== null) return;
 
+    settleIOSViewportAfterKeyboardClose();
+
     const shouldAnimateOnMobile =
       typeof window !== 'undefined' &&
       window.matchMedia('(max-width: 767px)').matches &&
@@ -220,6 +339,16 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
       REDEEM_CODE_MOBILE_CLOSE_ANIMATION_MS + 80
     );
   }, [finishClose, isClosing, onClose]);
+
+  const showErrorToast = useCallback((message: string) => {
+    setErrorToast(message);
+    if (errorToastTimerRef.current !== null) {
+      window.clearTimeout(errorToastTimerRef.current);
+    }
+    errorToastTimerRef.current = window.setTimeout(() => {
+      setErrorToast(null);
+    }, 2400);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -266,14 +395,14 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
     if (!trimmedGameUserId || !trimmedRedeemCode || !trimmedCaptchaCode) {
       const errorMessage = t('redeemCode.messages.requiredFields');
       setMessage({ type: 'error', text: errorMessage });
-      messageStore.show(errorMessage);
+      showErrorToast(errorMessage);
       return;
     }
 
     if (!captchaId) {
       const errorMessage = t('redeemCode.messages.captchaLoadFailed');
       setMessage({ type: 'error', text: errorMessage });
-      messageStore.show(errorMessage);
+      showErrorToast(errorMessage);
       void refreshCaptcha({ clearInput: false });
       return;
     }
@@ -290,6 +419,10 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
     });
 
     if (res.success) {
+      trackStoreRewardCode(trimmedRedeemCode, {
+        gameUserId: trimmedGameUserId,
+        rewardCodeType: res.data?.rewardCodeType,
+      });
       setMessage(null);
       setSuccessDialogOpen(true);
       setSubmitting(false);
@@ -302,7 +435,7 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
         res.error || t('redeemCode.messages.redeemFailed')
       );
       setMessage({ type: 'error', text: errorMessage });
-      messageStore.show(errorMessage);
+      showErrorToast(errorMessage);
       await refreshCaptcha({ clearInput: true, keepMessage: true });
     }
 
@@ -320,11 +453,14 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
       <div
         className={`${styles.redeemCodeModal} ${
           isSuccessDialogOpen ? styles.redeemCodeModalSuccess : ''
-        } ${
-          isClosing ? styles.redeemCodeModalClosing : ''
-        }`}
-        onClick={(event) => event.stopPropagation()}
+        } ${isClosing ? styles.redeemCodeModalClosing : ''}`}
+        onClick={event => event.stopPropagation()}
         onAnimationEnd={handleModalAnimationEnd}
+        style={
+          keyboardOffset > 0
+            ? ({ '--redeem-code-keyboard-offset': `${keyboardOffset}px` } as React.CSSProperties)
+            : undefined
+        }
       >
         {isSuccessDialogOpen ? (
           <div
@@ -343,10 +479,7 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
             <h2 id="redeem-code-success-title" className={styles.redeemCodeSuccessTitle}>
               {t('redeemCode.success.title')}
             </h2>
-            <p
-              id="redeem-code-success-description"
-              className={styles.redeemCodeSuccessDescription}
-            >
+            <p id="redeem-code-success-description" className={styles.redeemCodeSuccessDescription}>
               {t('redeemCode.success.description')}
             </p>
             <button
@@ -365,7 +498,7 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
               onClick={requestClose}
               aria-label={t('redeemCode.close')}
             >
-              <img src={loginModalClose} alt="" className={styles.redeemCodeCloseImg} />
+              <img src={redeemClose} alt="" className={styles.redeemCodeCloseImg} />
             </button>
 
             <div className={styles.redeemCodeMobileHeader}>
@@ -376,7 +509,7 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
                 onClick={requestClose}
                 aria-label={t('redeemCode.close')}
               >
-                <span className={styles.redeemCodeMobileCloseIcon} aria-hidden />
+                <img src={redeemClose} alt="" className={styles.redeemCodeMobileCloseIcon} />
               </button>
             </div>
 
@@ -416,8 +549,7 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
                             {t('redeemCode.guide.stepOne')}
                           </p>
                           <div className={styles.redeemCodeGuidePreview}>
-                            {gameIcon && <img src={gameIcon} alt="" aria-hidden />}
-                            <span />
+                            <img src={redeemGuideInfoEntryImg} alt="" aria-hidden />
                           </div>
                         </div>
                         <div className={styles.redeemCodeGuideStep}>
@@ -425,8 +557,7 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
                             {t('redeemCode.guide.stepTwo')}
                           </p>
                           <div className={styles.redeemCodeGuidePreview}>
-                            {gameIcon && <img src={gameIcon} alt="" aria-hidden />}
-                            <strong>UID</strong>
+                            <img src={redeemGuideCopyGameIdImg} alt="" aria-hidden />
                           </div>
                         </div>
                       </div>
@@ -439,12 +570,14 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
                   className={styles.redeemCodeModalInput}
                   type="text"
                   inputMode="numeric"
+                  ref={gameUserIdInputRef}
+                  maxLength={GAME_USER_ID_MAX_LENGTH}
                   value={gameUserId}
                   placeholder={t('redeemCode.gameIdPlaceholder')}
                   autoComplete="off"
                   spellCheck={false}
-                  onChange={(event) => {
-                    setGameUserId(event.target.value);
+                  onChange={event => {
+                    setGameUserId(event.target.value.slice(0, GAME_USER_ID_MAX_LENGTH));
                     setMessage(null);
                   }}
                   onBlur={() => setGameUserId(gameUserId.trim())}
@@ -457,11 +590,12 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
                   id="redeem-code-modal-code"
                   className={styles.redeemCodeModalInput}
                   type="text"
+                  ref={redeemCodeInputRef}
                   value={redeemCode}
                   placeholder={t('redeemCode.giftCodePlaceholder')}
                   autoComplete="off"
                   spellCheck={false}
-                  onChange={(event) => {
+                  onChange={event => {
                     setRedeemCode(event.target.value);
                     setMessage(null);
                   }}
@@ -477,12 +611,14 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
                     className={styles.redeemCodeModalInput}
                     type="text"
                     inputMode="numeric"
+                    ref={captchaInputRef}
+                    maxLength={4}
                     value={captchaCode}
                     placeholder={t('redeemCode.captchaPlaceholder')}
                     autoComplete="off"
                     spellCheck={false}
-                    onChange={(event) => {
-                      setCaptchaCode(event.target.value.slice(0, 12));
+                    onChange={event => {
+                      setCaptchaCode(event.target.value.slice(0, 4));
                       setMessage(null);
                     }}
                   />
@@ -535,6 +671,15 @@ export const RedeemCodeModal: React.FC<RedeemCodeModalProps> = ({
               </form>
             </div>
           </>
+        )}
+
+        {errorToast && (
+          <div className={styles.redeemCodeErrorToast} role="alert" aria-live="assertive">
+            <span className={styles.redeemCodeErrorToastIcon} aria-hidden>
+              !
+            </span>
+            <span className={styles.redeemCodeErrorToastText}>{errorToast}</span>
+          </div>
         )}
       </div>
     </div>

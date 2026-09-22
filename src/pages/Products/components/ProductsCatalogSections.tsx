@@ -3,7 +3,6 @@ import { Product } from '@/types';
 import { Loading } from '@/components/Loading';
 import { GiftPackProductSections } from './GiftPackProductSections';
 import purchaseTokenItemImg from '@/assets/img2/purchase-token-item.png';
-import toukaCoinGuideArrowIcon from '@/assets/img2/touka-coin-guide-arrow.png';
 import styles from '../Products.module.less';
 
 export type ProductCategory = 'vouchers' | 'diamond' | 'giftPacks' | 'redeemCode';
@@ -51,13 +50,12 @@ const ToukaCoinGuideEntry: React.FC<{ label: string; onClick: () => void }> = ({
     className={styles.toukaCoinGuideEntry}
     onClick={onClick}
   >
-    <span className={styles.toukaCoinGuideEntryBgMiddle} aria-hidden />
     <span className={styles.toukaCoinGuideEntryContent}>
       <span className={styles.toukaCoinGuideEntryLabel}>
         <img src={purchaseTokenItemImg} alt="" className={styles.toukaCoinGuideEntryIcon} />
         <span className={styles.toukaCoinGuideEntryText}>{label}</span>
       </span>
-      <img src={toukaCoinGuideArrowIcon} alt="" className={styles.toukaCoinGuideEntryArrow} />
+      <span className={styles.toukaCoinGuideEntryArrow} aria-hidden />
     </span>
   </button>
 );
@@ -107,10 +105,7 @@ export const ProductsCatalogSections: React.FC<ProductsCatalogSectionsProps> = (
               <>
                 <div
                   className={`${styles.productGrid}${
-                    (category.id === 'vouchers' && categoryProducts.length < 3) ||
-                    category.id === 'diamond'
-                      ? ` ${styles.productGridFewItems}`
-                      : ''
+                    categoryProducts.length <= 2 ? ` ${styles.productGridFewItems}` : ''
                   }`}
                 >
                   {categoryProducts.map((product) => renderProduct(product))}

@@ -125,7 +125,7 @@ const ensureThinkingDataReady = (): boolean => {
   thinkingData.setCurrentGame(appKey);
   const user = userStore.getUser();
   if (user?.sdkId) {
-    thinkingData.login(user.sdkId);
+    thinkingData.login(user.characterName || user.sdkId);
     thinkingData.userSet({
       username: user.username || user.gameAccount || '',
       gameAccount: user.gameAccount || '',
@@ -242,7 +242,6 @@ const getCommonProperties = (context: AnalyticsContext = {}) => {
     user?.quickLogin === true || params.has('from_app') || params.has('game_redirect') || false
   );
   const serverChannel = resolveAnalyticsServerChannel(context.serverChannel ?? user?.gameServer);
-  const roleId = context.gameUserId ?? user?.characterName;
   const sdkAccountId = context.sdkId !== undefined ? (context.sdkId || '') : (user?.sdkId || '');
   
   const properties: Record<string, any> = {
@@ -268,11 +267,6 @@ const getCommonProperties = (context: AnalyticsContext = {}) => {
   const ip = context.ip ?? user?.ip;
   if (ip) {
     properties['#ip'] = ip;
-  }
-  // #account_id 是角色ID（game_user_id）
-  // characterName 存储的就是 game_user_id
-  if (roleId) {
-    properties['#account_id'] = roleId;
   }
   
   return properties;
@@ -408,11 +402,6 @@ export const trackStoreRoleSelect = (serverChannel?: string | number, gameUserId
   if (user?.ip) {
     properties['#ip'] = user.ip;
   }
-  // #account_id 是角色ID（game_user_id）
-  const roleId = gameUserId || user?.characterName;
-  if (roleId) {
-    properties['#account_id'] = roleId;
-  }
   
   thinkingData.track('store_role_select', properties);
 };
@@ -495,7 +484,7 @@ export const trackStoreIapShow = (product: Product): boolean => {
   // 检查是否已获取用户详情（必须要有角色信息，说明已经调用过用户详情接口）
   // 用户详情接口会设置 characterName（game_user_id）、sdkId、country、platform、ip 等字段
   const commonProperties = getCommonProperties();
-  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+  if (!user?.characterName || commonProperties.server_channel === undefined) {
     console.warn('用户详情未获取完成（未选择角色），跳过 store_iap_show 事件上报，商品：', product.name);
     return false;
   }
@@ -506,7 +495,7 @@ export const trackStoreIapShow = (product: Product): boolean => {
   const iap = product.iap || extractedIap;
   
   // 构建去重key：token + product_id（使用提取后的 product_id）
-  const reportedKey = `${token}|${commonProperties['#account_id']}|${commonProperties.server_channel}|${product_id}`;
+  const reportedKey = `${token}|${user?.characterName || ''}|${commonProperties.server_channel}|${product_id}`;
   
   // 从存储中加载当前 token 的已上报记录
   const reportedKeysArray = loadIapShowReportedKeys(token);
@@ -572,7 +561,8 @@ export const trackStoreIapClick = (
   const resolvedPaymentType = resolvePaymentType(paymentType);
   
   const commonProperties = getCommonProperties();
-  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+  const user = userStore.getUser();
+  if (!user?.characterName || commonProperties.server_channel === undefined) {
     console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_iap_click 事件上报，商品：', product.name);
     return Promise.resolve(false);
   }
@@ -622,7 +612,8 @@ export const trackStoreIapSuccess = (
   const resolvedPaymentType = resolvePaymentType(paymentType);
   
   const commonProperties = getCommonProperties(context);
-  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+  const user = userStore.getUser();
+  if (!user?.characterName || commonProperties.server_channel === undefined) {
     console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_iap_success 事件上报，商品：', product.name);
     return false;
   }
@@ -662,8 +653,9 @@ export const trackStoreIapFail = (
   const iap = product.iap || extractedIap;
   const resolvedPaymentType = resolvePaymentType(paymentType);
   
+  const user = userStore.getUser();
   const commonProperties = getCommonProperties(context);
-  if (!commonProperties['#account_id'] || commonProperties.server_channel === undefined) {
+  if (!user?.characterName || commonProperties.server_channel === undefined) {
     console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_iap_fail 事件上报，商品：', product.name);
     return false;
   }
@@ -680,5 +672,33 @@ export const trackStoreIapFail = (
   };
   
   thinkingData.track('store_iap_fail', properties);
+  return true;
+};
+
+export const trackStoreRewardCode = (
+  redeemCode: string,
+  options: { gameUserId?: string; rewardCodeType?: number },
+  context?: AnalyticsContext
+): boolean => {
+  if (!ensureThinkingDataReady()) {
+    console.warn('数数SDK未初始化，跳过 store_reward_code 事件上报');
+    return false;
+  }
+
+  const user = userStore.getUser();
+  const commonProperties = getCommonProperties(context);
+  if (!user?.characterName || commonProperties.server_channel === undefined) {
+    console.warn('用户详情未获取完成（缺少角色或区服），跳过 store_reward_code 事件上报');
+    return false;
+  }
+
+  const properties = {
+    ...commonProperties,
+    reward_code: redeemCode,
+    ...(options.gameUserId && { game_user_id: options.gameUserId }),
+    ...(options.rewardCodeType !== undefined && { reward_code_type: options.rewardCodeType }),
+  };
+
+  thinkingData.track('store_reward_code', properties);
   return true;
 };

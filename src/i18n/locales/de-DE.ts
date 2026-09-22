@@ -126,6 +126,7 @@ export const deDE = {
     "bindGameGuide": "Hinweis zur Spielverknüpfung",
     "bindGameGuideContent": "Öffnen Sie ein beliebiges Touka-Spiel,\ngehen Sie zu den Spieleinstellungen,\nverknüpfen Sie Ihre E-Mail,\nund profitieren Sie von Sonderangeboten im Shop!",
     "captchaPlaceholder": "Bestätigungscode ",
+    "captchaRequired": "Bitte geben Sie das Captcha ein",
     "invalidCaptcha": "Bitte geben Sie einen 4-stelligen Bestätigungscode ein",
     "email": "E-Mail ",
     "emailNotBound": "Konto nicht gefunden. Bitte geben Sie die im Spiel verknüpfte E-Mail-Adresse ein~",
@@ -186,14 +187,14 @@ export const deDE = {
     "gameIdLabel": "Spiel-ID:",
     "gameIdPlaceholder": "Geben Sie Ihre Spiel-ID ein",
     "howToFindGameId": "So finden Sie Ihre Spiel-ID",
-    "giftCodeLabel": "Geschenkcode:",
-    "giftCodePlaceholder": "Geben Sie Ihren Geschenkcode ein",
+    "giftCodeLabel": "Einlösecode",
+    "giftCodePlaceholder": "Geben Sie Ihren Einlösecode ein",
     "captchaLabel": "Captcha:",
     "captchaPlaceholder": "Captcha eingeben",
     "refreshCaptcha": "Captcha aktualisieren",
     "submit": "Absenden",
     "submitting": "Wird gesendet...",
-    "rule": "Jeder Geschenkcode kann pro Konto nur einmal eingelöst werden.",
+    "rule": "Jeder Einlösecode kann pro Konto nur einmal eingelöst werden.",
     "success": {
       "title": "Erfolgreich eingelöst",
       "description": "Bitte holen Sie Ihre Belohnung im In-Game-Postfach ab!",
@@ -204,7 +205,7 @@ export const deDE = {
       "stepTwo": "2. Spiel-ID kopieren"
     },
     "messages": {
-      "enterGiftCode": "Bitte geben Sie zuerst einen Geschenkcode ein",
+      "enterGiftCode": "Bitte geben Sie zuerst einen Einlösecode ein",
       "requiredFields": "Bitte füllen Sie alle Einlöseinformationen aus",
       "captchaLoadFailed": "Captcha konnte nicht geladen werden. Tippen Sie zum Wiederholen.",
       "success": "Erfolgreich eingelöst. Die Belohnungen wurden an Ihr In-Game-Postfach gesendet.",
@@ -220,7 +221,7 @@ export const deDE = {
       "6": "Der Einlösecode wurde vollständig eingelöst.",
       "7": "Der Server ist ausgelastet. Bitte versuchen Sie es später erneut.",
       "8": "Anfragefehler. Bitte versuchen Sie es später erneut.",
-      "9": "Die Einlöseinformationen sind ungültig. Bitte gehen Sie zurück und versuchen Sie es erneut.",
+      "9": "Der Bestätigungscode ist ungültig oder abgelaufen. Bitte bestätigen Sie ihn und versuchen Sie es erneut.",
       "10": "Der Spielserver des Charakters wurde nicht gefunden. Bitte prüfen Sie die Charakterinformationen und versuchen Sie es erneut. Der aktuelle Server ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
       "11": "Der aktuelle Server ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
       "12": "Abholung zeitüberschreitung. Bitte versuchen Sie es später erneut.",
@@ -272,7 +273,12 @@ export const deDE = {
   "orientation": {
     "bestExperience": "Bitte wechseln Sie für das beste Erlebnis ins Hochformat"
   },
-  "support": {
+  "pendingOrder": {
+    "title": "Hinweis",
+    "message": "Sie haben eine ausstehende Bestellung. Möchten Sie sie ansehen?",
+    "goToOrders": "Zu Bestellungen",
+    "cancel": "Abbrechen"
+  },  "support": {
     "cancel": "Abbrechen",
     "copied": "Kopiert",
     "copy": "Mit einem Klick kopieren",

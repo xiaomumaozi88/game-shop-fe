@@ -126,6 +126,7 @@ export const frFR = {
     "bindGameGuide": "Notice de liaison au jeu",
     "bindGameGuideContent": "Ouvrez n’importe quel jeu Touka,\nallez dans les paramètres du jeu,\nliez votre adresse e-mail\net profitez des promotions sur la boutique !",
     "captchaPlaceholder": "Code de vérification",
+    "captchaRequired": "Veuillez saisir le captcha",
     "invalidCaptcha": "Veuillez saisir un code de vérification à 4 chiffres",
     "email": "Email",
     "emailNotBound": "Nous n'avons pas trouvé le compte. Veuillez saisir l'adresse e-mail liée à votre compte de jeu~",
@@ -186,14 +187,14 @@ export const frFR = {
     "gameIdLabel": "ID de jeu :",
     "gameIdPlaceholder": "Saisissez votre ID de jeu",
     "howToFindGameId": "Comment trouver votre ID de jeu",
-    "giftCodeLabel": "Code cadeau :",
-    "giftCodePlaceholder": "Saisissez votre code cadeau",
+    "giftCodeLabel": "Code d'échange",
+    "giftCodePlaceholder": "Saisissez votre code d'échange",
     "captchaLabel": "Captcha :",
     "captchaPlaceholder": "Saisissez le captcha",
     "refreshCaptcha": "Actualiser le captcha",
     "submit": "Envoyer",
     "submitting": "Envoi...",
-    "rule": "Chaque code cadeau ne peut être échangé qu'une seule fois par compte.",
+    "rule": "Chaque code d'échange ne peut être échangé qu'une seule fois par compte.",
     "success": {
       "title": "Échange réussi",
       "description": "Récupérez votre récompense dans la boîte aux lettres en jeu !",
@@ -204,7 +205,7 @@ export const frFR = {
       "stepTwo": "2. Copiez votre ID de jeu"
     },
     "messages": {
-      "enterGiftCode": "Veuillez d'abord saisir un code cadeau",
+      "enterGiftCode": "Veuillez d'abord saisir un code d'échange",
       "requiredFields": "Veuillez compléter toutes les informations d'échange",
       "captchaLoadFailed": "Échec du chargement du captcha. Touchez pour réessayer.",
       "success": "Échange réussi. Les récompenses ont été envoyées dans votre boîte aux lettres en jeu.",
@@ -220,7 +221,7 @@ export const frFR = {
       "6": "Le code d'échange a déjà été entièrement réclamé.",
       "7": "Le serveur est occupé. Veuillez réessayer plus tard.",
       "8": "Erreur de requête. Veuillez réessayer plus tard.",
-      "9": "Les informations d'échange sont invalides. Veuillez revenir en arrière et réessayer.",
+      "9": "Le code de vérification est invalide ou a expiré. Veuillez vérifier et réessayer.",
       "10": "Le serveur de jeu du personnage est introuvable. Veuillez vérifier les informations du personnage et réessayer. Le serveur actuel est temporairement indisponible. Veuillez réessayer plus tard.",
       "11": "Le serveur actuel est temporairement indisponible. Veuillez réessayer plus tard.",
       "12": "La réclamation a expiré. Veuillez réessayer plus tard.",
@@ -272,7 +273,12 @@ export const frFR = {
   "orientation": {
     "bestExperience": "Passez en mode portrait pour une meilleure expérience"
   },
-  "support": {
+  "pendingOrder": {
+    "title": "Avis",
+    "message": "Vous avez une commande en cours. Souhaitez-vous la voir ?",
+    "goToOrders": "Voir les commandes",
+    "cancel": "Annuler"
+  },  "support": {
     "cancel": "Annuler ",
     "copied": "Copié ",
     "copy": "Copie en un clic ",

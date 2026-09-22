@@ -1,12 +1,9 @@
 @import '@/styles/mixins.less';
 @import '../productsPageLayoutVars.less';
 
-@banner-top: '../../../assets/img2/product_list_banner_top_oopsie.png';
-@banner-top-wide-1714: '../../../assets/img2/product_list_banner_top_1714x268.png';
-@banner-top-wide-2544: '../../../assets/img2/product_list_banner_top_2544x400.png';
-@banner-bottom-default: '../../../assets/img2/product_list_banner_bottom_1920x260.png';
+@banner-top: '../../../assets/img2/banner.png';
 
-@product-list-bg-solid: #fff9eb;
+@product-list-bg-solid: #fde9bb;
 
 .productsPageBg {
   position: absolute;
@@ -18,10 +15,10 @@
   min-height: 100%;
   pointer-events: none;
   overflow: hidden;
-  background-color:#fee19b;
+  background-color: @product-list-bg-solid;
 }
 
-// Banner 上半 + 下半叠加（下半遮挡上半底部，遮挡高度 = 下半高度）
+// 主 Banner
 .productsPageBgTop {
   position: absolute;
   top: 0;
@@ -33,24 +30,18 @@
   overflow: hidden;
 
   .mobile({
+    top: @layout-header-height-mobile;
     height: @banner-top-height-vw-mobile-total;
   });
 
   .tablet({
+    top: @layout-header-height-tablet;
     height: @banner-top-height-vw-tablet;
   });
 
   .desktop({
     top: @product-list-bg-top-desktop-offset;
     height: @banner-top-height-vw-desktop;
-
-    @media (min-width: 1714px) {
-      height: @banner-top-height-vw-wide-1714-total;
-    }
-
-    @media (min-width: 2544px) {
-      height: @banner-top-height-vw-wide-2544-total;
-    }
   });
 }
 
@@ -69,10 +60,10 @@
 
   .mobile({
     top: 0;
-    height: @banner-top-height-vw;
-    max-height: @banner-top-height-vw;
+    height: 100%;
+    max-height: none;
     background-repeat: no-repeat;
-    background-size: 100% auto;
+    background-size: cover;
     background-position: center top;
   });
 
@@ -92,74 +83,10 @@
     top: 0;
     height: 100%;
     background-position: center bottom;
-
-    // 宽屏顶图：固定主图高度（须在 desktop 内覆盖 height:100%，避免背景纵向重复）
-    @media (min-width: 1714px) {
-      height: @banner-top-height-vw-wide-1714;
-      max-height: @banner-top-height-vw-wide-1714;
-      background-image: url(@banner-top-wide-1714);
-      background-repeat: no-repeat;
-      background-size: 100% auto;
-      background-position: center top;
-    }
-
-    @media (min-width: 2544px) {
-      height: @banner-top-height-vw-wide-2544;
-      max-height: @banner-top-height-vw-wide-2544;
-      background-image: url(@banner-top-wide-2544);
-      background-repeat: no-repeat;
-      background-size: 100% auto;
-      background-position: center top;
-    }
   });
 }
 
-// 装饰条叠在主图底部（1920×260 资源全宽等比缩放）
-.productsPageBgTopBottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  width: 100%;
-  height: @banner-bottom-height-vw-default;
-  background-image: url(@banner-bottom-default);
-  background-repeat: no-repeat;
-  background-size: 100% auto;
-  background-position: center top;
-
-  .mobile({
-    bottom: 0;
-    height: @banner-bottom-height-vw-mobile-visual;
-    background-image: url(@banner-bottom-default);
-    background-repeat: no-repeat;
-    background-size: 100% auto;
-    background-position: center top;
-  });
-
-  .tablet({
-    bottom: 0;
-    height: @banner-bottom-height-vw-default;
-    background-image: url(@banner-bottom-default);
-    background-repeat: no-repeat;
-    background-size: 100% auto;
-    background-position: center top;
-  });
-
-  .desktop({
-    bottom: 0;
-    height: @banner-bottom-height-vw-desktop-narrow;
-    background-image: url(@banner-bottom-default);
-    background-position: center top;
-
-    @media (min-width: 1714px) {
-      height: @banner-bottom-height-vw-desktop-visual;
-    }
-  });
-}
-
-// 水印区：上移叠盖 banner 下半条边缘，再铺满至页底
-// 整层 z-index 高于 banner，仅水印铺满；黄底由 ::before 从叠盖线以下绘制，避免压住装饰条
+// 水印区：直接从主 banner 下缘铺满至页底
 .productsPageBgBottom {
   position: absolute;
   left: 0;
@@ -173,27 +100,20 @@
   &::before {
     content: '';
     position: absolute;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 0;
-    background-color: #fee19b;
+    background-color: @product-list-bg-solid;
   }
 
   .mobile({
-    top: @products-page-content-start-mobile;
-
-    &::before {
-      top: @banner-bg-bottom-overlap-vw-mobile;
-    }
+    top: 12rem;
   });
 
   .tablet({
-    top: @products-page-content-start-tablet;
-
-    &::before {
-      top: @banner-bg-bottom-overlap-vw-mobile;
-    }
+    top: 18rem;
   });
 
   @media (min-width: 1024px) {
@@ -207,10 +127,6 @@
 
     @media (min-width: 2544px) {
       top: @products-page-content-start-desktop-wide-2544;
-    }
-
-    &::before {
-      top: @banner-bg-bottom-overlap-vw-desktop;
     }
   }
 }

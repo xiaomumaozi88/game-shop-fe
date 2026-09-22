@@ -126,6 +126,7 @@ export const ptPT = {
     "bindGameGuide": "Aviso de vinculação ao jogo",
     "bindGameGuideContent": "Abra qualquer jogo Touka,\nvá às definições no jogo,\nvincule o seu e-mail\ne aproveite descontos especiais na loja!",
     "captchaPlaceholder": "Código de verificação",
+    "captchaRequired": "Insira o captcha",
     "invalidCaptcha": "Por favor, insira um código de verificação de 4 dígitos",
     "email": "E-mail",
     "emailNotBound": "Não foi possível localizar a conta. Insira o e-mail vinculado à sua conta no jogo~",
@@ -186,14 +187,14 @@ export const ptPT = {
     "gameIdLabel": "ID do jogo:",
     "gameIdPlaceholder": "Insira seu ID do jogo",
     "howToFindGameId": "Como encontrar seu ID do jogo",
-    "giftCodeLabel": "Código do presente:",
-    "giftCodePlaceholder": "Insira seu código do presente",
+    "giftCodeLabel": "Código de resgate",
+    "giftCodePlaceholder": "Insira seu código de resgate",
     "captchaLabel": "Captcha:",
     "captchaPlaceholder": "Insira o captcha",
     "refreshCaptcha": "Atualizar captcha",
     "submit": "Enviar",
     "submitting": "Enviando...",
-    "rule": "Cada código de presente só pode ser resgatado uma vez por conta.",
+    "rule": "Cada código de resgate só pode ser resgatado uma vez por conta.",
     "success": {
       "title": "Resgate realizado",
       "description": "Resgate sua recompensa na caixa de correio do jogo!",
@@ -204,7 +205,7 @@ export const ptPT = {
       "stepTwo": "2. Copie seu ID do jogo"
     },
     "messages": {
-      "enterGiftCode": "Insira primeiro um código de presente",
+      "enterGiftCode": "Insira primeiro um código de resgate",
       "requiredFields": "Preencha todas as informações de resgate",
       "captchaLoadFailed": "Falha ao carregar o captcha. Toque para tentar novamente.",
       "success": "Resgatado com sucesso. As recompensas foram enviadas para sua caixa de correio no jogo.",
@@ -220,7 +221,7 @@ export const ptPT = {
       "6": "O código de resgate já foi totalmente reivindicado.",
       "7": "O servidor está ocupado. Tente novamente mais tarde.",
       "8": "Erro de solicitação. Tente novamente mais tarde.",
-      "9": "As informações de resgate são inválidas. Volte e tente novamente.",
+      "9": "O código de verificação é inválido ou expirou. Confirme e tente novamente.",
       "10": "O servidor do personagem não foi encontrado. Confirme as informações do personagem e tente novamente. O servidor atual está temporariamente indisponível. Tente novamente mais tarde.",
       "11": "O servidor atual está temporariamente indisponível. Tente novamente mais tarde.",
       "12": "O resgate expirou por tempo limite. Tente novamente mais tarde.",
@@ -272,7 +273,12 @@ export const ptPT = {
   "orientation": {
     "bestExperience": "Mude para o modo retrato para uma melhor experiência"
   },
-  "support": {
+  "pendingOrder": {
+    "title": "Aviso",
+    "message": "Tem uma encomenda pendente. Deseja visualizá-la?",
+    "goToOrders": "Ver encomendas",
+    "cancel": "Cancelar"
+  },  "support": {
     "cancel": "Cancelar ",
     "copied": "Copiado ",
     "copy": "Copiar com um clique ",

@@ -2,10 +2,7 @@
 // 实际项目中应该连接真实的后端API
 
 import { config } from './config';
-import {
-  getDefaultApiErrorMessage,
-  handleApiError,
-} from './errorHandler';
+import { getDefaultApiErrorMessage, handleApiError } from './errorHandler';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 const BMALL_BASE_URL = config.bmall.baseUrl;
@@ -54,8 +51,7 @@ const getLocalizedApiError = (json?: ApiErrorPayload | null): string => {
     return getDefaultApiErrorMessage();
   }
 
-  return handleApiError(json.code ?? -1, json.biz_code, json.msg)
-    || getDefaultApiErrorMessage();
+  return handleApiError(json.code ?? -1, json.biz_code, json.msg) || getDefaultApiErrorMessage();
 };
 
 export interface ApiResponse<T> {
@@ -73,10 +69,7 @@ class ApiClient {
     this.baseURL = baseURL;
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         headers: {
@@ -93,11 +86,11 @@ class ApiClient {
 
       const data = await response.json();
       if (
-        data
-        && typeof data === 'object'
-        && 'code' in data
-        && typeof (data as ApiErrorPayload).code === 'number'
-        && (data as ApiErrorPayload).code !== 0
+        data &&
+        typeof data === 'object' &&
+        'code' in data &&
+        typeof (data as ApiErrorPayload).code === 'number' &&
+        (data as ApiErrorPayload).code !== 0
       ) {
         const errorPayload = data as ApiErrorPayload;
         return {
@@ -217,7 +210,7 @@ export interface GameConfigResponse {
       [currency: string]: number; // 账户余额
     };
   };
-  
+
   // 用户区服信息
   server_info?: {
     server_channel?: number; // 区服ID
@@ -225,13 +218,13 @@ export interface GameConfigResponse {
     character_name?: string; // 角色名称
     character_id?: string; // 角色ID
   };
-  
+
   // 数数上报配置
   thinking_data?: {
     app_id: string; // 数数上报账号 App ID
     server_url: string; // 数数上报服务器地址
   };
-  
+
   // 其他游戏配置信息...
 }
 
@@ -244,8 +237,7 @@ export const gameApi = {
    * - 对应游戏的数数配置
    * @param gameId 游戏ID
    */
-  getGameConfig: (gameId: string) =>
-    apiClient.get<GameConfigResponse>(`/game/${gameId}/config`),
+  getGameConfig: (gameId: string) => apiClient.get<GameConfigResponse>(`/game/${gameId}/config`),
 };
 
 // 登录相关 API
@@ -319,8 +311,8 @@ export const authApi = {
    * @param keepLogin 是否保持15天登录（可选）
    */
   async login(
-    email: string, 
-    code: string, 
+    email: string,
+    code: string,
     appKeys: string[],
     keepLogin?: boolean
   ): Promise<ApiResponse<{ token: string; email: string; items?: GameServerRoleItem[] }>> {
@@ -330,9 +322,9 @@ export const authApi = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email, 
-          code, 
+        body: JSON.stringify({
+          email,
+          code,
           app_keys: appKeys,
           game: 'toukagame',
           ...(keepLogin !== undefined ? { keep_login: keepLogin } : {}),
@@ -343,7 +335,7 @@ export const authApi = {
       if (json?.code === 0 && json.data?.token) {
         return {
           success: true,
-          data: { 
+          data: {
             token: json.data.token,
             email: json.data.email || email, // 优先使用接口返回的 email，否则使用传入的 email
             items: json.data.items || [],
@@ -485,15 +477,24 @@ interface RedeemCodeApiResponse {
   data?: {
     biz_code?: number | string;
     error_code?: number | string;
+    reward_code_type?: string;
+    rewardCodeType?: string;
+    type?: number | string;
   } | null;
+  reward_code_type?: string;
+  rewardCodeType?: string;
+  type?: number | string;
   ts?: number;
 }
 
 export interface RedeemCodeResultData {
   resultCode: number | null;
+  rewardCodeType?: string;
 }
 
-const getRedeemCodeResultCode = (payload: RedeemCodeApiResponse | null | undefined): number | null => {
+const getRedeemCodeResultCode = (
+  payload: RedeemCodeApiResponse | null | undefined
+): number | null => {
   if (payload?.code === 0) return 0;
 
   const candidates = [
@@ -512,6 +513,26 @@ const getRedeemCodeResultCode = (payload: RedeemCodeApiResponse | null | undefin
   }
 
   return null;
+};
+
+const getRedeemCodeRewardType = (
+  payload: RedeemCodeApiResponse | null | undefined
+): string | undefined => {
+  const rawType =
+    payload?.reward_code_type ??
+    payload?.rewardCodeType ??
+    payload?.type ??
+    payload?.data?.reward_code_type ??
+    payload?.data?.rewardCodeType ??
+    payload?.data?.type;
+
+  if (rawType === undefined || rawType === null) return undefined;
+
+  const normalized = String(rawType).trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === '0' || normalized === 'global') return 'global';
+  if (normalized === '1' || normalized === 'personal') return 'personal';
+  return normalized;
 };
 
 const requestRedeemJson = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
@@ -576,18 +597,19 @@ export const redeemCodeApi = {
         }),
       });
       const resultCode = getRedeemCodeResultCode(json);
+      const rewardCodeType = getRedeemCodeRewardType(json);
 
       if (resultCode === 0) {
         return {
           success: true,
-          data: { resultCode },
+          data: { resultCode, rewardCodeType },
           message: json.msg,
         };
       }
 
       return {
         success: false,
-        data: { resultCode },
+        data: { resultCode, rewardCodeType },
         error: json?.msg || getDefaultApiErrorMessage(),
         bizCode: resultCode ?? undefined,
       };
@@ -710,7 +732,10 @@ export const userDetailApi = {
    * @param appKey 游戏app_key
    * @param gameUserId 游戏用户ID（角色ID）
    */
-  async getUserDetail(appKey: string, gameUserId: string): Promise<ApiResponse<UserDetailResponse>> {
+  async getUserDetail(
+    appKey: string,
+    gameUserId: string
+  ): Promise<ApiResponse<UserDetailResponse>> {
     try {
       const resp = await fetch(`${BMALL_BASE_URL}/user-detail`, {
         method: 'POST',
@@ -753,7 +778,7 @@ export const quickLoginApi = {
    * @param appKeys 游戏的app商城地址key数组
    */
   async quickLogin(
-    sign: string, 
+    sign: string,
     appKeys: string[]
   ): Promise<ApiResponse<{ token: string; email: string; items?: GameServerRoleItem[] }>> {
     try {
@@ -762,7 +787,7 @@ export const quickLoginApi = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           sign,
           app_keys: appKeys,
         }),
@@ -772,7 +797,7 @@ export const quickLoginApi = {
       if (json?.code === 0 && json.data?.token) {
         return {
           success: true,
-          data: { 
+          data: {
             token: json.data.token,
             email: json.data.email || '', // 接口返回的 email
             items: json.data.items || [],
@@ -875,7 +900,7 @@ export const bmallOrderApi = {
   /**
    * 创建订单（Stripe 支付入口）
    * 对接文档 4.9 商品购买 /bmall/order-create
-   * 
+   *
    * @param params.appKey 游戏的 app 商城地址 key
    * @param params.platform 游戏平台，如 ios / android / web
    * @param params.language 浏览器语言，需与后台配置保持一致，如 zh、en
@@ -932,7 +957,7 @@ export const bmallOrderApi = {
   /**
    * 查询订单详情
    * 对接文档 4.10 商城订单详情 /bmall/order-query
-   * 
+   *
    * @param params.appKey 游戏的 app 商城地址 key
    * @param params.language 浏览器语言，需与后台配置保持一致，如 zh、en
    * @param params.orderNo 订单号（与 sessionId 必传其一）
@@ -993,7 +1018,7 @@ export const bmallOrderApi = {
   /**
    * 查询订单列表
    * 对接文档 4.11 商城订单列表 /bmall/order-list
-   * 
+   *
    * @param params.appKey 游戏的 app 商城地址 key
    * @param params.language 浏览器语言，需与后台配置保持一致，如 zh、en
    */

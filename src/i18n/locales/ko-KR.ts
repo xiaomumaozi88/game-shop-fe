@@ -126,6 +126,7 @@ export const koKR = {
     "bindGameGuide": "게임 연동 안내",
     "bindGameGuideContent": "Touka 게임을 실행한 뒤\n게임 내 설정에서\n이메일을 연동하면\n특가 상품을 이용할 수 있습니다!",
     "captchaPlaceholder": "인증 코드",
+    "captchaRequired": "인증 코드를 입력해 주세요",
     "invalidCaptcha": "4자리 인증 코드를 입력하세요",
     "email": "이메일",
     "emailNotBound": "계정을 찾을 수 없습니다. 게임에 연동된 이메일을 입력해 주세요~",
@@ -186,14 +187,14 @@ export const koKR = {
     "gameIdLabel": "게임 ID:",
     "gameIdPlaceholder": "게임 ID를 입력하세요",
     "howToFindGameId": "게임 ID 찾는 방법",
-    "giftCodeLabel": "쿠폰 코드:",
-    "giftCodePlaceholder": "쿠폰 코드를 입력하세요",
+    "giftCodeLabel": "교환 코드:",
+    "giftCodePlaceholder": "교환 코드를 입력하세요",
     "captchaLabel": "인증 코드:",
     "captchaPlaceholder": "인증 코드를 입력하세요",
     "refreshCaptcha": "인증 코드 새로고침",
     "submit": "제출",
     "submitting": "제출 중...",
-    "rule": "각 쿠폰 코드는 계정당 한 번만 교환할 수 있습니다.",
+    "rule": "각 교환 코드는 계정당 한 번만 교환할 수 있습니다.",
     "success": {
       "title": "교환 성공",
       "description": "게임 내 우편함에서 보상을 받아 주세요!",
@@ -204,7 +205,7 @@ export const koKR = {
       "stepTwo": "2. 게임 ID 복사"
     },
     "messages": {
-      "enterGiftCode": "먼저 쿠폰 코드를 입력해 주세요",
+      "enterGiftCode": "먼저 교환 코드를 입력해 주세요",
       "requiredFields": "교환 정보를 모두 입력해 주세요",
       "captchaLoadFailed": "인증 코드를 불러오지 못했습니다. 눌러서 다시 시도하세요.",
       "success": "교환이 완료되었습니다. 보상이 게임 내 우편함으로 발송되었습니다.",
@@ -220,7 +221,7 @@ export const koKR = {
       "6": "교환 코드가 모두 소진되었습니다.",
       "7": "서버가 혼잡합니다. 나중에 다시 시도해 주세요.",
       "8": "요청 오류입니다. 나중에 다시 시도해 주세요.",
-      "9": "교환 정보가 올바르지 않습니다. 돌아가서 다시 시도해 주세요.",
+      "9": "확인 코드가 잘못되었거나 만료되었습니다. 확인 후 다시 시도해 주세요.",
       "10": "캐릭터가 속한 게임 서버를 찾을 수 없습니다. 캐릭터 정보를 확인한 후 다시 시도해 주세요. 현재 서버를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.",
       "11": "현재 서버를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.",
       "12": "수령 시간이 초과되었습니다. 나중에 다시 시도해 주세요.",
@@ -269,10 +270,16 @@ export const koKR = {
     "serverPlaceholder": "서버 이름을 입력하여 검색하세요",
     "title": "게임 서버 선택"
   },
-  "orientation": {
-    "bestExperience": "최상의 이용 경험을 위해 세로 화면으로 전환해 주세요"
+ "orientation": {
+   "bestExperience": "최상의 이용 경험을 위해 세로 화면으로 전환해 주세요"
+ },
+  "pendingOrder": {
+    "title": "알림",
+    "message": "진행 중인 주문이 있습니다. 확인하시겠습니까?",
+    "goToOrders": "주문 보기",
+    "cancel": "취소"
   },
-  "support": {
+ "support": {
     "cancel": "취소",
     "copied": "복사 완료",
     "copy": "한 번에 복사",

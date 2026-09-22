@@ -126,6 +126,7 @@ export const viVN = {
     "bindGameGuide": "Lưu ý liên kết game",
     "bindGameGuideContent": "Mở bất kỳ game Touka nào,\nvào mục Cài đặt trong game,\nliên kết email của bạn\nđể được hưởng ưu đãi đặc biệt tại cửa hàng!",
     "captchaPlaceholder": "Mã xác nhận",
+    "captchaRequired": "Vui lòng nhập captcha",
     "invalidCaptcha": "Vui lòng nhập mã xác nhận 4 chữ số",
     "email": "Email",
     "emailNotBound": "Không tìm thấy tài khoản. Vui lòng nhập email đã liên kết với tài khoản trong game~",
@@ -186,14 +187,14 @@ export const viVN = {
     "gameIdLabel": "ID game:",
     "gameIdPlaceholder": "Nhập ID game của bạn",
     "howToFindGameId": "Cách tìm ID game",
-    "giftCodeLabel": "Mã quà:",
-    "giftCodePlaceholder": "Nhập mã quà của bạn",
+    "giftCodeLabel": "Mã đổi thưởng",
+    "giftCodePlaceholder": "Nhập mã đổi thưởng của bạn",
     "captchaLabel": "Captcha:",
     "captchaPlaceholder": "Nhập captcha",
     "refreshCaptcha": "Làm mới captcha",
     "submit": "Gửi",
     "submitting": "Đang gửi...",
-    "rule": "Mỗi mã quà chỉ có thể đổi một lần cho mỗi tài khoản.",
+    "rule": "Mỗi mã đổi thưởng chỉ có thể đổi một lần cho mỗi tài khoản.",
     "success": {
       "title": "Đổi thành công",
       "description": "Vui lòng nhận phần thưởng trong hộp thư trong game!",
@@ -204,7 +205,7 @@ export const viVN = {
       "stepTwo": "2. Sao chép ID game của bạn"
     },
     "messages": {
-      "enterGiftCode": "Vui lòng nhập mã quà trước",
+      "enterGiftCode": "Vui lòng nhập mã đổi thưởng trước",
       "requiredFields": "Vui lòng điền đầy đủ thông tin đổi thưởng",
       "captchaLoadFailed": "Tải captcha thất bại. Chạm để thử lại.",
       "success": "Đổi thành công. Phần thưởng đã được gửi đến hộp thư trong game.",
@@ -220,7 +221,7 @@ export const viVN = {
       "6": "Mã đổi thưởng đã được nhận hết.",
       "7": "Máy chủ đang bận. Vui lòng thử lại sau.",
       "8": "Lỗi yêu cầu. Vui lòng thử lại sau.",
-      "9": "Thông tin đổi thưởng không hợp lệ. Vui lòng quay lại và thử lại.",
+      "9": "Mã xác thực không hợp lệ hoặc đã hết hạn. Vui lòng xác nhận và thử lại.",
       "10": "Không tìm thấy máy chủ game của nhân vật. Vui lòng kiểm tra thông tin nhân vật và thử lại. Máy chủ hiện tại tạm thời không khả dụng. Vui lòng thử lại sau.",
       "11": "Máy chủ hiện tại tạm thời không khả dụng. Vui lòng thử lại sau.",
       "12": "Nhận thưởng quá thời gian. Vui lòng thử lại sau.",
@@ -272,7 +273,12 @@ export const viVN = {
   "orientation": {
     "bestExperience": "Vui lòng chuyển sang chế độ dọc để có trải nghiệm tốt nhất"
   },
-  "support": {
+  "pendingOrder": {
+    "title": "Thông báo",
+    "message": "Bạn có đơn hàng đang xử lý. Bạn có muốn xem không?",
+    "goToOrders": "Đến đơn hàng",
+    "cancel": "Hủy"
+  },  "support": {
     "cancel": "Hủy",
     "copied": "Đã sao chép",
     "copy": "Sao chép một lần",

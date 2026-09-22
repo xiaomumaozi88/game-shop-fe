@@ -126,6 +126,7 @@ export const zhTW = {
     "bindGameGuide": "綁定遊戲須知",
     "bindGameGuideContent": "打開任意一款Touka遊戲，\n前往遊戲內設定頁面，綁定\n你的郵箱，即可享受特價商\n品優惠！",
     "captchaPlaceholder": "驗證碼",
+    "captchaRequired": "請輸入驗證碼",
     "invalidCaptcha": "請輸入4位數字驗證碼",
     "email": "郵箱",
     "emailNotBound": "未檢索成功，請輸入遊戲內綁定的郵箱喔~",
@@ -186,14 +187,14 @@ export const zhTW = {
     "gameIdLabel": "遊戲ID：",
     "gameIdPlaceholder": "請輸入您的遊戲ID",
     "howToFindGameId": "如何找到你的遊戲ID",
-    "giftCodeLabel": "禮包碼：",
-    "giftCodePlaceholder": "請輸入您的禮包碼",
+    "giftCodeLabel": "兌換碼",
+    "giftCodePlaceholder": "請輸入您的兌換碼",
     "captchaLabel": "驗證碼：",
     "captchaPlaceholder": "請輸入驗證碼",
     "refreshCaptcha": "刷新驗證碼",
     "submit": "提交",
     "submitting": "提交中...",
-    "rule": "每個禮包碼每個帳戶只能兌換一次",
+    "rule": "每個兌換碼每個帳戶只能兌換一次",
     "success": {
       "title": "兌換成功",
       "description": "請到遊戲內信箱領取獎勵！",
@@ -204,7 +205,7 @@ export const zhTW = {
       "stepTwo": "2. 複製你的遊戲ID"
     },
     "messages": {
-      "enterGiftCode": "請先輸入禮包碼",
+      "enterGiftCode": "請先輸入兌換碼",
       "requiredFields": "請填寫完整兌換資訊",
       "captchaLoadFailed": "驗證碼載入失敗，請點擊重試",
       "success": "兌換成功，獎勵已發送至遊戲內信箱，請及時查收。",
@@ -220,7 +221,7 @@ export const zhTW = {
       "6": "兌換碼已領完。",
       "7": "伺服器繁忙，請稍後重試。",
       "8": "請求異常，請稍後重試。",
-      "9": "兌換資訊有誤，請返回後重新嘗試。",
+      "9": "校驗碼錯誤或已過期，請確認後重試。",
       "10": "未找到角色所在伺服器，請確認角色資訊後重試。當前伺服器暫時不可用，請稍後重試。",
       "11": "當前伺服器暫時不可用，請稍後重試。",
       "12": "領取逾時，請稍後重試。",
@@ -269,10 +270,16 @@ export const zhTW = {
     "serverPlaceholder": "請輸入區服名字進行搜尋",
     "title": "選擇遊戲區組"
   },
-  "orientation": {
-    "bestExperience": "請切換為直向螢幕以獲得最佳體驗"
+ "orientation": {
+   "bestExperience": "請切換為直向螢幕以獲得最佳體驗"
+ },
+  "pendingOrder": {
+    "title": "溫馨提示",
+    "message": "您目前有一筆進行中的訂單，是否前往查看？",
+    "goToOrders": "前往",
+    "cancel": "取消"
   },
-  "support": {
+ "support": {
     "cancel": "取消",
     "copied": "已複製",
     "copy": "一鍵複製",

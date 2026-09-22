@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Product } from '@/types';
 import {
   formatPrice,
@@ -14,6 +14,8 @@ import {
   isProductQuantityOverPurchaseLimit,
   resolveAnalyticsEnvironment,
 } from '@/utils';
+import { useFitText } from '@/hooks/useFitText';
+import { useResponsive } from '@/hooks/useResponsive';
 import { ChevronUpIcon } from '../Icons/ChevronUpIcon';
 import { PurchaseConfirmModal } from '../PurchaseConfirmModal';
 // 暂时注释掉 Stripe 相关逻辑，因为目前都使用 h5_url 的支付方式
@@ -56,9 +58,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   preConfirmed = false,
 }) => {
   const { t, locale } = useLanguage();
+  const { breakpoint } = useResponsive();
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const { user } = useUser();
   const { gameId } = useParams<{ gameId: string }>();
+  const navigate = useNavigate();  const productNameRef = useRef<HTMLSpanElement>(null);
   const [quantity, setQuantity] = useState(1);
   const [showDetails, setShowDetails] = useState(false); // 默认收起，只显示价格信息
   const [frameOpen, setFrameOpen] = useState(false); // 背景图与详情动画同步，避免切换闪烁
@@ -66,9 +70,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // 暂时注释掉 Stripe 相关逻辑，因为目前都使用 h5_url 的支付方式
   // const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   // const [stripeClientSecret, setStripeClientSecret] = useState<string | undefined>(undefined);
-  const [currentOrderPaymentType, setCurrentOrderPaymentType] = useState<string | undefined>(undefined);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  // Airwallex 支付相关状态
+  const [showPendingOrderDialog, setShowPendingOrderDialog] = useState(false);  // Airwallex 支付相关状态
   const [showAirwallexCheckout, setShowAirwallexCheckout] = useState(false);
   const [airwallexCheckoutParams, setAirwallexCheckoutParams] = useState<{
     intentId: string;
@@ -78,10 +81,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     orderNo?: string;
   } | null>(null);
   const skipNextQuantityClickRef = React.useRef(false);
+  const isVoucher = product?.categoryId === 'vouchers';
+  const isGiftPack = product?.categoryId === 'giftPacks';
+  const productNameText = isGiftPack
+    ? product?.name || product?.description || ''
+    : product?.description || product?.name || '';
+  const productNameMinFontSize = isGiftPack
+    ? { mobile: 6, tablet: 7.5, desktop: 9 }
+    : { mobile: 7, tablet: 8.5, desktop: 10 };
+
+  useFitText(productNameRef, productNameText, {
+    minFontSize: productNameMinFontSize[breakpoint],
+    step: 0.25,
+    fitHeight: true,
+    allowWrapAtMin: true,
+    wrapClassName: styles.productNameWrap,
+  });
 
   const getInitialQuantity = (nextProduct: Product | null) => {
     if (!nextProduct) return 1;
-    const effectiveMax = Math.min(getProductMaxPurchasableQuantity(nextProduct), PRODUCT_MODAL_MAX_QUANTITY);
+    const effectiveMax = Math.min(
+      getProductMaxPurchasableQuantity(nextProduct),
+      PRODUCT_MODAL_MAX_QUANTITY
+    );
     return effectiveMax > 0 ? 1 : 0;
   };
 
@@ -93,11 +115,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     // 暂时注释掉 Stripe 相关逻辑
     // setShowStripeCheckout(false);
     // setStripeClientSecret(undefined);
-    setCurrentOrderPaymentType(undefined);
     setIsCreatingOrder(false);
     setShowAirwallexCheckout(false);
     setAirwallexCheckoutParams(null);
-  };
+    setShowPendingOrderDialog(false);  };
 
   const handleClose = () => {
     resetModalState();
@@ -109,7 +130,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     if (!product) return;
 
     const sources = [buyWindowImg, buyWindowExpandedImg];
-    sources.forEach((src) => {
+    sources.forEach(src => {
       const img = new Image();
       img.src = src;
       void img.decode?.().catch(() => undefined);
@@ -139,16 +160,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   if (!product) return null;
 
-  const effectiveMaxQuantity = Math.min(getProductMaxPurchasableQuantity(product), PRODUCT_MODAL_MAX_QUANTITY);
+  const effectiveMaxQuantity = Math.min(
+    getProductMaxPurchasableQuantity(product),
+    PRODUCT_MODAL_MAX_QUANTITY
+  );
   const isOutOfStock = isProductPurchaseDisabled(product);
   const totalPrice = product.price * quantity;
-  
+
   // 使用接口返回的商品图片
   const productImage = product.image;
-  const isVoucher = product.categoryId === 'vouchers';
-  const isGiftPack = product.categoryId === 'giftPacks';
   const productImageBg = isVoucher ? purchaseDetailBgImg : buyItemBgImg;
-  const giftPackDisplayName = product.name || product.description;
   const gemCount = product.gem_count ?? 0;
   const valueRatio = product.value_ratio ?? 0;
   const bonusGemCount = getVoucherBonusGemCount(gemCount, valueRatio);
@@ -166,11 +187,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   const handleDecrease = () => {
-    setQuantity((prev) => Math.max(effectiveMaxQuantity > 0 ? 1 : 0, prev - 1));
+    setQuantity(prev => Math.max(effectiveMaxQuantity > 0 ? 1 : 0, prev - 1));
   };
 
   const handleIncrease = () => {
-    setQuantity((prev) => Math.min(effectiveMaxQuantity, prev + 1));
+    setQuantity(prev => Math.min(effectiveMaxQuantity, prev + 1));
   };
 
   const handleQuantityPointerDown = (
@@ -254,14 +275,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const handleProceedToPayment = async (): Promise<string | null> => {
     if (!product) return '商品信息缺失，请重试';
 
-    if (quantity <= 0 || quantity > effectiveMaxQuantity || isProductQuantityOverPurchaseLimit(product, quantity)) {
+    if (
+      quantity <= 0 ||
+      quantity > effectiveMaxQuantity ||
+      isProductQuantityOverPurchaseLimit(product, quantity)
+    ) {
       const errorMessage = getErrorMessage(SinglePurchaseQuantityLimitReached);
       messageStore.show(errorMessage);
       return errorMessage;
     }
 
     // 获取必要的参数
-    const appKey = getAppKeyByGameId(gameId) || storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
+    const appKey =
+      getAppKeyByGameId(gameId) ||
+      storage.get<string>(STORAGE_KEYS.CURRENT_GAME_APP_KEY, undefined);
     if (!appKey) {
       const errorMessage = '无法获取游戏配置，请刷新页面重试';
       messageStore.show(errorMessage);
@@ -296,19 +323,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       });
 
       if (!res.success || !res.data) {
+        if (
+          res.bizCode === ProductPurchaseLimitExceeded &&
+          product &&
+          (product.purchase_limit ?? 0) > 0 &&
+          ((product.purchase_limit ?? 0) - (product.purchase_used ?? 0)) >= quantity
+        ) {
+          setShowPendingOrderDialog(true);
+          return null;
+        }
         const errorMessage = res.error || '创建订单失败';
         messageStore.show(errorMessage);
-        // console.error('创建订单失败:', errorMessage);
         return errorMessage;
       }
-
       const isAirwallexFlow = isAirwallexOrderPaymentData(res.data);
       const paymentType = isAirwallexFlow
         ? resolveAirwallexPaymentType(res.data.payment_type)
         : res.data.payment_type;
-
-      // 保存支付方式到 state，用于支付失败事件上报
-      setCurrentOrderPaymentType(paymentType);
 
       // 上报内购点击事件（Airwallex 走 airwallex_store / airwallex_h5store）
       const environment = resolveAnalyticsEnvironment(
@@ -356,7 +387,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       //   messageStore.show('支付配置错误，请联系客服');
       //   console.error('创建订单成功但未返回支付信息:', res.data);
       // }
-      
+
       // 如果没有匹配到任何支付方式，显示错误提示
       if (!res.data.h5_url && !res.data.billing_checkout_url && !res.data.intent_id) {
         const errorMessage = '支付配置错误，请联系客服';
@@ -382,12 +413,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   //   setCurrentOrderPaymentType(undefined);
   // };
 
-  const handleAirwallexCheckoutClose = () => {
-    setShowAirwallexCheckout(false);
-    setAirwallexCheckoutParams(null);
-    setCurrentOrderPaymentType(undefined);
-  };
-
   // 暂时注释掉 Stripe 相关逻辑，因为目前都使用 h5_url 的支付方式
   // // 计算金额（Stripe 需要以分为单位的整数）
   // const convertToStripeAmount = (price: number): number => {
@@ -402,7 +427,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     <div className={styles.overlay} data-scroll-lock-overlay onClick={handleBackdropClick}>
       <div
         className={`${styles.modal} ${showDetails ? styles.modalDetailsExpanded : ''}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className={styles.modalFrameAnchor} aria-hidden>
           <img
@@ -420,7 +445,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
         <img src={buyWindowImg} alt="" className={styles.modalSizeSpacer} aria-hidden />
 
-        <button type="button" className={styles.closeButton} onClick={handleClose} aria-label="关闭">
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={handleClose}
+          aria-label="关闭"
+        >
           <img src={loginModalClose} alt="" className={styles.closeButtonImg} />
         </button>
 
@@ -443,8 +473,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       className={styles.productNamePlateBg}
                       aria-hidden
                     />
-                    {giftPackDisplayName ? (
-                      <span className={styles.productName}>{giftPackDisplayName}</span>
+                    {productNameText ? (
+                      <span ref={productNameRef} className={styles.productName}>
+                        {productNameText}
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -454,9 +486,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   <img src={productImage} alt={product.name} className={styles.productImageMain} />
                   <img src={shadowImg} alt="" className={styles.productImageShadow} />
                   <div className={styles.productNamePlate}>
-                    <img src={buyItemNameImg} alt="" className={styles.productNamePlateBg} aria-hidden />
+                    <img
+                      src={buyItemNameImg}
+                      alt=""
+                      className={styles.productNamePlateBg}
+                      aria-hidden
+                    />
                     {showVoucherGemTitle ? (
-                      <div className={styles.productNamePlateVoucherRow} aria-label={voucherTitleLabel}>
+                      <div
+                        className={styles.productNamePlateVoucherRow}
+                        aria-label={voucherTitleLabel}
+                      >
                         <img
                           src={purchaseTokenItemImg}
                           alt=""
@@ -478,7 +518,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         )}
                       </div>
                     ) : (
-                      <span className={styles.productName}>{product.description || product.name}</span>
+                      <span ref={productNameRef} className={styles.productName}>
+                        {productNameText}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -490,8 +532,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <button
                   type="button"
                   className={styles.quantityButton}
-                  onPointerDown={(event) => handleQuantityPointerDown(event, handleDecrease)}
-                  onClick={(event) => handleQuantityClickFallback(event, handleDecrease)}
+                  onPointerDown={event => handleQuantityPointerDown(event, handleDecrease)}
+                  onClick={event => handleQuantityClickFallback(event, handleDecrease)}
                   disabled={quantity <= 1 || isOutOfStock}
                   aria-label="减少"
                 >
@@ -501,8 +543,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <button
                   type="button"
                   className={styles.quantityButton}
-                  onPointerDown={(event) => handleQuantityPointerDown(event, handleIncrease)}
-                  onClick={(event) => handleQuantityClickFallback(event, handleIncrease)}
+                  onPointerDown={event => handleQuantityPointerDown(event, handleIncrease)}
+                  onClick={event => handleQuantityClickFallback(event, handleIncrease)}
                   disabled={quantity >= effectiveMaxQuantity || isOutOfStock}
                   aria-label="增加"
                 >
@@ -529,11 +571,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div className={styles.detailsDivider} />
 
             <div className={styles.detailsExpandArea}>
-              <div className={`${styles.detailsContent} ${!showDetails ? styles.detailsCollapsed : ''}`}>
+              <div
+                className={`${styles.detailsContent} ${!showDetails ? styles.detailsCollapsed : ''}`}
+              >
                 <div className={styles.priceInfo}>
                   <div className={styles.priceRow}>
                     <span className={styles.priceLabel}>{t('productModal.unitPrice')}</span>
-                    <span className={styles.priceValue}>{formatPrice(product.price, product.currency)}</span>
+                    <span className={styles.priceValue}>
+                      {formatPrice(product.price, product.currency)}
+                    </span>
                   </div>
                   <div className={styles.priceRow}>
                     <span className={styles.priceLabel}>{t('productModal.quantity')}</span>
@@ -598,14 +644,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           currency={airwallexCheckoutParams.currency}
           countryCode={airwallexCheckoutParams.countryCode}
           orderNo={airwallexCheckoutParams.orderNo}
-      />
+        />
       )}
 
       {/* 登录弹窗 */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-      />
+
+      {/* 待支付订单提示弹窗 */}
+      {showPendingOrderDialog && (
+        <div className={styles.pendingOrderOverlay} data-scroll-lock-overlay onClick={() => setShowPendingOrderDialog(false)}>
+          <div className={styles.pendingOrderModal} onClick={e => e.stopPropagation()}>
+            <button type="button" className={styles.pendingOrderCloseButton} onClick={() => setShowPendingOrderDialog(false)} aria-label="关闭">
+              <img src={loginModalClose} alt="" className={styles.pendingOrderCloseButtonImg} />
+            </button>
+            <h2 className={styles.pendingOrderTitle}>{t('pendingOrder.title')}</h2>
+            <p className={styles.pendingOrderDescription}>{t('pendingOrder.message')}</p>
+            <div className={styles.pendingOrderActions}>
+              <button type="button" className={styles.pendingOrderGoButton} onClick={() => { setShowPendingOrderDialog(false); navigate(gameId ? `/game/${gameId}/history?status=inProgress` : '/history?status=inProgress'); }}>{t('pendingOrder.goToOrders')}</button>
+              <button type="button" className={styles.pendingOrderCancelButton} onClick={() => setShowPendingOrderDialog(false)}>{t('pendingOrder.cancel')}</button>
+            </div>
+          </div>
+        </div>
+      )}      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 };

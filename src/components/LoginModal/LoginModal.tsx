@@ -228,7 +228,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setCaptchaError('');
     setLoading(true);
 
-    if (!captcha || captcha.length !== 4 || !/^\d{4}$/.test(captcha)) {
+    if (!captcha) {
+      setCaptchaError(t('login.captchaRequired') || t('login.invalidCaptcha') || '请输入验证码');
+      setLoading(false);
+      return;
+    }
+
+    if (captcha.length !== 4 || !/^\d{4}$/.test(captcha)) {
       setCaptchaError(t('login.invalidCaptcha') || '请输入4位数字验证码');
       setLoading(false);
       return;
@@ -484,7 +490,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     <>
       {!showVerification
         ? renderModalShell(
-            <form className={styles.form} onSubmit={handleSubmit}>
+            <form className={styles.form} onSubmit={handleSubmit} noValidate>
               <div className={styles.inputGroup}>
                 <input
                   type="email"
@@ -522,7 +528,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     maxLength={4}
                     inputMode="numeric"
                     pattern="[0-9]{4}"
-                    required
                   />
                   <div className={styles.captchaImage}>
                     {captchaImage ? (

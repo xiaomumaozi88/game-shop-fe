@@ -26,7 +26,10 @@ const BMALL_DOMAINS: Record<'test' | 'prod', string> = {
   prod: 'https://sandc.gameztsvc.com',
 };
 
-const REDEEM_API_BASE_URL = 'http://52.76.99.72:9087';
+const REDEEM_API_DOMAINS: Record<'test' | 'prod', string> = {
+  test: 'https://redeem-qa.lnspec.com',
+  prod: 'https://redeem.lnspec.com',
+};
 
 export const config = {
   // DefinePlugin 会在编译时替换 process.env.REACT_APP_API_URL 为实际的字符串值
@@ -47,6 +50,6 @@ export const config = {
     baseUrl: `${BMALL_DOMAINS[envStage] || BMALL_DOMAINS.test}/bmall`,
   },
   redeem: {
-    baseUrl: process.env.REACT_APP_REDEEM_API_URL || REDEEM_API_BASE_URL,
+    baseUrl: process.env.REACT_APP_REDEEM_API_URL || REDEEM_API_DOMAINS[envStage] || REDEEM_API_DOMAINS.test,
   },
 } as const;

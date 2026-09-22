@@ -23,6 +23,7 @@ import {
   formatPrice,
   storage,
   STORAGE_KEYS,
+  resolveOrderCategoryId,
   resolveAnalyticsPaymentType,
   resolveAnalyticsEnvironment,
   buildNoRoleHomeState,
@@ -59,7 +60,8 @@ import styles from './Products.module.less';
 
 // 导入图片
 import productDiamondCardBg from '@/assets/img2/pay_item_diamond_bg.png';
-import toukaCoinGuideArrowIcon from '@/assets/img2/touka-coin-guide-arrow.png';
+
+const CATEGORY_TAB_CJK_LOCALES = new Set(['zh-CN', 'zh-TW', 'ja-JP', 'ko-KR']);
 
 // 商品卡片包装组件，用于处理曝光追踪
 interface ProductCardWrapperProps {
@@ -183,6 +185,7 @@ const ProductCardWrapper: React.FC<ProductCardWrapperProps> = ({
       <VoucherProductCard
         cardRef={cardRef}
         product={product}
+        isGray={isProductPurchaseDisabled(product)}
         onProductClick={onProductClick}
         t={t}
         formatCountdown={formatCountdown}
@@ -256,13 +259,12 @@ const ToukaCoinGuideBackButton: React.FC<{ label: string; onClick: () => void }>
     className={`${styles.toukaCoinGuideEntry} ${styles.toukaCoinGuideBackButton}`}
     onClick={onClick}
   >
-    <span className={styles.toukaCoinGuideEntryBgMiddle} aria-hidden />
-    <span className={styles.toukaCoinGuideEntryContent}>
-      <span className={styles.toukaCoinGuideEntryLabel}>
-        <span className={styles.toukaCoinGuideEntryText}>{label}</span>
+      <span className={styles.toukaCoinGuideEntryContent}>
+        <span className={styles.toukaCoinGuideEntryLabel}>
+          <span className={styles.toukaCoinGuideEntryText}>{label}</span>
+        </span>
+      <span className={styles.toukaCoinGuideEntryArrow} aria-hidden />
       </span>
-      <img src={toukaCoinGuideArrowIcon} alt="" className={styles.toukaCoinGuideEntryArrow} />
-    </span>
   </button>
 );
 
@@ -322,8 +324,7 @@ export const Products: React.FC = () => {
   const { requireLogin, showLoginModal, setShowLoginModal } = useLoginGuard();
   const { user, clearGameSpecificFields, saveGameRoleSelection, getGameRoleSelection } = useUser();
   const { loading: rolesLoading, hasRolesForAppKey, roles } = useGameRole();
-  const { isMobile, isTablet, isTouchLandscape } = useResponsive();
-
+  const { isTablet, isDesktop } = useResponsive();
   useEffect(() => {
     productsUserPanelStore.show();
   }, []);
@@ -367,7 +368,19 @@ export const Products: React.FC = () => {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const productsPageBodyRef = useRef<HTMLDivElement>(null);
+  const categoryNavRef = useRef<HTMLDivElement>(null);
+  const [isCategoryNavPinned, setIsCategoryNavPinned] = useState(false);
+  const [categoryNavPinnedStyle, setCategoryNavPinnedStyle] = useState<{
+    top: string;
+    width: string;
+    height: string;
+  } | null>(null);
 
+  const categoryNavPinnedTop = isDesktop
+    ? 96
+    : isTablet
+      ? 68
+      : 66;
   const handleLogout = async (): Promise<boolean> => {
     if (logoutLoading) return false;
 
@@ -413,8 +426,7 @@ export const Products: React.FC = () => {
   }, [showToukaCoinGuide]);
 
   useEffect(() => {
-    const shouldAutoHidePanel = isMobile || isTablet || isTouchLandscape;
-    if (!shouldAutoHidePanel || showToukaCoinGuide) return undefined;
+    if (showToukaCoinGuide) return undefined;
 
     const hidePanelOnScroll = () => {
       productsUserPanelStore.hide();
@@ -429,7 +441,7 @@ export const Products: React.FC = () => {
       window.removeEventListener('wheel', hidePanelOnScroll);
       window.removeEventListener('touchmove', hidePanelOnScroll);
     };
-  }, [isMobile, isTablet, isTouchLandscape, showToukaCoinGuide]);
+  }, [showToukaCoinGuide]);
 
   const scrollToProductsBodyTop = () => {
     window.requestAnimationFrame(() => {
@@ -530,7 +542,7 @@ export const Products: React.FC = () => {
           if (initSuccess) {
             thinkingData.setCurrentGame(currentAppKey);
             if (user.sdkId) {
-              thinkingData.login(user.sdkId);
+              thinkingData.login(user.characterName || user.sdkId);
               // 设置用户属性
               thinkingData.userSet({
                 username: user.username || user.gameAccount || '',
@@ -572,6 +584,72 @@ export const Products: React.FC = () => {
     );
   }, [loadingProducts, products, categories]);
 
+  /*
+  useEffect(() => {
+    if (showToukaCoinGuide || visibleCategories.length === 0) {
+      setIsCategoryNavPinned(false);
+      setCategoryNavPinnedStyle(null);
+      return undefined;
+    }
+
+    const nav = categoryNavRef.current;
+    if (!nav) return undefined;
+
+    let frameId: number | null = null;
+    const scrollRoot = document.querySelector<HTMLElement>('[data-ios-scroll-fix]');
+    const syncCategoryNavPinnedState = () => {
+      const rect = nav.getBoundingClientRect();
+      const shouldPin = rect.top <= categoryNavPinnedTop;
+      const nextStyle = shouldPin
+        ? {
+            top: `${categoryNavPinnedTop}px`,
+            width: `${Math.round(rect.width)}px`,
+            height: `${Math.round(rect.height)}px`,
+          }
+        : null;
+
+      setIsCategoryNavPinned((prev) => (prev === shouldPin ? prev : shouldPin));
+      setCategoryNavPinnedStyle((prev) => {
+        if (!nextStyle && !prev) return prev;
+        if (!nextStyle || !prev) return nextStyle;
+        return prev.top === nextStyle.top &&
+          prev.width === nextStyle.width &&
+          prev.height === nextStyle.height
+          ? prev
+          : nextStyle;
+      });
+    };
+
+    const scheduleSync = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        syncCategoryNavPinnedState();
+      });
+    };
+
+    syncCategoryNavPinnedState();
+    window.addEventListener('scroll', scheduleSync, { passive: true });
+    scrollRoot?.addEventListener('scroll', scheduleSync, { passive: true });
+    window.addEventListener('resize', scheduleSync);
+
+    const resizeObserver = new ResizeObserver(scheduleSync);
+    resizeObserver.observe(nav);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener('scroll', scheduleSync);
+      scrollRoot?.removeEventListener('scroll', scheduleSync);
+      window.removeEventListener('resize', scheduleSync);
+      resizeObserver.disconnect();
+    };
+  }, [categoryNavPinnedTop, showToukaCoinGuide, visibleCategories.length]);
+  */
+
   const productsByCategory = useMemo(() => {
     const result: Record<ProductCategory, Product[]> = {
       diamond: [],
@@ -593,40 +671,62 @@ export const Products: React.FC = () => {
 
   // 滚动时根据当前可见分区高亮 Tab
   useEffect(() => {
-    if (loadingProducts || visibleCategories.length === 0) return;
+    if (showToukaCoinGuide || loadingProducts || visibleCategories.length === 0) return;
 
     const sections = visibleCategories
-      .map((c) => document.getElementById(getCategorySectionId(c.id)))
-      .filter((el): el is HTMLElement => el != null);
+      .map((category) => ({
+        categoryId: category.id,
+        element: document.getElementById(getCategorySectionId(category.id)),
+      }))
+      .filter((item): item is { categoryId: ProductCategory; element: HTMLElement } => item.element != null);
 
     if (sections.length === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isCategoryScrollSpyPaused()) return;
+    let frameId: number | null = null;
+    const scrollRoot = document.querySelector<HTMLElement>('[data-ios-scroll-fix]');
+    const syncActiveCategory = () => {
+      if (isCategoryScrollSpyPaused()) return;
 
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      const navHeight = categoryNavRef.current?.getBoundingClientRect().height ?? 0;
+      const anchorTop = categoryNavPinnedTop + navHeight + 8;
 
-        const topSection = visible[0]?.target;
-        if (!topSection) return;
-
-        const categoryId = topSection.getAttribute('data-category-section') as ProductCategory | null;
-        if (categoryId) {
-          setActiveCategory((prev) => (prev === categoryId ? prev : categoryId));
+      let nextCategory = sections[0].categoryId;
+      for (const { categoryId, element } of sections) {
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= anchorTop) {
+          nextCategory = categoryId;
+        } else {
+          break;
         }
-      },
-      {
-        root: null,
-        rootMargin: '-88px 0px -58% 0px',
-        threshold: [0, 0.05, 0.15],
       }
-    );
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [loadingProducts, visibleCategories]);
+      setActiveCategory((prev) => (prev === nextCategory ? prev : nextCategory));
+    };
+
+    const scheduleSync = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        syncActiveCategory();
+      });
+    };
+
+    syncActiveCategory();
+    window.addEventListener('scroll', scheduleSync, { passive: true });
+    scrollRoot?.addEventListener('scroll', scheduleSync, { passive: true });
+    window.addEventListener('resize', scheduleSync);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener('scroll', scheduleSync);
+      scrollRoot?.removeEventListener('scroll', scheduleSync);
+      window.removeEventListener('resize', scheduleSync);
+    };
+  }, [categoryNavPinnedTop, loadingProducts, showToukaCoinGuide, visibleCategories]);
 
   // 处理 quick_sign 快速登录：仅执行一次（只做轻量校验 + 调用后端校验）
   useEffect(() => {
@@ -798,6 +898,10 @@ export const Products: React.FC = () => {
   };
 
   const handleProductClick = (product: Product) => {
+    if (isProductPurchaseDisabled(product)) {
+      return;
+    }
+
     requireLogin(() => {
       const currentUser = userStore.getUser();
       if (!currentUser?.gameServer || !currentUser?.characterName || !currentUser?.platform) {
@@ -937,7 +1041,7 @@ export const Products: React.FC = () => {
           
           // 设置账号ID（使用 sdk_id）
           if (userDetail.sdk_id) {
-            thinkingData.login(userDetail.sdk_id);
+            thinkingData.login(userDetail.game_user_id || userDetail.sdk_id);
             
             // 设置用户属性
             thinkingData.userSet({
@@ -1143,22 +1247,15 @@ export const Products: React.FC = () => {
         // 确保不会重复上报
         if (paymentFailTrackedRef.current) return;
         
-        // 从订单详情接口返回的数据构建 Product 对象
-        const mapPositionToCategoryId = (position?: string): string => {
-          if (!position) return 'vouchers';
-          const positionLower = position.toLowerCase();
-          if (positionLower === 'coupon') return 'vouchers';
-          if (positionLower === 'luxury' || positionLower === 'diamond') return 'diamond';
-          if (positionLower === 'gift') return 'giftPacks';
-          return 'vouchers';
-        };
-
         const productName = parseProductMultiName(
           orderData.multi_name,
           locale,
           resolveOrderProductFallbackName(orderData)
         );
-        const categoryId = mapPositionToCategoryId(orderData.product_position);
+        const categoryId = resolveOrderCategoryId(
+          orderData.product_position,
+          orderData.purchase_limit_type
+        );
         
         // 构建 Product 对象
         const product: Product = {
@@ -1273,22 +1370,15 @@ export const Products: React.FC = () => {
       
       // 如果支付失败或从 URL 参数判断为失败，上报失败事件
       if (!isPaymentSuccess || isFailedFromUrl) {
-        // 从订单详情接口返回的数据构建 Product 对象
-        const mapPositionToCategoryId = (position?: string): string => {
-          if (!position) return 'vouchers';
-          const positionLower = position.toLowerCase();
-          if (positionLower === 'coupon') return 'vouchers';
-          if (positionLower === 'luxury' || positionLower === 'diamond') return 'diamond';
-          if (positionLower === 'gift') return 'giftPacks';
-          return 'vouchers';
-        };
-
         const productName = parseProductMultiName(
           orderData.multi_name,
           locale,
           resolveOrderProductFallbackName(orderData)
         );
-        const categoryId = mapPositionToCategoryId(orderData.product_position);
+        const categoryId = resolveOrderCategoryId(
+          orderData.product_position,
+          orderData.purchase_limit_type
+        );
         
         // 构建 Product 对象
         const product: Product = {
@@ -1468,8 +1558,21 @@ export const Products: React.FC = () => {
         ) : (
           <div className={styles.productsMainColumn}>
             {visibleCategories.length > 0 && (
-              <div className={styles.categoryNav}>
-                <div className={styles.categoryNavInner}>
+              <div
+                ref={categoryNavRef}
+                className={styles.categoryNav}
+                style={
+                  isCategoryNavPinned && categoryNavPinnedStyle
+                    ? { minHeight: categoryNavPinnedStyle.height }
+                    : undefined
+                }
+              >
+                <div
+                  className={`${styles.categoryNavInner} ${
+                    isCategoryNavPinned ? styles.categoryNavInnerPinned : ''
+                  }`}
+                  style={isCategoryNavPinned ? categoryNavPinnedStyle ?? undefined : undefined}
+                >
                   <div className={styles.categoryNavInnerBg} aria-hidden>
                     <span className={styles.categoryNavInnerBgLeft} />
                     <span className={styles.categoryNavInnerBgMiddle} />
@@ -1478,29 +1581,39 @@ export const Products: React.FC = () => {
                   <div className={styles.categoryNavBrand} aria-hidden>
                     <CategoryNavBrandText text={t('products.products')} locale={locale} />
                   </div>
-                  <div className={styles.categoryNavTabs}>
-                    {visibleCategories.map((category, tabIndex) => {
-                      const isActive = activeCategory === category.id;
-                      const useTraditionalChineseTabFont = locale === 'zh-TW' && category.id === 'vouchers';
-                      return (
-                        <button
-                          key={category.id}
-                          type="button"
-                          className={`${styles.categoryTab} ${isActive ? styles.categoryTabActive : ''} ${
-                            useTraditionalChineseTabFont ? styles.categoryTabTraditionalChinese : ''
-                          }`}
-                          style={
-                            {
-                              '--tab-slot': tabIndex + 1,
-                              '--tab-total': visibleCategories.length,
-                            } as React.CSSProperties
-                          }
-                          onClick={() => handleCategoryTabClick(category.id)}
-                        >
-                          <span>{category.label}</span>
-                        </button>
-                      );
-                    })}
+                  <div
+                    className={`${styles.categoryNavTabs} ${
+                      styles[`categoryNavTabsCount${visibleCategories.length}`] || ''
+                    }`}
+                  >
+                    <div className={styles.categoryNavTabsInner}>
+                      {visibleCategories.map((category, tabIndex) => {
+                        const isActive = activeCategory === category.id;
+                        const useCjkTabFont = CATEGORY_TAB_CJK_LOCALES.has(locale);
+                        const useTraditionalChineseTabFont =
+                          locale === 'zh-TW' && category.id === 'vouchers';
+                        return (
+                          <button
+                            key={category.id}
+                            type="button"
+                            className={`${styles.categoryTab} ${
+                              useCjkTabFont ? styles.categoryTabCjk : ''
+                            } ${isActive ? styles.categoryTabActive : ''} ${
+                              useTraditionalChineseTabFont ? styles.categoryTabTraditionalChinese : ''
+                            }`}
+                            style={
+                              {
+                                '--tab-slot': tabIndex + 1,
+                                '--tab-total': visibleCategories.length,
+                              } as React.CSSProperties
+                            }
+                            onClick={() => handleCategoryTabClick(category.id)}
+                          >
+                            <span>{category.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>

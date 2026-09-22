@@ -12,6 +12,7 @@ import {
   resolveAnalyticsPaymentType,
   resolveAnalyticsEnvironment,
   formatServerChannelForDisplay,
+  resolveOrderCategoryId,
 } from '@/utils';
 import {
   parseProductMultiName,
@@ -273,16 +274,10 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
 
       if (!successEventTracked.current && isPaymentSuccess) {
         try {
-          const mapPositionToCategoryId = (position?: string): string => {
-            if (!position) return 'vouchers';
-            const positionLower = position.toLowerCase();
-            if (positionLower === 'coupon') return 'vouchers';
-            if (positionLower === 'luxury' || positionLower === 'diamond') return 'diamond';
-            if (positionLower === 'gift') return 'giftPacks';
-            return 'vouchers';
-          };
-
-          const categoryId = mapPositionToCategoryId(orderData.product_position);
+          const categoryId = resolveOrderCategoryId(
+            orderData.product_position,
+            orderData.purchase_limit_type
+          );
 
           const product: Product = {
             id: orderData.product_id,

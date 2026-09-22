@@ -131,6 +131,7 @@ export const enUS = {
     "bindGameGuide": "Game binding notice",
     "bindGameGuideContent": "Open any Touka game,\ngo to in-game Settings,\nbind your email, and you can enjoy\nspecial store discounts!",
     "captchaPlaceholder": "Verification Code",
+    "captchaRequired": "Please enter the captcha",
     "invalidCaptcha": "Please enter a 4-digit verification code",
     "email": "Email",
     "emailNotBound": "We couldn't find your account. Please enter the email linked to your game account~",
@@ -194,14 +195,14 @@ export const enUS = {
     "gameIdLabel": "Game ID:",
     "gameIdPlaceholder": "Enter your Game ID",
     "howToFindGameId": "How to find your Game ID",
-    "giftCodeLabel": "Gift Code:",
-    "giftCodePlaceholder": "Enter your gift code",
+    "giftCodeLabel": "Redeem Code",
+    "giftCodePlaceholder": "Enter your redeem code",
     "captchaLabel": "Captcha:",
     "captchaPlaceholder": "Enter captcha",
     "refreshCaptcha": "Refresh captcha",
     "submit": "Submit",
     "submitting": "Submitting...",
-    "rule": "Each gift code can only be redeemed once per account.",
+    "rule": "Each redeem code can only be redeemed once per account.",
     "success": {
       "title": "Redeemed",
       "description": "Please claim your reward from the in-game mailbox!",
@@ -212,7 +213,7 @@ export const enUS = {
       "stepTwo": "2. Copy your Game ID"
     },
     "messages": {
-      "enterGiftCode": "Please enter a gift code first",
+      "enterGiftCode": "Please enter a redeem code first",
       "requiredFields": "Please complete all redeem information",
       "captchaLoadFailed": "Captcha failed to load. Tap to retry.",
       "success": "Redeemed successfully. Rewards have been sent to your in-game mailbox.",
@@ -228,7 +229,7 @@ export const enUS = {
       "6": "Redeem code has been fully claimed.",
       "7": "Server is busy. Please try again later.",
       "8": "Request error. Please try again later.",
-      "9": "Redemption information is invalid. Please go back and try again.",
+      "9": "Invalid or expired verification code. Please confirm and try again.",
       "10": "The player game server was not found. Please confirm the character information and try again. The current server is temporarily unavailable. Please try again later.",
       "11": "The current server is temporarily unavailable. Please try again later.",
       "12": "Claim timed out. Please try again later.",
@@ -277,10 +278,16 @@ export const enUS = {
     "serverPlaceholder": "Please enter the server name to search",
     "title": "Select Game Server"
   },
-  "orientation": {
-    "bestExperience": "Please switch to portrait mode for the best experience"
+ "orientation": {
+   "bestExperience": "Please switch to portrait mode for the best experience"
+ },
+  "pendingOrder": {
+    "title": "Notice",
+    "message": "You have a pending order in progress. Would you like to view it?",
+    "goToOrders": "Go to Orders",
+    "cancel": "Cancel"
   },
-  "support": {
+ "support": {
     "cancel": "Cancel",
     "copied": "Copied",
     "copy": "One-click copy",
